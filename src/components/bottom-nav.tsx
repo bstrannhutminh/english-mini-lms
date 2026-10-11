@@ -3,8 +3,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-const ICON_ACTIVE = "#2563eb";
-const ICON_IDLE = "#94a3b8";
+const ICON_ACTIVE = "#0d9488";
+const ICON_IDLE = "#64748b";
 
 const navItems = [
   {
@@ -13,8 +13,8 @@ const navItems = [
     tour: "nav-today",
     icon: (stroke: string) => (
       <svg
-        width="24"
-        height="24"
+        width="22"
+        height="22"
         viewBox="0 0 24 24"
         fill="none"
         stroke={stroke}
@@ -34,8 +34,8 @@ const navItems = [
     tour: "nav-library",
     icon: (stroke: string) => (
       <svg
-        width="24"
-        height="24"
+        width="22"
+        height="22"
         viewBox="0 0 24 24"
         fill="none"
         stroke={stroke}
@@ -55,8 +55,8 @@ const navItems = [
     tour: "nav-my-work",
     icon: (stroke: string) => (
       <svg
-        width="24"
-        height="24"
+        width="22"
+        height="22"
         viewBox="0 0 24 24"
         fill="none"
         stroke={stroke}
@@ -79,8 +79,8 @@ const navItems = [
     tour: "nav-vocab",
     icon: (stroke: string) => (
       <svg
-        width="24"
-        height="24"
+        width="22"
+        height="22"
         viewBox="0 0 24 24"
         fill="none"
         stroke={stroke}
@@ -100,8 +100,8 @@ const navItems = [
     tour: "nav-progress",
     icon: (stroke: string) => (
       <svg
-        width="24"
-        height="24"
+        width="22"
+        height="22"
         viewBox="0 0 24 24"
         fill="none"
         stroke={stroke}
@@ -122,14 +122,14 @@ function isItemActive(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(href + "/");
 }
 
-/** Thanh điều hướng dưới — chỉ hiện ở màn hình hẹp (<1024px). */
+/** Thanh điều hướng dưới — tối ưu mobile (chiều cao 64px, touch target 44px+). */
 export function BottomNav() {
   const pathname = usePathname();
 
   return (
     <nav
       aria-label="Điều hướng chính"
-      className="fixed inset-x-0 bottom-0 z-50 flex h-[var(--nav-height)] items-start border-t border-slate-200 bg-white pt-2 pb-[env(safe-area-inset-bottom,0px)] lg:hidden"
+      className="fixed inset-x-0 bottom-0 z-50 flex h-[var(--nav-height)] items-start border-t border-slate-200/80 bg-white/95 backdrop-blur-md pt-1.5 pb-[env(safe-area-inset-bottom,0px)] lg:hidden shadow-[0_-2px_10px_rgba(0,0,0,0.03)]"
     >
       {navItems.map((item) => {
         const active = isItemActive(pathname, item.href);
@@ -139,12 +139,17 @@ export function BottomNav() {
             href={item.href}
             data-tour={item.tour}
             aria-current={active ? "page" : undefined}
-            className="flex min-h-[44px] flex-1 flex-col items-center justify-center gap-0.5 py-1 no-underline"
+            className="flex min-h-[44px] flex-1 flex-col items-center justify-center gap-1 py-1 no-underline cursor-pointer group"
           >
-            {item.icon(active ? ICON_ACTIVE : ICON_IDLE)}
+            <div className="relative">
+              {item.icon(active ? ICON_ACTIVE : ICON_IDLE)}
+              {active && (
+                <span className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1.5 h-1.5 rounded-full bg-teal-600" />
+              )}
+            </div>
             <span
-              className={`text-[0.625rem] leading-none ${
-                active ? "font-semibold text-blue-600" : "font-normal text-slate-400"
+              className={`text-[0.6875rem] leading-none tracking-tight ${
+                active ? "font-bold text-teal-700" : "font-medium text-slate-500 group-hover:text-slate-800"
               }`}
             >
               {item.label}
@@ -156,20 +161,35 @@ export function BottomNav() {
   );
 }
 
-/** Sidebar trái — chỉ hiện từ 1024px trở lên. */
+/** Sidebar trái — màn hình rộng (≥1024px). */
 export function SideNav() {
   const pathname = usePathname();
 
   return (
     <nav
       aria-label="Điều hướng chính"
-      className="fixed inset-y-0 left-0 z-50 hidden w-60 flex-col border-r border-slate-200 bg-white px-3 py-5 lg:flex"
+      className="fixed inset-y-0 left-0 z-50 hidden w-60 flex-col border-r border-slate-200/80 bg-white px-3 py-6 lg:flex shadow-xs"
     >
-      <div className="mb-6 px-3">
-        <p className="text-base font-bold text-slate-900">English Mini LMS</p>
-        <p className="text-xs text-slate-500">30–45 phút mỗi ngày</p>
+      <div className="mb-7 px-3">
+        <div className="flex items-center gap-2.5 mb-1">
+          <div className="w-8 h-8 rounded-xl bg-teal-600 text-white flex items-center justify-center font-bold text-xs shadow-xs tracking-wider">
+            MD
+          </div>
+          <div>
+            <p className="text-base font-bold text-slate-900 tracking-tight leading-tight">
+              English Mini LMS
+            </p>
+            <p className="text-[11px] text-teal-700 font-semibold">
+              Medical English Mastery
+            </p>
+          </div>
+        </div>
+        <p className="text-xs text-slate-500 mt-2 pl-0.5">
+          BS. Minh • 30–45 phút mỗi ngày
+        </p>
       </div>
-      <div className="flex flex-col gap-1">
+
+      <div className="flex flex-col gap-1.5">
         {navItems.map((item) => {
           const active = isItemActive(pathname, item.href);
           return (
@@ -178,10 +198,10 @@ export function SideNav() {
               href={item.href}
               data-tour={item.tour}
               aria-current={active ? "page" : undefined}
-              className={`flex min-h-[44px] items-center gap-3 rounded-xl px-3 py-2 text-sm no-underline transition-colors ${
+              className={`flex min-h-[44px] items-center gap-3 rounded-xl px-3.5 py-2.5 text-sm no-underline transition-all cursor-pointer ${
                 active
-                  ? "bg-blue-50 font-semibold text-blue-700"
-                  : "font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                  ? "bg-teal-50/80 font-bold text-teal-800 border border-teal-200/70 shadow-xs"
+                  : "font-medium text-slate-600 hover:bg-slate-50 hover:text-slate-900 border border-transparent"
               }`}
             >
               {item.icon(active ? ICON_ACTIVE : ICON_IDLE)}

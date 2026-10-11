@@ -44,11 +44,167 @@ interface TodayViewProps {
   displayName?: string;
 }
 
-const MODE_LABELS: Record<string, { label: string; color: string; icon: string }> = {
-  writing: { label: "Viết", color: "bg-blue-100 text-blue-800 border-blue-200", icon: "✍️" },
-  reading: { label: "Đọc - Dịch", color: "bg-emerald-100 text-emerald-800 border-emerald-200", icon: "📖" },
-  speaking: { label: "Nói", color: "bg-purple-100 text-purple-800 border-purple-200", icon: "🎙️" },
-  listening: { label: "Nghe / Shadowing", color: "bg-amber-100 text-amber-800 border-amber-200", icon: "🎧" },
+// SVG Vector Icons — Zero dependencies, accessible & crisp
+function FlameIcon({ className = "w-4 h-4" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <path d="M12 2c-.5 2.5-2 4.5-4 6-2 1.5-3 3.5-3 6 0 4 3 7 7 7s7-3 7-7c0-3-2-5.5-4.5-7-.5 2-1.5 3-2.5 3-.5 0-1-.5-1-1 0-2.5 1-4.5 1-7z" />
+    </svg>
+  );
+}
+
+function ClockIcon({ className = "w-4 h-4" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <circle cx="12" cy="12" r="10" />
+      <polyline points="12 6 12 12 16 14" />
+    </svg>
+  );
+}
+
+function UserIcon({ className = "w-4 h-4" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+      <circle cx="12" cy="7" r="4" />
+    </svg>
+  );
+}
+
+function SettingsIcon({ className = "w-4 h-4" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
+      <circle cx="12" cy="12" r="3" />
+    </svg>
+  );
+}
+
+function PenToolIcon({ className = "w-4 h-4" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M12 19l7-7 3 3-7 7-3-3z" />
+      <path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z" />
+      <path d="M2 2l7.586 7.586" />
+      <circle cx="11" cy="11" r="2" />
+    </svg>
+  );
+}
+
+function BookOpenIcon({ className = "w-4 h-4" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+      <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
+    </svg>
+  );
+}
+
+function MicIcon({ className = "w-4 h-4" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z" />
+      <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
+      <line x1="12" y1="19" x2="12" y2="22" />
+    </svg>
+  );
+}
+
+function HeadphonesIcon({ className = "w-4 h-4" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M3 18v-6a9 9 0 0 1 18 0v6" />
+      <path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z" />
+    </svg>
+  );
+}
+
+function PlayIcon({ className = "w-4 h-4" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+      <polygon points="5 3 19 12 5 21 5 3" />
+    </svg>
+  );
+}
+
+function RefreshIcon({ className = "w-4 h-4" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67" />
+    </svg>
+  );
+}
+
+function SparklesIcon({ className = "w-4 h-4" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M12 2l2.4 7.2L22 12l-7.6 2.8L12 22l-2.4-7.2L2 12l7.6-2.8z" />
+    </svg>
+  );
+}
+
+function CardsIcon({ className = "w-4 h-4" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <rect x="2" y="7" width="16" height="14" rx="2" />
+      <path d="M6 3h12a2 2 0 0 1 2 2v12" />
+    </svg>
+  );
+}
+
+function BarChartIcon({ className = "w-4 h-4" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <line x1="12" y1="20" x2="12" y2="10" />
+      <line x1="18" y1="20" x2="18" y2="4" />
+      <line x1="6" y1="20" x2="6" y2="16" />
+    </svg>
+  );
+}
+
+function AlertTriangleIcon({ className = "w-4 h-4" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+      <line x1="12" y1="9" x2="12" y2="13" />
+      <line x1="12" y1="17" x2="12.01" y2="17" />
+    </svg>
+  );
+}
+
+function CompassIcon({ className = "w-4 h-4" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <circle cx="12" cy="12" r="10" />
+      <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" />
+    </svg>
+  );
+}
+
+const MODE_CONFIG: Record<
+  string,
+  { label: string; badgeClass: string; icon: React.ReactNode }
+> = {
+  writing: {
+    label: "Viết chuyên môn",
+    badgeClass: "bg-teal-50 text-teal-800 border-teal-200/80",
+    icon: <PenToolIcon className="w-3.5 h-3.5 text-teal-700" />,
+  },
+  reading: {
+    label: "Đọc - Dịch Y khoa",
+    badgeClass: "bg-emerald-50 text-emerald-800 border-emerald-200/80",
+    icon: <BookOpenIcon className="w-3.5 h-3.5 text-emerald-700" />,
+  },
+  speaking: {
+    label: "Nói / Giao tiếp",
+    badgeClass: "bg-indigo-50 text-indigo-800 border-indigo-200/80",
+    icon: <MicIcon className="w-3.5 h-3.5 text-indigo-700" />,
+  },
+  listening: {
+    label: "Nghe / Shadowing",
+    badgeClass: "bg-amber-50 text-amber-900 border-amber-200/80",
+    icon: <HeadphonesIcon className="w-3.5 h-3.5 text-amber-700" />,
+  },
 };
 
 export default function TodayView({
@@ -113,7 +269,6 @@ export default function TodayView({
   const handleStartSession = async (activityId: string) => {
     setStarting(true);
     try {
-      // Nếu bài gợi ý là phiên đang dở → đi thẳng tới session đó
       if (
         selectedActivity?.actionType === "continue_draft" &&
         selectedActivity?.sessionId
@@ -168,75 +323,82 @@ export default function TodayView({
 
   const currentActivity = selectedActivity || data?.recommendedActivity;
   const currentModeInfo = currentActivity
-    ? MODE_LABELS[currentActivity.mode] || {
+    ? MODE_CONFIG[currentActivity.mode] || {
         label: currentActivity.mode,
-        color: "bg-slate-100 text-slate-800 border-slate-200",
-        icon: "📚",
+        badgeClass: "bg-slate-100 text-slate-700 border-slate-200",
+        icon: <BookOpenIcon className="w-3.5 h-3.5 text-slate-500" />,
       }
     : null;
 
   return (
-    <div className="max-w-2xl lg:max-w-4xl mx-auto px-4 py-6 space-y-6">
-      {/* 1. Header & Lời chào */}
-      <div className="rounded-2xl p-6 text-white bg-gradient-to-r from-blue-600 via-indigo-600 to-teal-500 shadow-md">
-        <div className="flex items-center justify-between flex-wrap gap-3">
-          <div>
-            <div className="flex items-center gap-2.5 flex-wrap">
-              <h1 className="text-xl sm:text-2xl font-bold">
-                Xin chào, {displayName || "Bác sĩ"}! 👋
+    <div className="max-w-2xl lg:max-w-4xl mx-auto px-4 py-6 sm:py-8 space-y-6">
+      {/* 1. Header & Hero Card — Medical Clean & Professional Slate-Teal */}
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-slate-900 via-slate-900 to-teal-950 text-white p-6 sm:p-7 shadow-sm border border-slate-800">
+        <div className="relative z-10 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-5">
+          <div className="space-y-1.5">
+            <div className="flex items-center gap-3 flex-wrap">
+              <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-white">
+                Xin chào, {displayName || "Bác sĩ Minh"}
               </h1>
               {data && typeof data.streakDays === "number" && (
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-amber-400 text-amber-950 shadow-xs border border-amber-300">
-                  <span>🔥</span>
-                  <span>{data.streakDays > 0 ? `${data.streakDays} ngày liên tiếp` : "0 ngày liên tiếp"}</span>
-                </span>
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                  <FlameIcon className="w-3.5 h-3.5 text-amber-400" />
+                  <span className="tabular-nums">
+                    {data.streakDays > 0 ? `${data.streakDays} ngày liên tiếp` : "0 ngày liên tiếp"}
+                  </span>
+                </div>
               )}
             </div>
-            <p className="text-blue-100 text-sm mt-1">
-              Duy trì 30–45 phút mỗi ngày để nâng cao phản xạ tiếng Anh y khoa.
+            <p className="text-slate-300 text-sm max-w-lg leading-relaxed">
+              Mục tiêu phản xạ tiếng Anh y khoa & IELTS 7.5–8.0 với 30–45 phút tập trung mỗi ngày.
             </p>
           </div>
-          <div className="flex items-center gap-2">
+
+          <div className="flex items-center gap-2 self-start">
             <Link
               href="/onboarding"
-              className="text-xs bg-white/20 hover:bg-white/30 text-white px-3 py-1.5 rounded-full transition font-medium backdrop-blur-sm"
+              className="inline-flex items-center gap-1.5 text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white px-3.5 py-2 rounded-xl transition border border-slate-700/80 font-medium cursor-pointer"
             >
-              Hồ sơ 📋
+              <UserIcon className="w-3.5 h-3.5" />
+              <span>Hồ sơ</span>
             </Link>
             <Link
               href="/settings"
-              className="text-xs bg-white/20 hover:bg-white/30 text-white px-3 py-1.5 rounded-full transition font-medium backdrop-blur-sm"
+              className="inline-flex items-center gap-1.5 text-xs bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white px-3.5 py-2 rounded-xl transition border border-slate-700/80 font-medium cursor-pointer"
             >
-              Cài đặt ⚙️
+              <SettingsIcon className="w-3.5 h-3.5" />
+              <span>Cài đặt</span>
             </Link>
           </div>
         </div>
 
-        {/* Bộ chọn thời lượng 30 / 45 phút */}
-        <div className="mt-5 pt-4 border-t border-white/20 flex flex-wrap items-center justify-between gap-3">
-          <span className="text-xs sm:text-sm font-medium text-blue-100">
-            Thời lượng mục tiêu hôm nay:
-          </span>
-          <div className="inline-flex bg-black/20 p-1 rounded-xl backdrop-blur-sm">
+        {/* Bộ chọn thời lượng mục tiêu: 30 / 45 phút */}
+        <div className="relative z-10 mt-6 pt-5 border-t border-slate-800/80 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div className="flex items-center gap-2 text-xs sm:text-sm font-medium text-slate-300">
+            <ClockIcon className="w-4 h-4 text-teal-400" />
+            <span>Thời lượng học mục tiêu hôm nay:</span>
+          </div>
+
+          <div className="inline-flex bg-slate-950/70 p-1 rounded-xl border border-slate-800/80">
             <button
               onClick={() => handleSelectMinutes(30)}
-              className={`px-4 py-1.5 text-xs sm:text-sm font-semibold rounded-lg transition-all ${
+              className={`px-4 py-2 text-xs sm:text-sm font-semibold rounded-lg transition-all cursor-pointer min-h-[38px] ${
                 targetMinutes === 30
-                  ? "bg-white text-blue-700 shadow-sm"
-                  : "text-white/80 hover:text-white"
+                  ? "bg-teal-600 text-white shadow-xs"
+                  : "text-slate-400 hover:text-white"
               }`}
             >
-              ⏱️ 30 phút
+              30 phút
             </button>
             <button
               onClick={() => handleSelectMinutes(45)}
-              className={`px-4 py-1.5 text-xs sm:text-sm font-semibold rounded-lg transition-all ${
+              className={`px-4 py-2 text-xs sm:text-sm font-semibold rounded-lg transition-all cursor-pointer min-h-[38px] ${
                 targetMinutes === 45
-                  ? "bg-white text-blue-700 shadow-sm"
-                  : "text-white/80 hover:text-white"
+                  ? "bg-teal-600 text-white shadow-xs"
+                  : "text-slate-400 hover:text-white"
               }`}
             >
-              ⏱️ 45 phút
+              45 phút
             </button>
           </div>
         </div>
@@ -244,43 +406,42 @@ export default function TodayView({
 
       {/* Card báo lỗi khi tải dữ liệu thất bại */}
       {error && !loading && (
-        <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+        <div className="bg-red-50/80 border border-red-200 rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
           <div className="flex items-start gap-3">
-            <div className="text-xl">⚠️</div>
+            <AlertTriangleIcon className="w-5 h-5 text-red-600 shrink-0 mt-0.5" />
             <div>
               <h3 className="text-sm font-bold text-red-900">
                 Không thể tải gợi ý bài học hôm nay
               </h3>
-              <p className="text-xs text-red-700 mt-0.5">
-                {error}
-              </p>
+              <p className="text-xs text-red-700 mt-0.5">{error}</p>
             </div>
           </div>
           <button
             onClick={handleRetry}
-            className="inline-flex items-center justify-center whitespace-nowrap bg-red-600 hover:bg-red-700 text-white text-xs font-semibold px-4 py-2 rounded-lg transition shadow-xs cursor-pointer"
+            className="inline-flex items-center justify-center gap-1.5 whitespace-nowrap bg-red-600 hover:bg-red-700 text-white text-xs font-semibold px-4 py-2 rounded-xl transition shadow-xs cursor-pointer min-h-[40px]"
           >
-            Thử lại 🔄
+            <RefreshIcon className="w-3.5 h-3.5" />
+            <span>Thử lại</span>
           </button>
         </div>
       )}
 
-      {/* Khối Tiếp tục phiên đang dở — luôn hiện khi có session active/paused */}
+      {/* Khối Tiếp tục phiên đang dở */}
       {data?.inProgressSession && (
-        <div className="bg-gradient-to-r from-amber-50 to-orange-50 border-2 border-amber-300 rounded-2xl p-5 shadow-xs space-y-3">
+        <div className="bg-amber-50/70 border border-amber-200/90 rounded-2xl p-5 shadow-xs space-y-3">
           <div className="flex items-center justify-between flex-wrap gap-2">
             <div className="flex items-center gap-2">
-              <span className="text-xs font-bold uppercase tracking-wider text-amber-900 bg-amber-200/90 px-2.5 py-0.5 rounded-full border border-amber-300 flex items-center gap-1">
-                <span>⏳</span>
+              <span className="text-[11px] font-bold uppercase tracking-wider text-amber-900 bg-amber-200/80 px-2.5 py-0.5 rounded-md border border-amber-300 flex items-center gap-1.5">
+                <ClockIcon className="w-3 h-3 text-amber-800" />
                 <span>Phiên đang dở</span>
               </span>
               <span className="text-xs text-amber-800 font-medium">
                 {data.inProgressSession.slot ? `${data.inProgressSession.slot} · ` : ""}
-                {MODE_LABELS[data.inProgressSession.mode]?.label || data.inProgressSession.mode}
+                {MODE_CONFIG[data.inProgressSession.mode]?.label || data.inProgressSession.mode}
               </span>
             </div>
-            <span className="text-xs text-amber-800/80 font-medium">
-              ⏱️ Mục tiêu {data.inProgressSession.targetMinutes} phút
+            <span className="text-xs text-amber-800/80 font-medium tabular-nums">
+              Mục tiêu {data.inProgressSession.targetMinutes} phút
             </span>
           </div>
 
@@ -288,39 +449,40 @@ export default function TodayView({
             <h3 className="text-base font-bold text-slate-900">
               {data.inProgressSession.title}
             </h3>
-            <p className="text-xs text-slate-600 mt-0.5">
-              Bạn có một phiên học chưa khép lại. Nhấp để vào thẳng không gian học và tiếp tục bài làm.
+            <p className="text-xs text-slate-600 mt-0.5 leading-relaxed">
+              Bạn có một phiên học chưa khép lại. Nhấp để tiếp tục bài làm ngay lập tức.
             </p>
           </div>
 
           <div className="pt-1">
             <Link
               href={`/learn/${data.inProgressSession.sessionId}`}
-              className="inline-flex items-center justify-center gap-2 bg-amber-600 hover:bg-amber-700 text-white text-xs sm:text-sm font-bold px-5 py-2.5 rounded-xl transition shadow-xs"
+              className="inline-flex items-center justify-center gap-2 bg-amber-600 hover:bg-amber-700 active:bg-amber-800 text-white text-xs sm:text-sm font-semibold px-5 py-2.5 rounded-xl transition shadow-xs cursor-pointer min-h-[44px]"
             >
-              <span>▶️</span> Tiếp tục phiên đang dở ngay →
+              <PlayIcon className="w-3.5 h-3.5" />
+              <span>Tiếp tục phiên học ngay</span>
             </Link>
           </div>
         </div>
       )}
 
-      {/* Banner Khảo sát năng lực đầu vào (Onboarding) nếu chưa hoàn thành */}
+      {/* Banner Khảo sát năng lực đầu vào nếu chưa hoàn thành */}
       {data && data.baselineStatus && data.baselineStatus !== "completed" && (
-        <div className="bg-indigo-50 border border-indigo-200 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm">
+        <div className="bg-indigo-50/80 border border-indigo-200/90 rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
           <div className="flex items-start gap-3">
-            <div className="text-2xl">📋</div>
+            <CompassIcon className="w-5 h-5 text-indigo-700 shrink-0 mt-0.5" />
             <div>
               <h3 className="text-sm font-bold text-indigo-950">
-                Bạn chưa hoàn tất khảo sát năng lực đầu vào!
+                Bạn chưa hoàn tất khảo sát năng lực đầu vào
               </h3>
-              <p className="text-xs text-indigo-700 mt-0.5">
+              <p className="text-xs text-indigo-700 mt-0.5 leading-relaxed">
                 Thiết lập mục tiêu và hoàn thành khảo sát 15 phút để lộ trình học được cá nhân hoá chuẩn xác.
               </p>
             </div>
           </div>
           <Link
             href="/onboarding"
-            className="inline-flex items-center justify-center whitespace-nowrap bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold px-3.5 py-2 rounded-lg transition shadow-sm"
+            className="inline-flex items-center justify-center whitespace-nowrap bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold px-4 py-2.5 rounded-xl transition shadow-xs cursor-pointer min-h-[44px]"
           >
             Làm bài khảo sát ngay →
           </Link>
@@ -329,28 +491,32 @@ export default function TodayView({
 
       {/* 2. Banner Ôn từ vựng đến hạn (Spaced Repetition) */}
       {data && data.dueVocabCount > 0 && (
-        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm">
+        <div className="bg-emerald-50/70 border border-emerald-200/80 rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
           <div className="flex items-start gap-3">
-            <div className="text-2xl">💡</div>
+            <SparklesIcon className="w-5 h-5 text-emerald-700 shrink-0 mt-0.5" />
             <div>
-              <h3 className="text-sm font-bold text-amber-900">
-                Có {data.dueVocabCount} từ vựng đến hạn ôn tập!
+              <h3 className="text-sm font-bold text-emerald-950 flex items-center gap-2">
+                <span>Sổ từ vựng y khoa</span>
+                <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-emerald-600 text-white tabular-nums">
+                  {data.dueVocabCount} từ cần ôn
+                </span>
               </h3>
-              <p className="text-xs text-amber-700 mt-0.5">
-                Ôn nhanh bằng flashcard vuốt 60s hoặc làm thử thách micro-challenge ngắn.
+              <p className="text-xs text-emerald-700 mt-0.5 leading-relaxed">
+                Áp dụng thuật toán Spaced Repetition giúp khắc sâu thuật ngữ y khoa vào trí nhớ dài hạn.
               </p>
             </div>
           </div>
           <div className="flex items-center gap-2 flex-wrap">
             <Link
               href="/vocab/flashcards"
-              className="inline-flex items-center justify-center whitespace-nowrap bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-3.5 py-2 rounded-lg transition shadow-xs"
+              className="inline-flex items-center justify-center gap-1.5 whitespace-nowrap bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-semibold px-4 py-2.5 rounded-xl transition shadow-xs cursor-pointer min-h-[44px]"
             >
-              🃏 Ôn nhanh bằng thẻ →
+              <CardsIcon className="w-3.5 h-3.5" />
+              <span>Ôn nhanh bằng Flashcard</span>
             </Link>
             <Link
               href="/vocab/review"
-              className="inline-flex items-center justify-center whitespace-nowrap bg-amber-600 hover:bg-amber-700 text-white text-xs font-semibold px-3 py-2 rounded-lg transition shadow-xs"
+              className="inline-flex items-center justify-center whitespace-nowrap bg-white hover:bg-emerald-50 text-emerald-800 border border-emerald-200 text-xs font-semibold px-3.5 py-2.5 rounded-xl transition shadow-xs cursor-pointer min-h-[44px]"
             >
               Thử thách câu →
             </Link>
@@ -358,19 +524,22 @@ export default function TodayView({
         </div>
       )}
 
-      {/* 3. Thẻ gợi ý bài học chính theo quy tắc giải thích được */}
+      {/* 3. Thẻ gợi ý bài học chính theo thuật toán giải thích được */}
       {loading ? (
-        <div className="bg-white rounded-2xl p-8 border border-slate-200 text-center shadow-sm">
-          <div className="animate-spin text-3xl mb-3">⏳</div>
+        <div className="bg-white rounded-2xl p-10 border border-slate-200/80 text-center shadow-xs">
+          <div className="inline-block animate-spin text-teal-600 mb-3">
+            <RefreshIcon className="w-6 h-6" />
+          </div>
           <p className="text-sm text-slate-500 font-medium">Đang tính toán bài học tối ưu cho bạn...</p>
         </div>
       ) : currentActivity ? (
-        <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-4">
+        <div className="bg-white rounded-2xl border border-slate-200/80 p-6 sm:p-7 shadow-xs space-y-5">
           {/* Header giải thích lý do gợi ý */}
-          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3">
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-bold uppercase tracking-wider text-blue-600 bg-blue-50 px-2 py-0.5 rounded border border-blue-100">
-                Gợi ý thông minh
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3.5">
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-teal-700 bg-teal-50 px-2.5 py-1 rounded-md border border-teal-200/70">
+                <CompassIcon className="w-3.5 h-3.5 text-teal-600" />
+                <span>Gợi ý hôm nay</span>
               </span>
               <span className="text-xs text-slate-600 font-medium">
                 {data?.reason}
@@ -380,42 +549,49 @@ export default function TodayView({
             {data?.alternateActivities && data.alternateActivities.length > 0 && (
               <button
                 onClick={handleSwapActivity}
-                className="text-xs text-slate-500 hover:text-blue-600 font-medium flex items-center gap-1 transition"
+                className="text-xs text-slate-500 hover:text-teal-700 font-medium flex items-center gap-1.5 transition cursor-pointer min-h-[36px] px-2 rounded-lg hover:bg-slate-50"
               >
-                🔄 Đổi bài khác
+                <RefreshIcon className="w-3.5 h-3.5" />
+                <span>Đổi bài khác</span>
               </button>
             )}
           </div>
 
           {/* Chi tiết hoạt động */}
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
+          <div className="space-y-3">
+            <div className="flex items-center gap-2 flex-wrap">
               {currentModeInfo && (
                 <span
-                  className={`text-xs px-2.5 py-1 rounded-full border font-semibold inline-flex items-center gap-1 ${currentModeInfo.color}`}
+                  className={`text-xs px-2.5 py-1 rounded-full border font-semibold inline-flex items-center gap-1.5 ${currentModeInfo.badgeClass}`}
                 >
-                  <span>{currentModeInfo.icon}</span>
+                  {currentModeInfo.icon}
                   <span>{currentModeInfo.label}</span>
                 </span>
               )}
-              <span className="text-xs text-slate-500 font-medium">
-                Mã: {currentActivity.id}
+              {currentActivity.difficulty && (
+                <span className="text-xs px-2 py-0.5 rounded-md font-semibold bg-slate-100 text-slate-700 border border-slate-200">
+                  {currentActivity.difficulty}
+                </span>
+              )}
+              <span className="text-xs text-slate-400 font-mono">
+                {currentActivity.id}
               </span>
               {currentActivity.durationMinutes && (
-                <span className="text-xs text-slate-400">
+                <span className="text-xs text-slate-500 tabular-nums">
                   • Chuẩn {currentActivity.durationMinutes} phút
                 </span>
               )}
             </div>
 
-            <h2 className="text-lg sm:text-xl font-bold text-slate-900 leading-snug">
+            <h2 className="text-lg sm:text-xl font-bold text-slate-900 leading-snug tracking-tight">
               {currentActivity.title}
             </h2>
 
             {currentActivity.objective && (
-              <p className="text-sm text-slate-600 leading-relaxed bg-slate-50 p-3 rounded-lg border border-slate-100">
-                🎯 <strong>Mục tiêu:</strong> {currentActivity.objective}
-              </p>
+              <div className="bg-slate-50/80 p-3.5 rounded-xl border border-slate-100 text-xs sm:text-sm text-slate-600 leading-relaxed">
+                <span className="font-semibold text-slate-800">Mục tiêu học: </span>
+                {currentActivity.objective}
+              </div>
             )}
           </div>
 
@@ -425,34 +601,37 @@ export default function TodayView({
               onClick={() => handleStartSession(currentActivity.id)}
               disabled={starting}
               data-tour="today-start"
-              className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-6 rounded-xl transition shadow-md hover:shadow-lg disabled:opacity-50 text-center flex items-center justify-center gap-2"
+              className="flex-1 bg-teal-600 hover:bg-teal-700 active:bg-teal-800 text-white font-bold py-3.5 px-6 rounded-xl transition shadow-xs hover:shadow-sm disabled:opacity-50 text-center flex items-center justify-center gap-2 cursor-pointer min-h-[48px]"
             >
               {starting ? (
                 <>
-                  <span className="animate-spin">⏳</span> Đang mở bài...
+                  <RefreshIcon className="w-4 h-4 animate-spin" />
+                  <span>Đang khởi tạo phiên...</span>
                 </>
               ) : currentActivity.actionType === "continue_draft" ? (
                 <>
-                  <span>📝</span> Tiếp tục bài đang dở ({targetMinutes} phút)
+                  <PenToolIcon className="w-4 h-4" />
+                  <span>Tiếp tục bài đang dở ({targetMinutes} phút)</span>
                 </>
               ) : (
                 <>
-                  <span>🚀</span> Bắt đầu luyện tập ({targetMinutes} phút)
+                  <PlayIcon className="w-4 h-4" />
+                  <span>Bắt đầu luyện tập ({targetMinutes} phút)</span>
                 </>
               )}
             </button>
 
             <Link
               href={`/library/${currentActivity.id}`}
-              className="px-4 py-3 border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold rounded-xl text-center text-sm transition"
+              className="px-5 py-3.5 border border-slate-200/90 hover:bg-slate-50 active:bg-slate-100 text-slate-700 font-semibold rounded-xl text-center text-sm transition cursor-pointer flex items-center justify-center min-h-[48px]"
             >
               Xem đề bài
             </Link>
           </div>
         </div>
       ) : (
-        <div className="bg-white rounded-2xl border border-slate-200 p-8 text-center shadow-sm">
-          <div className="text-4xl mb-3">📚</div>
+        <div className="bg-white rounded-2xl border border-slate-200/80 p-8 text-center shadow-xs">
+          <BookOpenIcon className="w-10 h-10 text-slate-400 mx-auto mb-3" />
           <h2 className="text-base font-bold text-slate-800">
             Chưa có bài học nào được duyệt trong Thư viện
           </h2>
@@ -462,30 +641,31 @@ export default function TodayView({
           <div className="mt-5 flex flex-wrap justify-center gap-3">
             <Link
               href="/library"
-              className="text-xs font-semibold bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
+              className="text-xs font-semibold bg-teal-600 text-white px-4 py-2.5 rounded-xl hover:bg-teal-700 transition cursor-pointer min-h-[40px] flex items-center"
             >
               Mở Thư viện bài học →
             </Link>
             <Link
               href="/admin"
-              className="text-xs font-semibold bg-slate-100 text-slate-700 px-4 py-2 rounded-lg hover:bg-slate-200 transition border border-slate-200"
+              className="text-xs font-semibold bg-slate-100 text-slate-700 px-4 py-2.5 rounded-xl hover:bg-slate-200 transition border border-slate-200 cursor-pointer min-h-[40px] flex items-center gap-1.5"
             >
-              Trang Quản trị ⚙️
+              <SettingsIcon className="w-3.5 h-3.5" />
+              <span>Trang Quản trị</span>
             </Link>
           </div>
         </div>
       )}
 
-      {/* 4. Danh sách bài thay thế nếu người học bấm "Đổi bài" */}
+      {/* 4. Danh sách bài thay thế nếu bấm "Đổi bài khác" */}
       {showAlternates && data?.alternateActivities && data.alternateActivities.length > 0 && (
-        <div className="bg-white rounded-xl border border-slate-200 p-5 shadow-sm space-y-3">
-          <div className="flex items-center justify-between border-b pb-2">
+        <div className="bg-white rounded-2xl border border-slate-200/80 p-5 shadow-xs space-y-3">
+          <div className="flex items-center justify-between border-b border-slate-100 pb-2.5">
             <h3 className="text-sm font-bold text-slate-900">
               Các bài học khả dụng khác
             </h3>
             <button
               onClick={() => setShowAlternates(false)}
-              className="text-xs text-slate-400 hover:text-slate-600"
+              className="text-xs text-slate-400 hover:text-slate-600 font-semibold px-2 py-1 rounded cursor-pointer"
             >
               Đóng ✕
             </button>
@@ -493,28 +673,29 @@ export default function TodayView({
 
           <div className="space-y-2">
             {data.alternateActivities.map((alt) => {
-              const modeInfo = MODE_LABELS[alt.mode] || {
+              const modeInfo = MODE_CONFIG[alt.mode] || {
                 label: alt.mode,
-                color: "bg-slate-100 text-slate-700",
-                icon: "📄",
+                badgeClass: "bg-slate-100 text-slate-700 border-slate-200",
+                icon: <BookOpenIcon className="w-3.5 h-3.5 text-slate-500" />,
               };
               const isCurrent = alt.id === currentActivity?.id;
 
               return (
                 <div
                   key={alt.id}
-                  className={`p-3 rounded-lg border flex items-center justify-between gap-3 transition ${
+                  className={`p-3.5 rounded-xl border flex items-center justify-between gap-3 transition ${
                     isCurrent
-                      ? "border-blue-500 bg-blue-50/50"
-                      : "border-slate-100 hover:border-slate-200 hover:bg-slate-50"
+                      ? "border-teal-500 bg-teal-50/40"
+                      : "border-slate-100 hover:border-slate-200 hover:bg-slate-50/80"
                   }`}
                 >
                   <div className="space-y-1 min-w-0">
                     <div className="flex items-center gap-2">
                       <span
-                        className={`text-[10px] px-2 py-0.5 rounded font-medium ${modeInfo.color}`}
+                        className={`text-[10px] px-2 py-0.5 rounded-md font-semibold border inline-flex items-center gap-1 ${modeInfo.badgeClass}`}
                       >
-                        {modeInfo.label}
+                        {modeInfo.icon}
+                        <span>{modeInfo.label}</span>
                       </span>
                       <span className="text-xs font-bold text-slate-800 truncate">
                         {alt.title}
@@ -532,7 +713,7 @@ export default function TodayView({
                       setSelectedActivity(alt);
                       setShowAlternates(false);
                     }}
-                    className="text-xs font-semibold text-blue-600 hover:text-blue-700 whitespace-nowrap px-3 py-1.5 rounded border border-blue-200 hover:bg-blue-50 transition"
+                    className="text-xs font-semibold text-teal-700 hover:text-teal-800 whitespace-nowrap px-3 py-1.5 rounded-lg border border-teal-200 hover:bg-teal-50 transition cursor-pointer min-h-[36px]"
                   >
                     Chọn bài này
                   </button>
@@ -544,37 +725,37 @@ export default function TodayView({
       )}
 
       {/* 5. Khối liên kết nhanh: Tiến độ & Sổ từ */}
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <Link
           href="/progress"
-          className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm hover:shadow transition flex items-center gap-3 group"
+          className="bg-white border border-slate-200/80 rounded-2xl p-4 sm:p-5 shadow-xs hover:border-slate-300 hover:shadow-sm transition flex items-center gap-4 group cursor-pointer"
         >
-          <div className="w-10 h-10 rounded-lg bg-teal-50 text-teal-600 flex items-center justify-center text-xl group-hover:scale-110 transition-transform">
-            📊
+          <div className="w-11 h-11 rounded-xl bg-teal-50 text-teal-700 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform border border-teal-100">
+            <BarChartIcon className="w-5 h-5" />
           </div>
           <div>
-            <h4 className="text-sm font-bold text-slate-800 group-hover:text-blue-600 transition">
-              Tiến độ học
+            <h4 className="text-sm font-bold text-slate-900 group-hover:text-teal-700 transition">
+              Tiến độ học tập
             </h4>
-            <p className="text-[11px] text-slate-500 mt-0.5">
-              Phút thực học, lỗi lặp & so sánh
+            <p className="text-xs text-slate-500 mt-0.5 leading-relaxed">
+              Phút thực học, chuỗi ngày, lỗi lặp & so sánh
             </p>
           </div>
         </Link>
 
         <Link
           href="/vocab"
-          className="bg-white border border-slate-200 rounded-xl p-4 shadow-sm hover:shadow transition flex items-center gap-3 group"
+          className="bg-white border border-slate-200/80 rounded-2xl p-4 sm:p-5 shadow-xs hover:border-slate-300 hover:shadow-sm transition flex items-center gap-4 group cursor-pointer"
         >
-          <div className="w-10 h-10 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center text-xl group-hover:scale-110 transition-transform">
-            📖
+          <div className="w-11 h-11 rounded-xl bg-indigo-50 text-indigo-700 flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform border border-indigo-100">
+            <CardsIcon className="w-5 h-5" />
           </div>
           <div>
-            <h4 className="text-sm font-bold text-slate-800 group-hover:text-blue-600 transition">
-              Sổ từ vựng
+            <h4 className="text-sm font-bold text-slate-900 group-hover:text-indigo-700 transition">
+              Sổ từ vựng y khoa
             </h4>
-            <p className="text-[11px] text-slate-500 mt-0.5">
-              Từ đã thuộc & Spaced Repetition
+            <p className="text-xs text-slate-500 mt-0.5 leading-relaxed">
+              Từ đã lưu & ôn tập ngắt quãng Spaced Repetition
             </p>
           </div>
         </Link>
