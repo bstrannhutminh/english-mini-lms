@@ -1,6 +1,6 @@
 import { eq, and, desc, gte, isNull, sql } from "drizzle-orm";
 import { db } from "@/db";
-import { activities, learningSessions, submissions, drafts } from "@/db/schema";
+import { activities, learningSessions, submissions, drafts, assessments } from "@/db/schema";
 
 /**
  * Module chọn bài rule-based dùng chung cho /today và /library (gợi ý trong chủ đề).
@@ -48,6 +48,20 @@ export const SKILL_NAMES_VI: Record<string, string> = {
   listening: "Nghe & Shadowing",
 };
 
+export function normalizeSkillMode(mode: string | null | undefined): string | null {
+  if (!mode) return null;
+  if (mode.startsWith("ielts-")) {
+    const sub = mode.slice("ielts-".length);
+    if (["writing", "reading", "speaking", "listening"].includes(sub)) {
+      return sub;
+    }
+  }
+  if (["writing", "reading", "speaking", "listening"].includes(mode)) {
+    return mode;
+  }
+  return null;
+}
+
 export async function getLearnerPracticeContext(
   learnerId: string
 ): Promise<PracticeContext> {
@@ -69,16 +83,18 @@ export async function getLearnerPracticeContext(
     .orderBy(desc(drafts.updatedAt))
     .limit(1);
 
-  // Quy tắc (a): bài Bản 1 cần sửa (chưa có Bản 2)
+  // Quy tắc (a): bài Bản 1 cần sửa (chưa có Bản 2 và ĐÃ CÓ nhận xét AI feedback_ready)
   const recentSubmissions = await db
     .select({
       id: submissions.id,
       revision: submissions.revision,
       activityId: learningSessions.activityId,
       parentId: submissions.parentId,
+      assessmentStatus: assessments.status,
     })
     .from(submissions)
     .innerJoin(learningSessions, eq(submissions.sessionId, learningSessions.id))
+    .leftJoin(assessments, eq(assessments.submissionId, submissions.id))
     .where(
       and(eq(submissions.learnerId, learnerId), isNull(submissions.deletedAt))
     )
@@ -89,7 +105,10 @@ export async function getLearnerPracticeContext(
     recentSubmissions.map((s) => s.parentId).filter(Boolean)
   );
   const unrevised = recentSubmissions.find(
-    (s) => s.revision === 1 && !parentIds.has(s.id)
+    (s) =>
+      s.revision === 1 &&
+      !parentIds.has(s.id) &&
+      s.assessmentStatus === "feedback_ready"
   );
 
   // Quy tắc (c): cân bằng 4 kỹ năng trong 7 ngày qua
@@ -114,8 +133,9 @@ export async function getLearnerPracticeContext(
     listening: 0,
   };
   for (const s of weeklySubmissions) {
-    if (s.mode && skillCounts[s.mode] !== undefined) {
-      skillCounts[s.mode]++;
+    const norm = normalizeSkillMode(s.mode);
+    if (norm && skillCounts[norm] !== undefined) {
+      skillCounts[norm]++;
     }
   }
 
@@ -185,21 +205,31 @@ export function pickRecommendedActivity(
 
   if (candidates.length === 0) return null;
 
-  // Ưu tiên bài thuộc kỹ năng ít luyện nhất
+  // Ưu tiên bài thuộc kỹ năng ít luyện nhất (hỗ trợ cả ielts-*)
   const matchingSkillActs = candidates.filter(
-    (a) => a.mode === leastPracticedMode
+    (a) => normalizeSkillMode(a.mode) === leastPracticedMode
   );
   const chosenAct =
     matchingSkillActs.length > 0
       ? matchingSkillActs[0]
-      : candidates.find((a) => a.mode === "speaking") || candidates[0];
+      : candidates.find((a) => normalizeSkillMode(a.mode) === "speaking") || candidates[0];
 
-  const skillName = SKILL_NAMES_VI[leastPracticedMode] || leastPracticedMode;
-  const leastCount = skillCounts[leastPracticedMode] || 0;
-  const reasonText =
-    leastCount === 0
-      ? `Quy tắc (c): Kỹ năng ${skillName} chưa được luyện bài nào trong 7 ngày qua. Hãy thực hành để cân bằng cả 4 kỹ năng!`
-      : `Quy tắc (c) & (d): Kỹ năng ${skillName} ít được luyện nhất tuần này (${leastCount} bài). Thời lượng ${targetMinutes} phút phù hợp để hoàn thành bài này.`;
+  const chosenNorm = normalizeSkillMode(chosenAct.mode) || chosenAct.mode;
+  let reasonText: string;
+
+  if (chosenNorm === leastPracticedMode) {
+    const skillName = SKILL_NAMES_VI[leastPracticedMode] || leastPracticedMode;
+    const leastCount = skillCounts[leastPracticedMode] || 0;
+    reasonText =
+      leastCount === 0
+        ? `Quy tắc (c): Kỹ năng ${skillName} chưa được luyện bài nào trong 7 ngày qua. Hãy thực hành để cân bằng cả 4 kỹ năng!`
+        : `Quy tắc (c) & (d): Kỹ năng ${skillName} ít được luyện nhất tuần này (${leastCount} bài). Thời lượng ${targetMinutes} phút phù hợp để hoàn thành bài này.`;
+  } else {
+    const chosenSkillName = SKILL_NAMES_VI[chosenNorm] || chosenNorm;
+    const chosenCount = skillCounts[chosenNorm] || 0;
+    const leastSkillName = SKILL_NAMES_VI[leastPracticedMode] || leastPracticedMode;
+    reasonText = `Quy tắc (d): Không có bài thuộc kỹ năng ${leastSkillName} phù hợp thời lượng ${targetMinutes} phút. Gợi ý bài ${chosenSkillName} (${chosenCount} bài trong 7 ngày qua) phù hợp thời gian học hôm nay.`;
+  }
 
   return {
     id: chosenAct.id,

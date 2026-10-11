@@ -36,11 +36,17 @@ export async function PATCH(req: NextRequest, { params }: RouteProps) {
     const [existing] = await db
       .select({ id: submissions.id, modality: submissions.modality })
       .from(submissions)
-      .where(and(eq(submissions.id, submissionId), eq(submissions.learnerId, learner.id)))
+      .where(
+        and(
+          eq(submissions.id, submissionId),
+          eq(submissions.learnerId, learner.id),
+          isNull(submissions.deletedAt)
+        )
+      )
       .limit(1);
 
     if (!existing) {
-      return NextResponse.json({ error: "Bài nộp không tồn tại" }, { status: 404 });
+      return NextResponse.json({ error: "Bài nộp không tồn tại hoặc đã bị xoá" }, { status: 404 });
     }
 
     // Chỉ bài nói (audio) mới được sửa transcript
@@ -58,7 +64,13 @@ export async function PATCH(req: NextRequest, { params }: RouteProps) {
         confirmedTranscript: parsed.data.confirmed_transcript,
         updatedAt: new Date(),
       })
-      .where(eq(submissions.id, submissionId))
+      .where(
+        and(
+          eq(submissions.id, submissionId),
+          eq(submissions.learnerId, learner.id),
+          isNull(submissions.deletedAt)
+        )
+      )
       .returning();
 
     return NextResponse.json({

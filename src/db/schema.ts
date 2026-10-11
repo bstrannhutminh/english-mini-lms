@@ -362,6 +362,7 @@ export const vocabularyVault = pgTable("vocabulary_vault", {
 
 export const vocabularyReviews = pgTable("vocabulary_reviews", {
   id: uuid("id").defaultRandom().primaryKey(),
+  clientReviewId: uuid("client_review_id").unique(),
   vocabularyId: uuid("vocabulary_id")
     .notNull()
     .references(() => vocabularyVault.id),

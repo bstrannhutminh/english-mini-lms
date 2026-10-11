@@ -19,13 +19,15 @@ const SubmitReviewSchema = z.object({
 const QuickReviewItemSchema = z.object({
   vocab_id: z.string().uuid("vocab_id must be a valid UUID"),
   result: z.enum(["know", "dont_know"]),
+  clientReviewId: z.string().uuid("clientReviewId must be a valid UUID").optional(),
 });
 
 const SubmitQuickReviewSchema = z.object({
   mode: z.literal("quick"),
   vocab_id: z.string().uuid().optional(),
   result: z.enum(["know", "dont_know"]).optional(),
-  reviews: z.array(QuickReviewItemSchema).optional(),
+  clientReviewId: z.string().uuid().optional(),
+  reviews: z.array(QuickReviewItemSchema).max(200, "Tối đa 200 từ mỗi lượt").optional(),
 });
 
 export const maxDuration = 60;
@@ -99,7 +101,11 @@ export async function POST(req: NextRequest) {
         );
       }
 
-      const reviewsToProcess: Array<{ vocab_id: string; result: "know" | "dont_know" }> = [];
+      const reviewsToProcess: Array<{
+        vocab_id: string;
+        result: "know" | "dont_know";
+        clientReviewId?: string;
+      }> = [];
 
       if (parsedQuick.data.reviews && parsedQuick.data.reviews.length > 0) {
         reviewsToProcess.push(...parsedQuick.data.reviews);
@@ -107,6 +113,7 @@ export async function POST(req: NextRequest) {
         reviewsToProcess.push({
           vocab_id: parsedQuick.data.vocab_id,
           result: parsedQuick.data.result,
+          clientReviewId: parsedQuick.data.clientReviewId,
         });
       } else {
         return NextResponse.json(

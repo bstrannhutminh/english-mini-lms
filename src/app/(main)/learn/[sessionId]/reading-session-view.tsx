@@ -27,6 +27,7 @@ interface ReadingSessionViewProps {
     sourceTitle: string | null;
   } | null;
   initialDraft: string;
+  parentId?: string;
 }
 
 export function ReadingSessionView({
@@ -35,6 +36,7 @@ export function ReadingSessionView({
   activity,
   segment,
   initialDraft,
+  parentId,
 }: ReadingSessionViewProps) {
   const router = useRouter();
 
@@ -269,6 +271,7 @@ Direct sonographic monitoring substantially minimizes the risk of accidental int
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           body: submissionPayload,
+          parentId: parentId || undefined,
         }),
       });
 

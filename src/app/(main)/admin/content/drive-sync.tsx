@@ -114,7 +114,7 @@ export default function DriveSync() {
         <p className="text-xs text-slate-400">
           Chưa thiết lập? Xem{" "}
           <a
-            href="https://github.com"
+            href="https://github.com/thuanyogi/english-mini-lms/blob/main/docs/google-drive-setup.md"
             className="text-indigo-500 hover:underline"
             target="_blank"
             rel="noopener noreferrer"

@@ -36,6 +36,13 @@
       "when": 1791417570833,
       "tag": "0004_lyrical_sprite",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1791729928797,
+      "tag": "0005_unusual_paibok",
+      "breakpoints": true
     }
   ]
 }

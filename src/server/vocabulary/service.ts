@@ -499,6 +499,7 @@ export async function getVocabularyForFlashcards(
 export interface QuickReviewSubmission {
   vocab_id: string;
   result: "know" | "dont_know";
+  clientReviewId?: string;
 }
 
 export async function submitQuickFlashcardReviews(
@@ -509,85 +510,126 @@ export async function submitQuickFlashcardReviews(
     return { success: true, processedCount: 0, results: [] };
   }
 
-  const results = [];
+  return await db.transaction(async (tx) => {
+    const results = [];
 
-  for (const item of reviews) {
-    const isCorrect = item.result === "know";
+    for (const item of reviews) {
+      const isCorrect = item.result === "know";
 
-    // 1. Tìm từ vựng
-    const [vocab] = await db
-      .select()
-      .from(vocabularyVault)
-      .where(
-        and(
-          eq(vocabularyVault.id, item.vocab_id),
-          eq(vocabularyVault.learnerId, learnerId)
+      // 1. Tìm từ vựng
+      const [vocab] = await tx
+        .select()
+        .from(vocabularyVault)
+        .where(
+          and(
+            eq(vocabularyVault.id, item.vocab_id),
+            eq(vocabularyVault.learnerId, learnerId)
+          )
         )
-      )
-      .limit(1);
+        .limit(1);
 
-    if (!vocab) continue;
+      if (!vocab) continue;
 
-    // 2. Tính SRS
-    const { nextMastery, nextDueAt, intervalDays } = calculateNextReview(
-      vocab.masteryLevel,
-      isCorrect
-    );
+      // 2. Tính SRS
+      const { nextMastery, nextDueAt, intervalDays } = calculateNextReview(
+        vocab.masteryLevel,
+        isCorrect
+      );
 
-    // 3. Ghi vocabulary_reviews (reviewChannel="web-flashcard", responseModality=null)
-    await db
-      .insert(vocabularyReviews)
-      .values({
-        vocabularyId: vocab.id,
-        learnerId,
-        reviewChannel: "web-flashcard",
-        promptScenario: "quick_flashcard",
-        userResponse: item.result,
-        responseModality: null,
-        aiAssessment: isCorrect ? "Đã thuộc (Quick Flashcard)" : "Chưa thuộc (Quick Flashcard)",
-        resultStatus: isCorrect ? "correct" : "incorrect",
+      // 3. Ghi vocabulary_reviews với onConflictDoNothing trên client_review_id
+      let insertedReview = null;
+
+      if (item.clientReviewId) {
+        const [row] = await tx
+          .insert(vocabularyReviews)
+          .values({
+            clientReviewId: item.clientReviewId,
+            vocabularyId: vocab.id,
+            learnerId,
+            reviewChannel: "web-flashcard",
+            promptScenario: "quick_flashcard",
+            userResponse: item.result,
+            responseModality: null,
+            aiAssessment: isCorrect ? "Đã thuộc (Quick Flashcard)" : "Chưa thuộc (Quick Flashcard)",
+            resultStatus: isCorrect ? "correct" : "incorrect",
+            nextDueAt,
+          })
+          .onConflictDoNothing({ target: vocabularyReviews.clientReviewId })
+          .returning();
+        insertedReview = row;
+      } else {
+        const [row] = await tx
+          .insert(vocabularyReviews)
+          .values({
+            vocabularyId: vocab.id,
+            learnerId,
+            reviewChannel: "web-flashcard",
+            promptScenario: "quick_flashcard",
+            userResponse: item.result,
+            responseModality: null,
+            aiAssessment: isCorrect ? "Đã thuộc (Quick Flashcard)" : "Chưa thuộc (Quick Flashcard)",
+            resultStatus: isCorrect ? "correct" : "incorrect",
+            nextDueAt,
+          })
+          .returning();
+        insertedReview = row;
+      }
+
+      // Nếu có clientReviewId và conflict (insertedReview rỗng) -> review đã ghi trước đó
+      // Bỏ qua update mastery và usage_events, trả về thành công idempotent
+      if (item.clientReviewId && !insertedReview) {
+        results.push({
+          vocabId: vocab.id,
+          phrase: vocab.phrase,
+          result: item.result,
+          nextMastery: vocab.masteryLevel,
+          nextDueAt: vocab.dueAt,
+          intervalDays: 0,
+          idempotentDuplicate: true,
+        });
+        continue;
+      }
+
+      // 4. Cập nhật vocabulary_vault (chỉ khi insert mới thành công)
+      await tx
+        .update(vocabularyVault)
+        .set({
+          masteryLevel: nextMastery,
+          dueAt: nextDueAt,
+          updatedAt: new Date(),
+        })
+        .where(eq(vocabularyVault.id, vocab.id));
+
+      // 5. Ghi usage_events với token = 0
+      try {
+        await tx.insert(usageEvents).values({
+          learnerId,
+          action: "flashcard_quick_review",
+          entityType: "vocabulary",
+          entityId: vocab.id,
+          tokenInput: 0,
+          tokenOutput: 0,
+          modelName: "none",
+        });
+      } catch (e) {
+        console.warn("Lỗi ghi log usage event flashcard:", e);
+      }
+
+      results.push({
+        vocabId: vocab.id,
+        phrase: vocab.phrase,
+        result: item.result,
+        nextMastery,
         nextDueAt,
+        intervalDays,
       });
-
-    // 4. Cập nhật vocabulary_vault
-    await db
-      .update(vocabularyVault)
-      .set({
-        masteryLevel: nextMastery,
-        dueAt: nextDueAt,
-        updatedAt: new Date(),
-      })
-      .where(eq(vocabularyVault.id, vocab.id));
-
-    // 5. Ghi usage_events với token = 0
-    try {
-      await db.insert(usageEvents).values({
-        learnerId,
-        action: "flashcard_quick_review",
-        entityType: "vocabulary",
-        entityId: vocab.id,
-        tokenInput: 0,
-        tokenOutput: 0,
-        modelName: "none",
-      });
-    } catch (e) {
-      console.warn("Lỗi ghi log usage event flashcard:", e);
     }
 
-    results.push({
-      vocabId: vocab.id,
-      phrase: vocab.phrase,
-      result: item.result,
-      nextMastery,
-      nextDueAt,
-      intervalDays,
-    });
-  }
-
-  return {
-    success: true,
-    processedCount: results.length,
-    results,
-  };
+    return {
+      success: true,
+      processedCount: results.length,
+      results,
+    };
+  });
 }
 

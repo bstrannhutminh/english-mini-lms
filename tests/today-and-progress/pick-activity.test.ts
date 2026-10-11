@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
   pickRecommendedActivity,
+  normalizeSkillMode,
   type CandidateActivity,
   type PracticeContext,
 } from "@/server/today/pick-activity";
@@ -23,6 +24,15 @@ function ctx(overrides: Partial<PracticeContext> = {}): PracticeContext {
 }
 
 describe("pickRecommendedActivity (shared by /today and /library)", () => {
+  it("normalizeSkillMode maps ielts-* to core skills", () => {
+    expect(normalizeSkillMode("ielts-writing")).toBe("writing");
+    expect(normalizeSkillMode("ielts-reading")).toBe("reading");
+    expect(normalizeSkillMode("ielts-speaking")).toBe("speaking");
+    expect(normalizeSkillMode("ielts-listening")).toBe("listening");
+    expect(normalizeSkillMode("writing")).toBe("writing");
+    expect(normalizeSkillMode("unknown")).toBeNull();
+  });
+
   it("rule (a): an unfinished draft wins over everything", () => {
     const rec = pickRecommendedActivity(
       acts,
@@ -55,12 +65,27 @@ describe("pickRecommendedActivity (shared by /today and /library)", () => {
     expect(rec?.reason).toContain("chưa được luyện bài nào");
   });
 
-  it("falls back to speaking, then the first candidate", () => {
+  it("picks ielts-* activities matching leastPracticedMode", () => {
+    const ieltsActs: CandidateActivity[] = [
+      { id: "IW1", slot: "IW1", title: "IELTS Writing", mode: "ielts-writing", objective: null, durationMinutes: 20 },
+      { id: "IL1", slot: "IL1", title: "IELTS Listening", mode: "ielts-listening", objective: null, durationMinutes: 20 },
+    ];
+    const rec = pickRecommendedActivity(ieltsActs, ctx({ leastPracticedMode: "listening" }), 30);
+    expect(rec?.id).toBe("IL1");
+    expect(rec?.reason).toContain("chưa được luyện bài nào");
+  });
+
+  it("falls back to speaking, then the first candidate, and formats fallback reason from chosenAct.mode", () => {
     const noListening = acts.filter((a) => a.mode !== "listening");
-    expect(pickRecommendedActivity(noListening, ctx(), 30)?.id).toBe("S1");
+    const recSpeaking = pickRecommendedActivity(noListening, ctx({ leastPracticedMode: "listening" }), 30);
+    expect(recSpeaking?.id).toBe("S1");
+    // Fallback reason phải nhắc đến kỹ năng của bài được chọn (Nói), không gán nhầm lý do cho Nghe
+    expect(recSpeaking?.reason).toContain("Gợi ý bài Nói");
 
     const onlyWriting = acts.filter((a) => a.mode === "writing");
-    expect(pickRecommendedActivity(onlyWriting, ctx(), 30)?.id).toBe("W1");
+    const recWriting = pickRecommendedActivity(onlyWriting, ctx({ leastPracticedMode: "listening" }), 30);
+    expect(recWriting?.id).toBe("W1");
+    expect(recWriting?.reason).toContain("Gợi ý bài Viết");
   });
 
   it("only ever picks from the candidates it is given (per-topic use)", () => {

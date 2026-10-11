@@ -102,17 +102,35 @@ export async function createSubmissionAndAssess(
 
   const isAssisted = !!assistEvent;
 
-  // Xác định revision từ bài cha
+  // Xác định revision từ bài cha và validate chặt chẽ
   let revision = 1;
   if (parentId) {
     const [parent] = await db
-      .select({ revision: submissions.revision })
+      .select({
+        id: submissions.id,
+        revision: submissions.revision,
+        learnerId: submissions.learnerId,
+        deletedAt: submissions.deletedAt,
+        activityId: learningSessions.activityId,
+      })
       .from(submissions)
-      .where(and(eq(submissions.id, parentId), eq(submissions.learnerId, learnerId)))
+      .innerJoin(learningSessions, eq(submissions.sessionId, learningSessions.id))
+      .where(eq(submissions.id, parentId))
       .limit(1);
-    if (parent) {
-      revision = parent.revision + 1;
+
+    if (!parent) {
+      throw new ValidationError("Bài viết gốc (parentId) không tồn tại.", 404);
     }
+    if (parent.learnerId !== learnerId) {
+      throw new ValidationError("Không có quyền tạo bản sửa đổi cho bài nộp của người khác.", 403);
+    }
+    if (parent.deletedAt) {
+      throw new ValidationError("Bài viết gốc đã bị xóa.", 422);
+    }
+    if (parent.activityId !== session.activityId) {
+      throw new ValidationError("Bài viết gốc không cùng bài học với phiên hiện tại.", 422);
+    }
+    revision = parent.revision + 1;
   }
 
   const modality = activity.output === "audio" || mediaId ? "audio" : "text";
@@ -595,7 +613,13 @@ export async function getSubmissionWithFeedback(submissionId: string, learnerId:
   const [sub] = await db
     .select()
     .from(submissions)
-    .where(and(eq(submissions.id, submissionId), eq(submissions.learnerId, learnerId)))
+    .where(
+      and(
+        eq(submissions.id, submissionId),
+        eq(submissions.learnerId, learnerId),
+        isNull(submissions.deletedAt)
+      )
+    )
     .limit(1);
 
   if (!sub) {
@@ -679,7 +703,13 @@ export async function getSubmissionWithFeedback(submissionId: string, learnerId:
     const [parentSub] = await db
       .select()
       .from(submissions)
-      .where(eq(submissions.id, sub.parentId))
+      .where(
+        and(
+          eq(submissions.id, sub.parentId),
+          eq(submissions.learnerId, sub.learnerId),
+          isNull(submissions.deletedAt)
+        )
+      )
       .limit(1);
 
     if (parentSub) {

@@ -46,6 +46,7 @@ interface ListeningSessionViewProps {
     transcriptSegments: TranscriptSegment[];
     isTranscriptRevealed: boolean;
   };
+  parentId?: string;
 }
 
 export function ListeningSessionView({
@@ -53,6 +54,7 @@ export function ListeningSessionView({
   targetMinutes,
   activity,
   listening,
+  parentId,
 }: ListeningSessionViewProps) {
   const router = useRouter();
 
@@ -170,6 +172,7 @@ export function ListeningSessionView({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           body: JSON.stringify({ answers }),
+          parentId: parentId || undefined,
         }),
       });
 

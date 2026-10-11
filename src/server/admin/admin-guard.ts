@@ -32,7 +32,6 @@ export function contentErrorResponse(label: string, error: unknown): NextRespons
   if (error instanceof ContentError) {
     return NextResponse.json({ error: error.message, details: error.details }, { status: error.status });
   }
-  const msg = error instanceof Error ? error.message : String(error);
-  console.error(`${label} error:`, msg);
-  return NextResponse.json({ error: "Lỗi quản lý nội dung: " + msg }, { status: 500 });
+  console.error(`${label} unexpected error:`, error);
+  return NextResponse.json({ error: "Lỗi hệ thống trong quản lý nội dung" }, { status: 500 });
 }

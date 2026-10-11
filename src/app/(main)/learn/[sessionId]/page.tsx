@@ -27,6 +27,24 @@ export default async function LearnSessionPage({ params, searchParams }: PagePro
     notFound();
   }
 
+  let parentData = null;
+  if (parentId) {
+    const parentRes = await getSubmissionWithFeedback(parentId, learner.id);
+    if (parentRes) {
+      parentData = {
+        submission: {
+          id: parentRes.submission.id,
+          revision: parentRes.submission.revision,
+          body: parentRes.submission.body,
+          assisted: parentRes.submission.assisted,
+          submittedAt: parentRes.submission.submittedAt,
+          audioUrl: parentRes.submission.audioUrl,
+        },
+        feedback: parentRes.feedback,
+      };
+    }
+  }
+
   // Chế độ Đọc - Dịch y khoa (Reading Mode)
   if (data.activity.mode === "reading") {
     return (
@@ -45,6 +63,7 @@ export default async function LearnSessionPage({ params, searchParams }: PagePro
         }}
         segment={data.segment}
         initialDraft={data.draft?.content || ""}
+        parentId={parentId}
       />
     );
   }
@@ -66,26 +85,9 @@ export default async function LearnSessionPage({ params, searchParams }: PagePro
           durationMinutes: data.activity.durationMinutes || 15,
         }}
         listening={data.listening}
+        parentId={parentId}
       />
     );
-  }
-
-  let parentData = null;
-  if (parentId) {
-    const parentRes = await getSubmissionWithFeedback(parentId, learner.id);
-    if (parentRes) {
-      parentData = {
-        submission: {
-          id: parentRes.submission.id,
-          revision: parentRes.submission.revision,
-          body: parentRes.submission.body,
-          assisted: parentRes.submission.assisted,
-          submittedAt: parentRes.submission.submittedAt,
-          audioUrl: parentRes.submission.audioUrl,
-        },
-        feedback: parentRes.feedback,
-      };
-    }
   }
 
   // Chế độ Luyện Nói (Speaking Mode)

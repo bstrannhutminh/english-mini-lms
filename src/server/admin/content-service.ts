@@ -73,6 +73,7 @@ export async function createContentActivity(raw: unknown): Promise<AdminContentA
     .values({
       ...f,
       reviewState: "draft",
+      origin: "admin",
       segmentIds,
       // [] để bài nghe mới không rơi về câu hỏi mặc định của L1
       questions: skill === "listening" ? (f.questions ?? []) : (f.questions ?? null),
@@ -129,7 +130,7 @@ export async function updateContentActivity(id: string, raw: unknown): Promise<A
 
   const [row] = await db
     .update(activities)
-    .set({ ...patch, segmentIds })
+    .set({ ...patch, segmentIds, origin: "admin" })
     .where(eq(activities.id, id))
     .returning();
   return row;

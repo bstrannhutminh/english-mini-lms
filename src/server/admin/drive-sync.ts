@@ -4,16 +4,17 @@
  * Rules:
  *  - Chỉ import bài review_state=approved từ manifest
  *  - Không bao giờ ghi đè row có origin='admin' → báo conflict
- *  - Row có origin='seed' hoặc 'drive' → upsert bình thường
+ *  - Tính conflict closure: source/segment đang được bài admin tham chiếu cũng không bị ghi đè
+ *  - 2-Pha: Pha 1 tải + parse + validate toàn bộ file; Pha 2 mới ghi DB
+ *  - Lỗi mạng/quota Drive: dừng sync ngay lập tức, không ghi nửa chừng
+ *  - Nạp và validate questions_file thật cho bài listening, ghi vào cột activities.questions
+ *  - Chặn phụ thuộc: segment lỗi/xung đột → activity tham chiếu bị loại bỏ và báo lỗi
  *  - Dry-run: parse + validate nhưng không write DB
- *  - Cấu trúc thư mục bắt buộc:
- *      manifest.yaml     (ở gốc thư mục Drive)
- *      texts/            (thư mục con)
- *      transcripts/      (thư mục con)
- *      rubrics/          (thư mục con, tuỳ chọn)
+ *  - Thống kê skipped đầy đủ cho các bản ghi không approved
  */
 
 import yaml from "yaml";
+import { inArray, eq } from "drizzle-orm";
 import { db } from "../../db";
 import { activities, sources, sourceSegments } from "../../db/schema";
 import {
@@ -24,6 +25,7 @@ import {
   findFileByName,
   findSubFolderId,
   type DriveFile,
+  DriveNetworkOrQuotaError,
 } from "../providers/google-drive";
 import {
   parseManifestYaml,
@@ -31,6 +33,7 @@ import {
   type ManifestActivity,
 } from "../seed/manifest-parser";
 import { isValidTopicKey, UNCATEGORIZED_TOPIC } from "../../lib/topics";
+import { validateListeningQuestions } from "../../lib/listening-questions";
 
 // ──────────────────────────────────────────────
 // Public types
@@ -68,17 +71,12 @@ interface FolderIndex {
   rubricsFolderId: string | null;
 }
 
-/**
- * Builds an index of the root Drive folder structure.
- * Returns error strings if required structure is missing.
- */
 async function indexDriveFolder(
   drive: ReturnType<typeof getDriveClient>,
   rootFolderId: string
 ): Promise<{ index: FolderIndex; structureErrors: string[] }> {
   const structureErrors: string[] = [];
 
-  // All items at root level
   const rootItems = await listFolderContents(drive, rootFolderId);
 
   const manifestFile =
@@ -104,15 +102,14 @@ async function indexDriveFolder(
 
   if (!textsFolderId) {
     structureErrors.push(
-      "Không tìm thấy thư mục texts/ trong Drive. Kiểm tra lại cấu trúc thư mục."
+      "Không tìm thấy thư mục con texts/ trong thư mục Drive."
     );
   }
   if (!transcriptsFolderId) {
     structureErrors.push(
-      "Không tìm thấy thư mục transcripts/ trong Drive. Kiểm tra lại cấu trúc thư mục."
+      "Không tìm thấy thư mục con transcripts/ trong thư mục Drive."
     );
   }
-  // rubrics/ là tuỳ chọn — chỉ cảnh báo nếu thiếu
 
   return {
     index: {
@@ -125,16 +122,11 @@ async function indexDriveFolder(
   };
 }
 
-/**
- * Builds a DriveFileReader (SyncFileReader) that resolves relative paths
- * like "texts/article.txt" by mapping to the correct Drive folder.
- */
 function buildDriveFileReader(
   drive: ReturnType<typeof getDriveClient>,
   folderIndex: FolderIndex,
   warnings: string[]
-): (relativePath: string) => Promise<string | null> {
-  // Per-session in-memory cache
+) {
   const cache = new Map<string, string | null>();
 
   return async (relativePath: string): Promise<string | null> => {
@@ -181,17 +173,14 @@ function buildDriveFileReader(
       return null;
     }
 
-    const { downloadFileText: dl } = await import(
-      "../providers/google-drive"
-    );
-    const content = await dl(drive, file.id);
+    const content = await downloadFileText(drive, file.id);
     cache.set(relativePath, content);
     return content;
   };
 }
 
 // ──────────────────────────────────────────────
-// Validation helpers (reusing manifest-parser logic)
+// Validation helpers
 // ──────────────────────────────────────────────
 
 function validateApprovedActivities(
@@ -207,7 +196,6 @@ function validateApprovedActivities(
   const validationErrors: string[] = [];
 
   for (const act of approvedActivities) {
-    // Validate topic key
     if (act.topic !== undefined && act.topic !== null) {
       const topicKey = String(act.topic).trim();
       if (
@@ -220,7 +208,6 @@ function validateApprovedActivities(
       }
     }
 
-    // Check referenced segments exist in manifest
     if (act.segment_ids && Array.isArray(act.segment_ids)) {
       for (const segId of act.segment_ids) {
         if (!segmentMap.has(segId)) {
@@ -236,7 +223,7 @@ function validateApprovedActivities(
 }
 
 // ──────────────────────────────────────────────
-// DB helpers: check existing origin
+// DB helpers: check existing origin & closure
 // ──────────────────────────────────────────────
 
 async function getExistingOrigins(): Promise<{
@@ -309,7 +296,7 @@ export async function syncDriveContent(opts: {
       for (const e of structureErrors) {
         result.errors.push({ message: e });
       }
-      return result; // Cấu trúc sai → dừng luôn
+      return result;
     }
     folderIndex = index;
   } catch (err) {
@@ -324,7 +311,10 @@ export async function syncDriveContent(opts: {
   try {
     manifestContent = await downloadFileText(drive, folderIndex.manifestFile!.id);
     if (!manifestContent) {
-      result.errors.push({ file: "manifest.yaml", message: "Không thể tải manifest.yaml từ Drive." });
+      result.errors.push({
+        file: "manifest.yaml",
+        message: "Không thể tải manifest.yaml từ Drive.",
+      });
       return result;
     }
   } catch (err) {
@@ -345,7 +335,19 @@ export async function syncDriveContent(opts: {
   }
   const { data } = parseResult;
 
-  // ── 5. Validate approved activities (structural, not file existence) ──
+  // ── 5. Thống kê skipped từ manifest (draft / unapproved) ──
+  for (const act of data.activities ?? []) {
+    if (act.review_state !== "approved") {
+      result.skipped.push(`activity:${act.id}`);
+    }
+  }
+  for (const src of data.sources ?? []) {
+    if (src.review_state !== "approved") {
+      result.skipped.push(`source:${src.id}`);
+    }
+  }
+
+  // ── 6. Validate approved activities ──
   const { approvedActivities, validationErrors } =
     validateApprovedActivities(data);
 
@@ -356,25 +358,107 @@ export async function syncDriveContent(opts: {
     return result;
   }
 
-  if (approvedActivities.length === 0) {
-    // Nothing approved — not an error, just skip
+  const approvedSources = (data.sources ?? []).filter(
+    (s) => s.review_state === "approved"
+  );
+
+  if (approvedActivities.length === 0 && approvedSources.length === 0) {
     return result;
   }
 
-  // ── 6. Build Drive file reader ──
+  // ── 7. Build Drive file reader ──
   const driveFileReader = buildDriveFileReader(
     drive,
     folderIndex,
     structureWarnings
   );
 
-  // ── 7. Check existing origins in DB ──
+  // ── 8. Check existing origins & compute conflict closure ──
   let activityOrigins: Map<string, string>;
   let sourceOrigins: Map<string, string>;
   let segmentOrigins: Map<string, string>;
+  const blockedActivityIds = new Set<string>();
+  const blockedSegmentIds = new Set<string>();
+  const blockedSourceIds = new Set<string>();
+
   try {
     ({ activityOrigins, sourceOrigins, segmentOrigins } =
       await getExistingOrigins());
+
+    // 8.1. Lấy tất cả activities có origin='admin' trong DB để tính quan hệ closure
+    const adminActivitiesInDb = await db
+      .select({ id: activities.id, segmentIds: activities.segmentIds })
+      .from(activities)
+      .where(eq(activities.origin, "admin"));
+
+    const adminUsedSegmentIds = new Set<string>();
+    for (const a of adminActivitiesInDb) {
+      if (Array.isArray(a.segmentIds)) {
+        for (const sId of a.segmentIds) {
+          if (sId) adminUsedSegmentIds.add(sId);
+        }
+      }
+    }
+
+    const adminUsedSourceIds = new Set<string>();
+    if (adminUsedSegmentIds.size > 0) {
+      const segRows = await db
+        .select({ sourceId: sourceSegments.sourceId })
+        .from(sourceSegments)
+        .where(inArray(sourceSegments.id, Array.from(adminUsedSegmentIds)));
+      for (const r of segRows) {
+        if (r.sourceId) adminUsedSourceIds.add(r.sourceId);
+      }
+    }
+
+    // 8.2. Conflicts cho Sources
+    for (const src of data.sources ?? []) {
+      const isDirectAdmin = sourceOrigins.get(src.id) === "admin";
+      const isReferencedByAdminAct = adminUsedSourceIds.has(src.id);
+
+      if (isDirectAdmin || isReferencedByAdminAct) {
+        blockedSourceIds.add(src.id);
+        result.conflicts.push({
+          id: src.id,
+          kind: "source",
+          reason: isDirectAdmin
+            ? `Source "${src.id}" được quản lý bởi admin (origin=admin). Drive sync không được ghi đè.`
+            : `Source "${src.id}" đang được bài học của admin tham chiếu. Drive sync không được ghi đè.`,
+        });
+      }
+    }
+
+    // 8.3. Conflicts cho Segments
+    for (const seg of data.segments ?? []) {
+      const isDirectAdmin = segmentOrigins.get(seg.id) === "admin";
+      const isReferencedByAdminAct = adminUsedSegmentIds.has(seg.id);
+      const isParentSourceBlocked = blockedSourceIds.has(seg.source_id);
+
+      if (isDirectAdmin || isReferencedByAdminAct) {
+        blockedSegmentIds.add(seg.id);
+        result.conflicts.push({
+          id: seg.id,
+          kind: "segment",
+          reason: isDirectAdmin
+            ? `Segment "${seg.id}" được quản lý bởi admin (origin=admin). Drive sync không được ghi đè.`
+            : `Segment "${seg.id}" đang được bài học của admin tham chiếu. Drive sync không được ghi đè.`,
+        });
+      } else if (isParentSourceBlocked) {
+        blockedSegmentIds.add(seg.id);
+      }
+    }
+
+    // 8.4. Conflicts cho Activities
+    for (const act of approvedActivities) {
+      if (activityOrigins.get(act.id) === "admin") {
+        blockedActivityIds.add(act.id);
+        result.conflicts.push({
+          id: act.id,
+          kind: "activity",
+          reason: `Activity "${act.id}" ("${act.title}") được quản lý bởi admin (origin=admin). Drive sync không được ghi đè.`,
+        });
+      }
+    }
   } catch (err) {
     result.errors.push({
       message: `Lỗi đọc DB: ${err instanceof Error ? err.message : String(err)}`,
@@ -382,7 +466,7 @@ export async function syncDriveContent(opts: {
     return result;
   }
 
-  // ── 8. Collect needed sources + segments ──
+  // ── 9. Collect needed sources & segments ──
   const allSegments = data.segments ?? [];
   const allSources = data.sources ?? [];
   const segmentMap = new Map(allSegments.map((s) => [s.id, s]));
@@ -402,8 +486,19 @@ export async function syncDriveContent(opts: {
     }
   }
 
-  // ── 9. Upsert sources ──
+  for (const src of approvedSources) {
+    neededSourceIds.add(src.id);
+  }
+
+  // ══════════════════════════════════════════════
+  // PHA 1: TẢI + PARSE + VALIDATE TOÀN BỘ (KHÔNG GHI DB)
+  // ══════════════════════════════════════════════
+
+  // 1. Stage Sources
+  const stagedSources: typeof sources.$inferInsert[] = [];
   for (const sourceId of neededSourceIds) {
+    if (blockedSourceIds.has(sourceId)) continue;
+
     const src = sourceMap.get(sourceId);
     if (!src) {
       result.errors.push({
@@ -413,76 +508,35 @@ export async function syncDriveContent(opts: {
       continue;
     }
 
-    const existingOrigin = sourceOrigins.get(sourceId);
-    if (existingOrigin === "admin") {
-      result.conflicts.push({
-        id: sourceId,
-        kind: "source",
-        reason: `Source "${sourceId}" được quản lý bởi admin (origin=admin). Drive sync không được ghi đè.`,
-      });
-      continue;
-    }
-
-    if (!dryRun) {
-      try {
-        await db
-          .insert(sources)
-          .values({
-            id: src.id,
-            title: src.title,
-            kind: src.kind,
-            permission: src.permission ?? null,
-            locatorType: src.locator_type ?? null,
-            url: src.url ?? null,
-            reviewState: src.review_state,
-            notes: src.notes ?? null,
-            origin: "drive",
-          })
-          .onConflictDoUpdate({
-            target: sources.id,
-            set: {
-              title: src.title,
-              kind: src.kind,
-              permission: src.permission ?? null,
-              locatorType: src.locator_type ?? null,
-              url: src.url ?? null,
-              reviewState: src.review_state,
-              notes: src.notes ?? null,
-              origin: "drive",
-            },
-          });
-      } catch (err) {
-        result.errors.push({
-          id: sourceId,
-          message: `Lỗi upsert source: ${err instanceof Error ? err.message : String(err)}`,
-        });
-        continue;
-      }
-    }
-
-    if (existingOrigin !== undefined) {
-      result.updated.push(`source:${sourceId}`);
-    } else {
-      result.added.push(`source:${sourceId}`);
-    }
+    stagedSources.push({
+      id: src.id,
+      title: src.title,
+      kind: src.kind,
+      permission: src.permission ?? null,
+      locatorType: src.locator_type ?? null,
+      url: src.url ?? null,
+      reviewState: src.review_state,
+      notes: src.notes ?? null,
+      origin: "drive",
+    });
   }
 
-  // ── 10. Upsert segments ──
+  // 2. Stage Segments
+  const stagedSegments: typeof sourceSegments.$inferInsert[] = [];
+  const failedSegmentIds = new Set<string>();
+
   for (const segId of neededSegmentIds) {
+    if (blockedSegmentIds.has(segId)) continue;
+
     const seg = segmentMap.get(segId);
     if (!seg) continue;
 
-    const existingOrigin = segmentOrigins.get(segId);
-    if (existingOrigin === "admin") {
-      result.conflicts.push({
-        id: segId,
-        kind: "segment",
-        reason: `Segment "${segId}" được quản lý bởi admin (origin=admin). Drive sync không được ghi đè.`,
-      });
+    // Nếu source của segment bị block hoặc không được nạp
+    if (blockedSourceIds.has(seg.source_id)) {
+      failedSegmentIds.add(segId);
       continue;
     }
 
-    // Download text + transcript content
     let textContent: string | null = null;
     let transcriptContent: string | null = null;
 
@@ -495,14 +549,24 @@ export async function syncDriveContent(opts: {
             file: seg.text_file,
             message: `Segment "${segId}" thiếu file văn bản: ${seg.text_file}`,
           });
+          failedSegmentIds.add(segId);
           continue;
         }
       } catch (err) {
+        if (err instanceof DriveNetworkOrQuotaError) {
+          result.errors.push({
+            id: segId,
+            file: seg.text_file,
+            message: `Lỗi mạng hoặc hạn ngạch Drive: ${err.message}. Đã ngừng đồng bộ để tránh ghi nửa chừng.`,
+          });
+          return result; // Lỗi mạng/quota -> dừng ngay, không ghi gì vào DB
+        }
         result.errors.push({
           id: segId,
           file: seg.text_file,
           message: `Lỗi tải file ${seg.text_file}: ${err instanceof Error ? err.message : String(err)}`,
         });
+        failedSegmentIds.add(segId);
         continue;
       }
     }
@@ -516,80 +580,64 @@ export async function syncDriveContent(opts: {
             file: seg.transcript_file,
             message: `Segment "${segId}" thiếu file transcript: ${seg.transcript_file}`,
           });
+          failedSegmentIds.add(segId);
           continue;
         }
       } catch (err) {
+        if (err instanceof DriveNetworkOrQuotaError) {
+          result.errors.push({
+            id: segId,
+            file: seg.transcript_file,
+            message: `Lỗi mạng hoặc hạn ngạch Drive: ${err.message}. Đã ngừng đồng bộ để tránh ghi nửa chừng.`,
+          });
+          return result;
+        }
         result.errors.push({
           id: segId,
           file: seg.transcript_file,
           message: `Lỗi tải file ${seg.transcript_file}: ${err instanceof Error ? err.message : String(err)}`,
         });
+        failedSegmentIds.add(segId);
         continue;
       }
     }
 
-    if (!dryRun) {
-      try {
-        await db
-          .insert(sourceSegments)
-          .values({
-            id: seg.id,
-            sourceId: seg.source_id,
-            page: seg.page ?? null,
-            startSeconds: seg.start_seconds ?? null,
-            endSeconds: seg.end_seconds ?? null,
-            textContent,
-            transcriptContent,
-            verifiedTranscript: seg.verified_transcript ?? false,
-            language: seg.language ?? "en",
-            origin: "drive",
-          })
-          .onConflictDoUpdate({
-            target: sourceSegments.id,
-            set: {
-              sourceId: seg.source_id,
-              page: seg.page ?? null,
-              startSeconds: seg.start_seconds ?? null,
-              endSeconds: seg.end_seconds ?? null,
-              textContent,
-              transcriptContent,
-              verifiedTranscript: seg.verified_transcript ?? false,
-              language: seg.language ?? "en",
-              origin: "drive",
-            },
-          });
-      } catch (err) {
+    stagedSegments.push({
+      id: seg.id,
+      sourceId: seg.source_id,
+      page: seg.page ?? null,
+      startSeconds: seg.start_seconds ?? null,
+      endSeconds: seg.end_seconds ?? null,
+      textContent,
+      transcriptContent,
+      verifiedTranscript: seg.verified_transcript ?? false,
+      language: seg.language ?? "en",
+      origin: "drive",
+    });
+  }
+
+  // 3. Stage Activities
+  const stagedActivities: (typeof activities.$inferInsert & { questions?: unknown })[] = [];
+
+  for (const act of approvedActivities) {
+    if (blockedActivityIds.has(act.id)) continue;
+
+    // Chặn phụ thuộc: nếu có segment nào bị lỗi tải file hoặc xung đột -> activity bị loại bỏ
+    if (act.segment_ids && Array.isArray(act.segment_ids)) {
+      const brokenSeg = act.segment_ids.find(
+        (sid) => failedSegmentIds.has(sid) || blockedSegmentIds.has(sid)
+      );
+      if (brokenSeg) {
         result.errors.push({
-          id: segId,
-          message: `Lỗi upsert segment: ${err instanceof Error ? err.message : String(err)}`,
+          id: act.id,
+          message: `Activity "${act.id}" tham chiếu segment "${brokenSeg}" bị lỗi tải file hoặc xung đột. Bỏ qua không nạp activity này.`,
         });
         continue;
       }
     }
 
-    if (existingOrigin !== undefined) {
-      result.updated.push(`segment:${segId}`);
-    } else {
-      result.added.push(`segment:${segId}`);
-    }
-  }
-
-  // ── 11. Upsert activities ──
-  for (const act of approvedActivities) {
-    const existingOrigin = activityOrigins.get(act.id);
-    if (existingOrigin === "admin") {
-      result.conflicts.push({
-        id: act.id,
-        kind: "activity",
-        reason: `Activity "${act.id}" ("${act.title}") được quản lý bởi admin (origin=admin). Drive sync không được ghi đè.`,
-      });
-      continue;
-    }
-
-    // Download optional text files
+    // Tải prompt_file
     let promptText: string | null = null;
-    let rubricJson: unknown = null;
-
     if (act.prompt_file) {
       try {
         promptText = await driveFileReader(act.prompt_file);
@@ -602,6 +650,14 @@ export async function syncDriveContent(opts: {
           continue;
         }
       } catch (err) {
+        if (err instanceof DriveNetworkOrQuotaError) {
+          result.errors.push({
+            id: act.id,
+            file: act.prompt_file,
+            message: `Lỗi mạng hoặc hạn ngạch Drive: ${err.message}. Đã ngừng đồng bộ để tránh ghi nửa chừng.`,
+          });
+          return result;
+        }
         result.errors.push({
           id: act.id,
           file: act.prompt_file,
@@ -611,6 +667,8 @@ export async function syncDriveContent(opts: {
       }
     }
 
+    // Tải rubric_file
+    let rubricJson: unknown = null;
     if (act.rubric_file) {
       try {
         const rubricContent = await driveFileReader(act.rubric_file);
@@ -624,6 +682,14 @@ export async function syncDriveContent(opts: {
         }
         rubricJson = yaml.parse(rubricContent);
       } catch (err) {
+        if (err instanceof DriveNetworkOrQuotaError) {
+          result.errors.push({
+            id: act.id,
+            file: act.rubric_file,
+            message: `Lỗi mạng hoặc hạn ngạch Drive: ${err.message}. Đã ngừng đồng bộ để tránh ghi nửa chừng.`,
+          });
+          return result;
+        }
         result.errors.push({
           id: act.id,
           file: act.rubric_file,
@@ -633,7 +699,63 @@ export async function syncDriveContent(opts: {
       }
     }
 
-    const activityValues = {
+    // Tải questions_file cho listening activity
+    let questionsJson: unknown = null;
+    if (act.mode === "listening") {
+      if (!act.questions_file) {
+        result.errors.push({
+          id: act.id,
+          message: `Activity nghe "${act.id}" bắt buộc phải khai báo questions_file trong manifest.`,
+        });
+        continue;
+      }
+
+      try {
+        const questionsContent = await driveFileReader(act.questions_file);
+        if (questionsContent === null) {
+          result.errors.push({
+            id: act.id,
+            file: act.questions_file,
+            message: `Activity "${act.id}" thiếu file câu hỏi nghe: ${act.questions_file}`,
+          });
+          continue;
+        }
+
+        const parsedQuestions = yaml.parse(questionsContent);
+        const rawList = Array.isArray(parsedQuestions)
+          ? parsedQuestions
+          : parsedQuestions?.questions;
+
+        const val = validateListeningQuestions(rawList);
+        if (!val.ok) {
+          result.errors.push({
+            id: act.id,
+            file: act.questions_file,
+            message: `File câu hỏi nghe "${act.questions_file}" không hợp lệ: ${val.errors.join("; ")}`,
+          });
+          continue;
+        }
+
+        questionsJson = val.value;
+      } catch (err) {
+        if (err instanceof DriveNetworkOrQuotaError) {
+          result.errors.push({
+            id: act.id,
+            file: act.questions_file,
+            message: `Lỗi mạng hoặc hạn ngạch Drive: ${err.message}. Đã ngừng đồng bộ để tránh ghi nửa chừng.`,
+          });
+          return result;
+        }
+        result.errors.push({
+          id: act.id,
+          file: act.questions_file,
+          message: `Lỗi tải/parse ${act.questions_file}: ${err instanceof Error ? err.message : String(err)}`,
+        });
+        continue;
+      }
+    }
+
+    stagedActivities.push({
       id: act.id,
       slot: act.slot ?? null,
       mode: act.mode,
@@ -649,35 +771,117 @@ export async function syncDriveContent(opts: {
       reviewState: act.review_state,
       segmentIds: act.segment_ids ?? [],
       questionsFile: act.questions_file ?? null,
+      questions: questionsJson,
       output: act.output ?? null,
       topic: act.topic ? String(act.topic).trim() || null : null,
-      origin: "drive" as const,
-    };
+      origin: "drive",
+    });
+  }
 
+  // ══════════════════════════════════════════════
+  // PHA 2: GHI VÀO DB (CHỈ KHI !dryRun)
+  // ══════════════════════════════════════════════
+
+  // Ghi Sources
+  for (const src of stagedSources) {
+    if (!dryRun) {
+      try {
+        await db
+          .insert(sources)
+          .values(src)
+          .onConflictDoUpdate({
+            target: sources.id,
+            set: {
+              title: src.title,
+              kind: src.kind,
+              permission: src.permission,
+              locatorType: src.locatorType,
+              url: src.url,
+              reviewState: src.reviewState,
+              notes: src.notes,
+              origin: "drive",
+            },
+          });
+      } catch (err) {
+        result.errors.push({
+          id: src.id,
+          message: `Lỗi upsert source: ${err instanceof Error ? err.message : String(err)}`,
+        });
+        continue;
+      }
+    }
+
+    if (sourceOrigins.has(src.id)) {
+      result.updated.push(`source:${src.id}`);
+    } else {
+      result.added.push(`source:${src.id}`);
+    }
+  }
+
+  // Ghi Segments
+  for (const seg of stagedSegments) {
+    if (!dryRun) {
+      try {
+        await db
+          .insert(sourceSegments)
+          .values(seg)
+          .onConflictDoUpdate({
+            target: sourceSegments.id,
+            set: {
+              sourceId: seg.sourceId,
+              page: seg.page,
+              startSeconds: seg.startSeconds,
+              endSeconds: seg.endSeconds,
+              textContent: seg.textContent,
+              transcriptContent: seg.transcriptContent,
+              verifiedTranscript: seg.verifiedTranscript,
+              language: seg.language,
+              origin: "drive",
+            },
+          });
+      } catch (err) {
+        result.errors.push({
+          id: seg.id,
+          message: `Lỗi upsert segment: ${err instanceof Error ? err.message : String(err)}`,
+        });
+        continue;
+      }
+    }
+
+    if (segmentOrigins.has(seg.id)) {
+      result.updated.push(`segment:${seg.id}`);
+    } else {
+      result.added.push(`segment:${seg.id}`);
+    }
+  }
+
+  // Ghi Activities
+  for (const act of stagedActivities) {
     if (!dryRun) {
       try {
         await db
           .insert(activities)
-          .values(activityValues)
+          .values(act)
           .onConflictDoUpdate({
             target: activities.id,
             set: {
-              slot: activityValues.slot,
-              mode: activityValues.mode,
-              title: activityValues.title,
-              objective: activityValues.objective,
-              durationMinutes: activityValues.durationMinutes,
-              difficulty: activityValues.difficulty,
-              promptText: activityValues.promptText,
-              feedbackGuide: activityValues.feedbackGuide,
-              rubricJson: activityValues.rubricJson,
-              answerReveal: activityValues.answerReveal,
-              purpose: activityValues.purpose,
-              reviewState: activityValues.reviewState,
-              segmentIds: activityValues.segmentIds,
-              questionsFile: activityValues.questionsFile,
-              output: activityValues.output,
-              topic: activityValues.topic,
+              slot: act.slot,
+              mode: act.mode,
+              title: act.title,
+              objective: act.objective,
+              durationMinutes: act.durationMinutes,
+              difficulty: act.difficulty,
+              promptText: act.promptText,
+              feedbackGuide: act.feedbackGuide,
+              rubricJson: act.rubricJson,
+              answerReveal: act.answerReveal,
+              purpose: act.purpose,
+              reviewState: act.reviewState,
+              segmentIds: act.segmentIds,
+              questionsFile: act.questionsFile,
+              questions: act.questions,
+              output: act.output,
+              topic: act.topic,
               origin: "drive",
             },
           });
@@ -690,14 +894,14 @@ export async function syncDriveContent(opts: {
       }
     }
 
-    if (existingOrigin !== undefined) {
+    if (activityOrigins.has(act.id)) {
       result.updated.push(`activity:${act.id}`);
     } else {
       result.added.push(`activity:${act.id}`);
     }
   }
 
-  // Add any structural warnings as non-blocking errors
+  // Thêm structural warnings
   for (const w of structureWarnings) {
     result.errors.push({ message: `[warning] ${w}` });
   }

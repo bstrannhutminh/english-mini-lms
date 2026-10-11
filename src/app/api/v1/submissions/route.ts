@@ -66,7 +66,7 @@ export async function GET(req: NextRequest) {
           activityTitle: r.activityTitle,
           activityMode: r.activityMode,
           activitySlot: r.activitySlot,
-          assessmentStatus: r.assessmentStatus ?? "processing",
+          assessmentStatus: r.assessmentStatus ?? "not_assessed",
         });
       }
     }

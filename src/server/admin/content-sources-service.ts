@@ -32,7 +32,10 @@ export async function createContentSource(raw: unknown): Promise<AdminContentSou
   const f = v.value as Partial<SourceFields> & Pick<SourceFields, "id" | "title" | "kind">;
   const [dup] = await db.select({ id: sources.id }).from(sources).where(eq(sources.id, f.id)).limit(1);
   if (dup) throw new ContentError(409, `Nguồn "${f.id}" đã tồn tại`, [{ field: "id", message: "đã tồn tại" }]);
-  const [row] = await db.insert(sources).values({ ...f, reviewState: "draft" }).returning();
+  const [row] = await db
+    .insert(sources)
+    .values({ ...f, reviewState: "draft", origin: "admin" })
+    .returning();
   return row;
 }
 
@@ -44,7 +47,11 @@ export async function updateContentSource(id: string, raw: unknown): Promise<Adm
     url: current.url,
   });
   if (!v.ok) fail(v.errors);
-  const [row] = await db.update(sources).set(v.value).where(eq(sources.id, id)).returning();
+  const [row] = await db
+    .update(sources)
+    .set({ ...v.value, origin: "admin" })
+    .where(eq(sources.id, id))
+    .returning();
   return row;
 }
 
@@ -66,7 +73,10 @@ export async function createContentSegment(raw: unknown): Promise<AdminContentSe
   if (dup) throw new ContentError(409, `Segment "${f.id}" đã tồn tại`, [{ field: "id", message: "đã tồn tại" }]);
   const [src] = await db.select({ id: sources.id }).from(sources).where(eq(sources.id, f.sourceId)).limit(1);
   if (!src) fail([{ field: "sourceId", message: `nguồn "${f.sourceId}" không tồn tại` }]);
-  const [row] = await db.insert(sourceSegments).values(f).returning();
+  const [row] = await db
+    .insert(sourceSegments)
+    .values({ ...f, origin: "admin" })
+    .returning();
   return row;
 }
 
@@ -78,6 +88,10 @@ export async function updateContentSegment(id: string, raw: unknown): Promise<Ad
     endSeconds: current.endSeconds,
   });
   if (!v.ok) fail(v.errors);
-  const [row] = await db.update(sourceSegments).set(v.value).where(eq(sourceSegments.id, id)).returning();
+  const [row] = await db
+    .update(sourceSegments)
+    .set({ ...v.value, origin: "admin" })
+    .where(eq(sourceSegments.id, id))
+    .returning();
   return row;
 }

@@ -57,9 +57,34 @@ async function main() {
   const db = drizzle(client, { schema });
 
   try {
+    // 2.1. Kiểm tra các bản ghi do admin tự soạn (origin = 'admin') để không ghi đè
+    const [existingAdminSources, existingAdminSegments, existingAdminActivities] =
+      await Promise.all([
+        db
+          .select({ id: schema.sources.id })
+          .from(schema.sources)
+          .where(sql`${schema.sources.origin} = 'admin'`),
+        db
+          .select({ id: schema.sourceSegments.id })
+          .from(schema.sourceSegments)
+          .where(sql`${schema.sourceSegments.origin} = 'admin'`),
+        db
+          .select({ id: schema.activities.id })
+          .from(schema.activities)
+          .where(sql`${schema.activities.origin} = 'admin'`),
+      ]);
+
+    const adminSourceIds = new Set(existingAdminSources.map((s) => s.id));
+    const adminSegmentIds = new Set(existingAdminSegments.map((s) => s.id));
+    const adminActivityIds = new Set(existingAdminActivities.map((a) => a.id));
+
     // 3. Upsert sources
     console.log("\n📦 Đang nạp sources...");
     for (const s of parsed.sourcesToUpsert) {
+      if (adminSourceIds.has(s.id)) {
+        console.warn(`   ⚠️ Bỏ qua Source [${s.id}]: Nguồn do admin soạn tay (origin='admin')`);
+        continue;
+      }
       await db
         .insert(schema.sources)
         .values({
@@ -71,6 +96,7 @@ async function main() {
           url: s.url,
           reviewState: s.reviewState,
           notes: s.notes,
+          origin: "seed",
         })
         .onConflictDoUpdate({
           target: schema.sources.id,
@@ -82,6 +108,7 @@ async function main() {
             url: sql`excluded.url`,
             reviewState: sql`excluded.review_state`,
             notes: sql`excluded.notes`,
+            origin: "seed",
             updatedAt: new Date(),
           },
         });
@@ -91,6 +118,10 @@ async function main() {
     // 4. Upsert source_segments
     console.log("\n📦 Đang nạp source segments...");
     for (const seg of parsed.segmentsToUpsert) {
+      if (adminSegmentIds.has(seg.id)) {
+        console.warn(`   ⚠️ Bỏ qua Segment [${seg.id}]: Phân đoạn do admin soạn tay (origin='admin')`);
+        continue;
+      }
       await db
         .insert(schema.sourceSegments)
         .values({
@@ -103,6 +134,7 @@ async function main() {
           transcriptContent: seg.transcriptContent,
           verifiedTranscript: seg.verifiedTranscript,
           language: seg.language,
+          origin: "seed",
         })
         .onConflictDoUpdate({
           target: schema.sourceSegments.id,
@@ -115,6 +147,7 @@ async function main() {
             transcriptContent: sql`excluded.transcript_content`,
             verifiedTranscript: sql`excluded.verified_transcript`,
             language: sql`excluded.language`,
+            origin: "seed",
             updatedAt: new Date(),
           },
         });
@@ -124,6 +157,10 @@ async function main() {
     // 5. Upsert activities
     console.log("\n📦 Đang nạp activities (chỉ approved)...");
     for (const act of parsed.activitiesToUpsert) {
+      if (adminActivityIds.has(act.id)) {
+        console.warn(`   ⚠️ Bỏ qua Activity [${act.id}]: Bài học do admin soạn tay (origin='admin')`);
+        continue;
+      }
       await db
         .insert(schema.activities)
         .values({
@@ -144,6 +181,7 @@ async function main() {
           questionsFile: act.questionsFile,
           output: act.output,
           topic: act.topic,
+          origin: "seed",
         })
         .onConflictDoUpdate({
           target: schema.activities.id,
@@ -164,6 +202,7 @@ async function main() {
             questionsFile: sql`excluded.questions_file`,
             output: sql`excluded.output`,
             topic: sql`excluded.topic`,
+            origin: "seed",
             updatedAt: new Date(),
           },
         });

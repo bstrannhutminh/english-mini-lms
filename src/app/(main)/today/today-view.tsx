@@ -131,16 +131,21 @@ export default function TodayView({
         }),
       });
 
+      const revisionQuery =
+        selectedActivity?.actionType === "start_revision" && selectedActivity?.parentId
+          ? `?parentId=${encodeURIComponent(selectedActivity.parentId)}`
+          : "";
+
       if (res.ok) {
         const json = await res.json();
-        router.push(`/learn/${json.sessionId}`);
+        router.push(`/learn/${json.sessionId}${revisionQuery}`);
       } else if (res.status === 409) {
         const errJson = await res.json();
         const shouldContinue = window.confirm(
           "Bạn đang có một phiên học chưa hoàn thành cho bài này.\n\nBạn có muốn tiếp tục phiên đang dở không?"
         );
         if (shouldContinue && errJson.sessionId) {
-          router.push(`/learn/${errJson.sessionId}`);
+          router.push(`/learn/${errJson.sessionId}${revisionQuery}`);
         } else {
           setStarting(false);
         }

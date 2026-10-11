@@ -19,6 +19,7 @@ export interface FlashcardItem {
 interface ReviewAction {
   vocab_id: string;
   result: "know" | "dont_know";
+  clientReviewId: string;
 }
 
 interface HistoryItem {
@@ -43,8 +44,8 @@ export function FlashcardsView() {
   const [batch, setBatch] = useState<ReviewAction[]>([]);
   const [history, setHistory] = useState<HistoryItem[]>([]);
   const [saving, setSaving] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved" | "failed">("idle");
   const [isFinished, setIsFinished] = useState(false);
-  const [isSubmitted, setIsSubmitted] = useState(false);
 
   // Gesture dragging state
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
@@ -91,7 +92,6 @@ export function FlashcardsView() {
           setBatch([]);
           setHistory([]);
           setIsFinished(false);
-          setIsSubmitted(false);
           setFlyDirection(null);
           setDragOffset({ x: 0, y: 0 });
           setLoading(false);
@@ -111,17 +111,17 @@ export function FlashcardsView() {
     };
   }, [filterMode, reloadKey]);
 
-  // Cảnh báo beforeunload nếu đã quẹt mà chưa gửi kết quả
+  // Cảnh báo beforeunload nếu đã quẹt mà chưa lưu kết quả xong
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      if (batch.length > 0 && !isSubmitted && !isFinished) {
+      if (batch.length > 0 && saveStatus !== "saved") {
         e.preventDefault();
         e.returnValue = "";
       }
     };
     window.addEventListener("beforeunload", handleBeforeUnload);
     return () => window.removeEventListener("beforeunload", handleBeforeUnload);
-  }, [batch.length, isSubmitted, isFinished]);
+  }, [batch.length, saveStatus]);
 
   // Phát âm từ vựng (Web Speech API)
   const speakPhrase = useCallback((phrase: string, e?: React.MouseEvent) => {
@@ -138,11 +138,13 @@ export function FlashcardsView() {
   const submitBatchReviews = useCallback(
     async (reviewsToSubmit: ReviewAction[]) => {
       if (reviewsToSubmit.length === 0) {
+        setSaveStatus("saved");
         setIsFinished(true);
         return;
       }
 
       setSaving(true);
+      setSaveStatus("saving");
       try {
         const res = await fetch("/api/v1/vocabulary/review", {
           method: "POST",
@@ -157,12 +159,11 @@ export function FlashcardsView() {
           throw new Error("Không thể lưu kết quả ôn tập");
         }
 
-        setIsSubmitted(true);
+        setSaveStatus("saved");
         setIsFinished(true);
       } catch (err) {
         console.error("Lỗi nộp kết quả flashcard:", err);
-        alert("Lưu kết quả gặp sự cố. Bạn vẫn có thể xem lại tổng kết.");
-        setIsFinished(true);
+        setSaveStatus("failed");
       } finally {
         setSaving(false);
       }
@@ -173,15 +174,24 @@ export function FlashcardsView() {
   // Xử lý khi quyết định thẻ: know (thuộc) hoặc dont_know (chưa thuộc)
   const handleCardDecision = useCallback(
     (decision: "know" | "dont_know") => {
-      if (currentIndex >= items.length || isFinished || saving) return;
+      if (
+        currentIndex >= items.length ||
+        isFinished ||
+        saving ||
+        saveStatus === "saving" ||
+        flyDirection !== null
+      ) {
+        return;
+      }
 
       const currentItem = items[currentIndex];
       setFlyDirection(decision === "know" ? "right" : "left");
 
-      // Cập nhật batch và history
+      // Cập nhật batch và history kèm clientReviewId cố định cho mỗi thẻ
       const newAction: ReviewAction = {
         vocab_id: currentItem.id,
         result: decision,
+        clientReviewId: crypto.randomUUID(),
       };
       const updatedBatch = [...batch, newAction];
       setBatch(updatedBatch);
@@ -202,12 +212,21 @@ export function FlashcardsView() {
         }
       }, 240);
     },
-    [currentIndex, items, isFinished, saving, batch, submitBatchReviews]
+    [currentIndex, items, isFinished, saving, saveStatus, flyDirection, batch, submitBatchReviews]
   );
 
   // Hoàn tác (Undo) thẻ vừa quẹt
   const handleUndo = useCallback(() => {
-    if (history.length === 0 || currentIndex === 0 || saving || isFinished) return;
+    if (
+      history.length === 0 ||
+      currentIndex === 0 ||
+      saving ||
+      saveStatus === "saving" ||
+      isFinished ||
+      flyDirection !== null
+    ) {
+      return;
+    }
 
     // Lùi 1 bước
     const nextHistory = [...history];
@@ -222,7 +241,7 @@ export function FlashcardsView() {
     setIsFlipped(false);
     setDragOffset({ x: 0, y: 0 });
     setFlyDirection(null);
-  }, [history, currentIndex, saving, isFinished, batch]);
+  }, [history, currentIndex, saving, saveStatus, isFinished, flyDirection, batch]);
 
   // Kết thúc phiên sớm và gửi batch đã có
   const handleFinishEarly = useCallback(() => {
@@ -252,14 +271,14 @@ export function FlashcardsView() {
     setBatch([]);
     setHistory([]);
     setIsFinished(false);
-    setIsSubmitted(false);
+    setSaveStatus("idle");
     setFlyDirection(null);
     setDragOffset({ x: 0, y: 0 });
   }, [history]);
 
   // Pointer events cho Swipe cử chỉ trên Mobile & Desktop
   const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (saving || flyDirection) return;
+    if (saving || saveStatus === "saving" || flyDirection !== null || isFinished) return;
     dragStartRef.current = { x: e.clientX, y: e.clientY };
     hasMovedRef.current = false;
     setIsDragging(true);
@@ -318,9 +337,10 @@ export function FlashcardsView() {
   // Phím tắt bàn phím Desktop
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // Không kích hoạt nếu đang trong input/textarea
+      // Không kích hoạt nếu đang trong input/textarea hoặc đang thao tác/lưu/animate
       const tag = (e.target as HTMLElement)?.tagName;
       if (tag === "INPUT" || tag === "TEXTAREA") return;
+      if (saving || saveStatus === "saving" || flyDirection !== null || isFinished) return;
 
       if (e.key === "ArrowLeft" || e.key === "a" || e.key === "A") {
         e.preventDefault();
@@ -339,7 +359,7 @@ export function FlashcardsView() {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [handleCardDecision, handleUndo]);
+  }, [handleCardDecision, handleUndo, saving, saveStatus, flyDirection, isFinished]);
 
   // Thống kê phiên học
   const knowCount = history.filter((h) => h.result === "know").length;
@@ -360,7 +380,50 @@ export function FlashcardsView() {
   }
 
   // ==========================================
-  // 1. MÀN HÌNH TỔNG KẾT SAU KHI HẾT BỘ BÀI
+  // 1. MÀN HÌNH LỖI KHI LƯU THẤT BẠI
+  // ==========================================
+  if (saveStatus === "failed") {
+    return (
+      <div className="mx-auto w-full max-w-md px-4 py-6 flex flex-col items-center justify-center min-h-[calc(100vh-120px)] animate-fadeIn">
+        <div className="w-full bg-white rounded-3xl p-6 sm:p-8 shadow-xl border border-rose-200 text-center">
+          <div className="text-5xl mb-3">⚠️</div>
+          <h2 className="text-2xl font-black text-rose-700 tracking-tight">
+            Lưu kết quả thất bại
+          </h2>
+          <p className="text-xs sm:text-sm text-slate-600 mt-2 leading-relaxed">
+            Không thể lưu kết quả {batch.length} từ vừa ôn tập vào hệ thống (có thể do lỗi kết nối mạng). Hãy kiểm tra mạng và bấm Thử lại.
+          </p>
+
+          <div className="mt-6 flex flex-col gap-3">
+            <button
+              onClick={() => submitBatchReviews(batch)}
+              disabled={saving}
+              className="w-full py-3.5 px-4 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-bold text-sm rounded-2xl shadow-lg shadow-blue-500/30 transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+            >
+              {saving ? "Đang thử lại..." : "🔄 Thử lại ngay"}
+            </button>
+            <button
+              onClick={() => {
+                if (
+                  confirm(
+                    "Nếu rời đi bây giờ, tiến trình đợt ôn này sẽ không được lưu vào Spaced Repetition. Bạn chắc chắn muốn thoát?"
+                  )
+                ) {
+                  router.push("/vocab");
+                }
+              }}
+              className="w-full py-2.5 px-4 text-xs font-semibold text-slate-500 hover:text-slate-700 transition cursor-pointer"
+            >
+              Bỏ qua và quay về Kho từ vựng
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // ==========================================
+  // 2. MÀN HÌNH TỔNG KẾT SAU KHI HẾT BỘ BÀI
   // ==========================================
   if (isFinished) {
     const unmasteredList = history.filter((h) => h.result === "dont_know");
@@ -805,7 +868,7 @@ export function FlashcardsView() {
           <button
             type="button"
             onClick={() => handleCardDecision("dont_know")}
-            disabled={saving || flyDirection !== null}
+            disabled={saving || saveStatus === "saving" || flyDirection !== null}
             className="flex-1 max-w-[130px] h-14 bg-rose-50 hover:bg-rose-100 border-2 border-rose-300 text-rose-700 rounded-2xl flex flex-col items-center justify-center transition transform active:scale-95 shadow-sm disabled:opacity-50 cursor-pointer"
             title="Chưa thuộc [Phím ← hoặc A]"
           >
@@ -817,7 +880,7 @@ export function FlashcardsView() {
           <button
             type="button"
             onClick={handleUndo}
-            disabled={history.length === 0 || saving || flyDirection !== null}
+            disabled={history.length === 0 || saving || saveStatus === "saving" || flyDirection !== null}
             className="w-12 h-12 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-2xl flex flex-col items-center justify-center transition transform active:scale-90 disabled:opacity-30 disabled:pointer-events-none cursor-pointer"
             title="Hoàn tác thẻ trước [Phím Z]"
           >
@@ -829,7 +892,8 @@ export function FlashcardsView() {
           <button
             type="button"
             onClick={() => setIsFlipped((prev) => !prev)}
-            className="w-12 h-12 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-2xl flex flex-col items-center justify-center transition transform active:scale-90 cursor-pointer"
+            disabled={saving || saveStatus === "saving" || flyDirection !== null}
+            className="w-12 h-12 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-2xl flex flex-col items-center justify-center transition transform active:scale-90 disabled:opacity-30 cursor-pointer"
             title="Lật thẻ [Phím Space]"
           >
             <span className="text-base leading-none">🔄</span>
@@ -840,7 +904,7 @@ export function FlashcardsView() {
           <button
             type="button"
             onClick={() => handleCardDecision("know")}
-            disabled={saving || flyDirection !== null}
+            disabled={saving || saveStatus === "saving" || flyDirection !== null}
             className="flex-1 max-w-[130px] h-14 bg-emerald-50 hover:bg-emerald-100 border-2 border-emerald-300 text-emerald-700 rounded-2xl flex flex-col items-center justify-center transition transform active:scale-95 shadow-sm disabled:opacity-50 cursor-pointer"
             title="Đã thuộc [Phím → hoặc D]"
           >

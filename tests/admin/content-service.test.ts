@@ -1,7 +1,7 @@
 import { describe, it, expect, afterAll } from "vitest";
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
-import { activities, sources } from "@/db/schema";
+import { activities, sources, sourceSegments } from "@/db/schema";
 import {
   createContentActivity,
   getContentActivity,
@@ -11,6 +11,7 @@ import {
   createContentSegment,
   createContentSource,
   updateContentSource,
+  updateContentSegment,
 } from "@/server/admin/content-sources-service";
 import { ContentError } from "@/server/admin/content-errors";
 import { getApprovedActivities } from "@/server/library/service";
@@ -127,6 +128,61 @@ describe("Content service (DB): tạo → sửa → duyệt → gỡ", () => {
     expect(await getContentActivity(ACT)).not.toBeNull();
     const src = await updateContentSource(SRC, { reviewState: "retired" });
     expect(src.reviewState).toBe("retired");
+  });
+
+  it("createContentActivity/Source/Segment luôn gán origin='admin'", async () => {
+    const freshSrc = "src-origin-test-fresh";
+    const freshSeg = "seg-origin-test-fresh";
+    const freshAct = "L96";
+
+    // Dọn dẹp trước phòng trường hợp test cũ để lại
+    await db.delete(activities).where(eq(activities.id, freshAct));
+    await db.delete(sourceSegments).where(eq(sourceSegments.id, freshSeg));
+    await db.delete(sources).where(eq(sources.id, freshSrc));
+
+    const src = await createContentSource({ id: freshSrc, title: "Fresh Src", kind: "article" });
+    expect(src.origin).toBe("admin");
+
+    const seg = await createContentSegment({ id: freshSeg, sourceId: freshSrc, textContent: "Sample text" });
+    expect(seg.origin).toBe("admin");
+
+    const act = await createContentActivity({ id: freshAct, mode: "listening", title: "Fresh Act" });
+    expect(act.origin).toBe("admin");
+
+    // Dọn dẹp sau test
+    await db.delete(activities).where(eq(activities.id, freshAct));
+    await db.delete(sourceSegments).where(eq(sourceSegments.id, freshSeg));
+    await db.delete(sources).where(eq(sources.id, freshSrc));
+  });
+
+  it("updateContent* trên hàng origin='seed'/'drive' chuyển origin thành 'admin'", async () => {
+    // Giả lập hàng đang có origin='drive'
+    await db.update(activities).set({ origin: "drive" }).where(eq(activities.id, ACT));
+    let act = await getContentActivity(ACT);
+    expect(act?.origin).toBe("drive");
+
+    // Admin cập nhật bài
+    await updateContentActivity(ACT, { title: "Tiêu đề đã được admin cập nhật" });
+    act = await getContentActivity(ACT);
+    expect(act?.origin).toBe("admin");
+
+    // Tương tự với source
+    await db.update(sources).set({ origin: "seed" }).where(eq(sources.id, SRC));
+    let [src] = await db.select().from(sources).where(eq(sources.id, SRC)).limit(1);
+    expect(src?.origin).toBe("seed");
+
+    await updateContentSource(SRC, { title: "Nguồn đã được admin cập nhật" });
+    [src] = await db.select().from(sources).where(eq(sources.id, SRC)).limit(1);
+    expect(src?.origin).toBe("admin");
+
+    // Tương tự với segment
+    await db.update(sourceSegments).set({ origin: "seed" }).where(eq(sourceSegments.id, SEG));
+    let [seg] = await db.select().from(sourceSegments).where(eq(sourceSegments.id, SEG)).limit(1);
+    expect(seg?.origin).toBe("seed");
+
+    await updateContentSegment(SEG, { startSeconds: 5 });
+    [seg] = await db.select().from(sourceSegments).where(eq(sourceSegments.id, SEG)).limit(1);
+    expect(seg?.origin).toBe("admin");
   });
 });
 

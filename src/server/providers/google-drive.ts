@@ -9,7 +9,7 @@
 import { google } from "googleapis";
 
 // ──────────────────────────────────────────────
-// Types
+// Types & Errors
 // ──────────────────────────────────────────────
 
 export interface DriveFile {
@@ -17,6 +17,13 @@ export interface DriveFile {
   name: string;
   mimeType: string;
   modifiedTime?: string | null;
+}
+
+export class DriveNetworkOrQuotaError extends Error {
+  constructor(message: string, public cause?: unknown) {
+    super(message);
+    this.name = "DriveNetworkOrQuotaError";
+  }
 }
 
 // ──────────────────────────────────────────────
@@ -67,23 +74,36 @@ export function getDriveFolderId(): string {
 
 /**
  * Lists all files directly inside a Drive folder (non-recursive).
- * Returns only files (not sub-folders unless mimeType matches).
+ * Handles pagination with nextPageToken.
  */
 export async function listFolderContents(
   drive: ReturnType<typeof getDriveClient>,
   folderId: string
 ): Promise<DriveFile[]> {
-  const res = await drive.files.list({
-    q: `'${folderId}' in parents and trashed = false`,
-    fields: "files(id, name, mimeType, modifiedTime)",
-    pageSize: 1000,
-  });
-  return (res.data.files ?? []) as DriveFile[];
+  const allFiles: DriveFile[] = [];
+  let pageToken: string | undefined = undefined;
+
+  do {
+    const res: { data: { files?: unknown[]; nextPageToken?: string | null } } =
+      await drive.files.list({
+        q: `'${folderId}' in parents and trashed = false`,
+        fields: "nextPageToken, files(id, name, mimeType, modifiedTime)",
+        pageSize: 1000,
+        pageToken,
+      });
+    if (res.data.files) {
+      allFiles.push(...(res.data.files as DriveFile[]));
+    }
+    pageToken = res.data.nextPageToken || undefined;
+  } while (pageToken);
+
+  return allFiles;
 }
 
 /**
  * Downloads a file's text content from Drive.
- * Returns null if the file cannot be downloaded (e.g., Google Docs — must be plain text).
+ * Returns null if the file cannot be found (404 / file not found).
+ * Throws DriveNetworkOrQuotaError if a network, quota, or server error occurs.
  */
 export async function downloadFileText(
   drive: ReturnType<typeof getDriveClient>,
@@ -95,22 +115,37 @@ export async function downloadFileText(
       { responseType: "text" }
     );
     return typeof res.data === "string" ? res.data : JSON.stringify(res.data);
-  } catch {
-    return null;
+  } catch (err: unknown) {
+    const status =
+      (err as { status?: number; code?: number })?.status ||
+      (err as { status?: number; code?: number })?.code;
+    const message = (err as Error)?.message || "";
+
+    // 404: Không tìm thấy file -> trả về null để caller ghi nhận lỗi thiếu file
+    if (status === 404 || message.includes("File not found") || message.includes("404")) {
+      return null;
+    }
+
+    // Các lỗi mạng, quota (403, 429), server (5xx), connection timeout -> ném lỗi để dừng sync
+    throw new DriveNetworkOrQuotaError(
+      `Drive API error (${status || "network"}): ${message}`,
+      err
+    );
   }
 }
 
 /**
  * Finds a file by name inside a folder.
- * Returns the first match or null.
+ * Escapes single quotes in fileName for safe Drive queries.
  */
 export async function findFileByName(
   drive: ReturnType<typeof getDriveClient>,
   folderId: string,
   fileName: string
 ): Promise<DriveFile | null> {
+  const escapedName = fileName.replace(/'/g, "\\'");
   const res = await drive.files.list({
-    q: `'${folderId}' in parents and name = '${fileName}' and trashed = false`,
+    q: `'${folderId}' in parents and name = '${escapedName}' and trashed = false`,
     fields: "files(id, name, mimeType, modifiedTime)",
     pageSize: 1,
   });
@@ -127,8 +162,9 @@ export async function findSubFolderId(
   parentFolderId: string,
   folderName: string
 ): Promise<string | null> {
+  const escapedName = folderName.replace(/'/g, "\\'");
   const res = await drive.files.list({
-    q: `'${parentFolderId}' in parents and name = '${folderName}' and mimeType = 'application/vnd.google-apps.folder' and trashed = false`,
+    q: `'${parentFolderId}' in parents and name = '${escapedName}' and mimeType = 'application/vnd.google-apps.folder' and trashed = false`,
     fields: "files(id, name)",
     pageSize: 1,
   });

@@ -1,0 +1,2 @@
+ALTER TABLE "vocabulary_reviews" ADD COLUMN "client_review_id" uuid;--> statement-breakpoint
+ALTER TABLE "vocabulary_reviews" ADD CONSTRAINT "vocabulary_reviews_client_review_id_unique" UNIQUE("client_review_id");

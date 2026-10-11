@@ -14,7 +14,7 @@ export interface SubmissionListItem {
   activityTitle: string;
   activityMode: string;
   activitySlot: string | null;
-  assessmentStatus: "queued" | "processing" | "needs_input" | "feedback_ready" | "failed";
+  assessmentStatus: "queued" | "processing" | "needs_input" | "feedback_ready" | "failed" | "not_assessed";
 }
 
 const MODE_CONFIG: Record<
@@ -91,6 +91,7 @@ const FILTER_STATUSES = [
   { id: "all", label: "Tất cả trạng thái" },
   { id: "feedback_ready", label: "Có feedback" },
   { id: "processing", label: "Đang chấm" },
+  { id: "not_assessed", label: "Chưa chấm" },
   { id: "needs_input", label: "Đã gắn cờ" },
 ];
 
@@ -101,6 +102,13 @@ function renderAssessmentBadge(status: string) {
         <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
           <span>✅</span>
           <span>Đã có feedback</span>
+        </span>
+      );
+    case "not_assessed":
+      return (
+        <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-600 border border-slate-200">
+          <span>⏸️</span>
+          <span>Chưa chấm</span>
         </span>
       );
     case "queued":
