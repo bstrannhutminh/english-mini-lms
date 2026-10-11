@@ -24,6 +24,97 @@ interface VocabListViewProps {
   initialItems: VocabularyItem[];
 }
 
+// SVG Vector Icons — Zero dependencies, accessible & crisp
+function CardsIcon({ className = "w-4 h-4" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <rect x="2" y="7" width="16" height="14" rx="2" />
+      <path d="M6 3h12a2 2 0 0 1 2 2v12" />
+    </svg>
+  );
+}
+
+function SparklesIcon({ className = "w-4 h-4" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M12 2l2.4 7.2L22 12l-7.6 2.8L12 22l-2.4-7.2L2 12l7.6-2.8z" />
+    </svg>
+  );
+}
+
+function BookOpenIcon({ className = "w-4 h-4" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z" />
+      <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z" />
+    </svg>
+  );
+}
+
+function ClockIcon({ className = "w-4 h-4" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <circle cx="12" cy="12" r="10" />
+      <polyline points="12 6 12 12 16 14" />
+    </svg>
+  );
+}
+
+function CheckCircleIcon({ className = "w-4 h-4" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <circle cx="12" cy="12" r="10" />
+      <polyline points="9 12 11 14 15 10" />
+    </svg>
+  );
+}
+
+function CalendarIcon({ className = "w-4 h-4" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+      <line x1="16" y1="2" x2="16" y2="6" />
+      <line x1="8" y1="2" x2="8" y2="6" />
+      <line x1="3" y1="10" x2="21" y2="10" />
+    </svg>
+  );
+}
+
+function ChevronDownIcon({ className = "w-4 h-4" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <polyline points="6 9 12 15 18 9" />
+    </svg>
+  );
+}
+
+function BookmarkIcon({ className = "w-4 h-4" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
+    </svg>
+  );
+}
+
+function PenIcon({ className = "w-4 h-4" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M12 20h9" />
+      <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+    </svg>
+  );
+}
+
+function SaveIcon({ className = "w-4 h-4" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+      <polyline points="17 21 17 13 7 13 7 21" />
+      <polyline points="7 3 7 8 15 8" />
+    </svg>
+  );
+}
+
 export function VocabListView({ initialItems }: VocabListViewProps) {
   const [items, setItems] = useState<VocabularyItem[]>(initialItems);
   const [activeFilter, setActiveFilter] = useState<"all" | "due" | "mastered">("all");
@@ -43,10 +134,12 @@ export function VocabListView({ initialItems }: VocabListViewProps) {
 
   const now = new Date();
 
-  // Đếm số từ đến hạn
+  // Đếm số từ đến hạn và đã thuộc
   const dueCount = items.filter(
     (i) => new Date(i.dueAt) <= now && i.masteryLevel < 4
   ).length;
+
+  const masteredCount = items.filter((i) => i.masteryLevel >= 4).length;
 
   // Lọc items theo activeFilter
   const filteredItems = items.filter((item) => {
@@ -68,7 +161,6 @@ export function VocabListView({ initialItems }: VocabListViewProps) {
       if (res.ok) {
         const data = await res.json();
         setItems(data.items);
-        // Cập nhật attempt inputs
         setAttemptInputs((prev) => {
           const next = { ...prev };
           for (const item of data.items) {
@@ -106,7 +198,6 @@ export function VocabListView({ initialItems }: VocabListViewProps) {
 
       const data = await res.json();
 
-      // Cập nhật lại trong items
       setItems((prev) =>
         prev.map((i) =>
           i.id === itemId ? { ...i, myAttempt: data.vocabulary.myAttempt } : i
@@ -164,206 +255,124 @@ export function VocabListView({ initialItems }: VocabListViewProps) {
   }
 
   return (
-    <div className="mx-auto w-full max-w-[800px] px-4 pt-4 pb-[60px] lg:max-w-[1100px]">
-      {/* Header trang */}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          flexWrap: "wrap",
-          gap: "12px",
-          marginBottom: "16px",
-        }}
-      >
+    <div className="mx-auto w-full max-w-3xl lg:max-w-5xl px-4 pt-6 pb-20 space-y-6">
+      {/* Header trang — Medical Clean & Professional */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1
-            style={{
-              fontSize: "1.375rem",
-              fontWeight: 800,
-              color: "#0f172a",
-              margin: "0 0 4px",
-            }}
-          >
-            📚 Vocabulary Vault
-          </h1>
-          <p style={{ fontSize: "0.875rem", color: "#64748b", margin: 0 }}>
-            Sổ từ ngữ cảnh lâm sàng · 1-Chạm Quick-Capture · Spaced Repetition
+          <div className="flex items-center gap-2.5">
+            <span className="w-8 h-8 rounded-xl bg-teal-50 border border-teal-200/80 text-teal-700 flex items-center justify-center shrink-0">
+              <BookmarkIcon className="w-4 h-4" />
+            </span>
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
+              Sổ từ vựng Y khoa
+            </h1>
+          </div>
+          <p className="text-xs sm:text-sm text-slate-500 mt-1 pl-10.5">
+            Ngữ cảnh lâm sàng • 1-Chạm Quick-Capture • Spaced Repetition
           </p>
         </div>
 
-        <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+        {/* Nút hành động nhanh */}
+        <div className="flex items-center gap-2 flex-wrap">
           <Link
             href="/vocab/flashcards"
             data-tour="vocab-flashcards"
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "6px",
-              padding: "8px 14px",
-              borderRadius: "10px",
-              background: "#059669",
-              color: "#ffffff",
-              fontSize: "0.875rem",
-              fontWeight: 600,
-              textDecoration: "none",
-              minHeight: "44px",
-            }}
+            className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-teal-600 hover:bg-teal-700 active:bg-teal-800 text-white text-xs sm:text-sm font-semibold transition shadow-xs cursor-pointer min-h-[44px]"
           >
-            <span>🃏</span> Ôn nhanh bằng thẻ
+            <CardsIcon className="w-4 h-4" />
+            <span>Ôn nhanh Flashcard</span>
           </Link>
           <Link
             href="/vocab/review"
             data-tour="vocab-review"
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "6px",
-              padding: "8px 14px",
-              borderRadius: "10px",
-              background: "#d97706",
-              color: "#ffffff",
-              fontSize: "0.875rem",
-              fontWeight: 600,
-              textDecoration: "none",
-              minHeight: "44px",
-            }}
+            className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs sm:text-sm font-semibold transition shadow-xs cursor-pointer min-h-[44px]"
           >
-            <span>💡</span> Ôn từ theo lịch
+            <SparklesIcon className="w-4 h-4" />
+            <span>Thử thách câu</span>
           </Link>
           <Link
             href="/library"
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "6px",
-              padding: "8px 14px",
-              borderRadius: "10px",
-              background: "#4f46e5",
-              color: "#ffffff",
-              fontSize: "0.875rem",
-              fontWeight: 600,
-              textDecoration: "none",
-              minHeight: "44px",
-            }}
+            className="inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 text-xs sm:text-sm font-semibold transition shadow-xs cursor-pointer min-h-[44px]"
           >
-            <span>📖</span> Vào bài đọc tra từ
+            <BookOpenIcon className="w-4 h-4 text-slate-500" />
+            <span>Đọc tra từ</span>
           </Link>
         </div>
       </div>
 
-      {/* Tabs lọc: Tất cả / Đến hạn / Đã thuộc */}
-      <div
-        style={{
-          display: "flex",
-          gap: "8px",
-          marginBottom: "20px",
-          borderBottom: "1px solid #e2e8f0",
-          paddingBottom: "8px",
-        }}
-      >
+      {/* Tabs lọc: Tất cả / Đến hạn / Đã thuộc (Pill Segmented Control) */}
+      <div className="flex items-center gap-2 border-b border-slate-200/80 pb-3 flex-wrap">
         <button
           onClick={() => handleFilterChange("all")}
-          style={{
-            padding: "8px 16px",
-            borderRadius: "8px",
-            border: "none",
-            background: activeFilter === "all" ? "#0f172a" : "#f1f5f9",
-            color: activeFilter === "all" ? "#ffffff" : "#475569",
-            fontSize: "0.875rem",
-            fontWeight: 600,
-            cursor: "pointer",
-            minHeight: "44px",
-          }}
+          className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition cursor-pointer min-h-[40px] flex items-center gap-2 ${
+            activeFilter === "all"
+              ? "bg-slate-900 text-white shadow-xs"
+              : "bg-slate-100 hover:bg-slate-200/80 text-slate-600"
+          }`}
         >
-          Tất cả ({items.length})
+          <span>Tất cả</span>
+          <span className="px-1.5 py-0.5 rounded-md text-[11px] bg-white/20 tabular-nums">
+            {items.length}
+          </span>
         </button>
 
         <button
           onClick={() => handleFilterChange("due")}
-          style={{
-            padding: "8px 16px",
-            borderRadius: "8px",
-            border: "none",
-            background: activeFilter === "due" ? "#b91c1c" : "#fef2f2",
-            color: activeFilter === "due" ? "#ffffff" : "#b91c1c",
-            fontSize: "0.875rem",
-            fontWeight: 600,
-            cursor: "pointer",
-            minHeight: "44px",
-            display: "flex",
-            alignItems: "center",
-            gap: "6px",
-          }}
+          className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition cursor-pointer min-h-[40px] flex items-center gap-2 ${
+            activeFilter === "due"
+              ? "bg-amber-600 text-white shadow-xs"
+              : "bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200/70"
+          }`}
         >
-          <span>⏰</span> Đến hạn ({dueCount})
+          <ClockIcon className="w-3.5 h-3.5" />
+          <span>Đến hạn ôn</span>
+          <span className="px-1.5 py-0.5 rounded-md text-[11px] bg-amber-900/20 tabular-nums font-bold">
+            {dueCount}
+          </span>
         </button>
 
         <button
           onClick={() => handleFilterChange("mastered")}
-          style={{
-            padding: "8px 16px",
-            borderRadius: "8px",
-            border: "none",
-            background: activeFilter === "mastered" ? "#15803d" : "#f0fdf4",
-            color: activeFilter === "mastered" ? "#ffffff" : "#15803d",
-            fontSize: "0.875rem",
-            fontWeight: 600,
-            cursor: "pointer",
-            minHeight: "44px",
-            display: "flex",
-            alignItems: "center",
-            gap: "6px",
-          }}
+          className={`px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition cursor-pointer min-h-[40px] flex items-center gap-2 ${
+            activeFilter === "mastered"
+              ? "bg-emerald-700 text-white shadow-xs"
+              : "bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200/70"
+          }`}
         >
-          <span>⭐</span> Đã thuộc
+          <CheckCircleIcon className="w-3.5 h-3.5" />
+          <span>Đã thuộc</span>
+          <span className="px-1.5 py-0.5 rounded-md text-[11px] bg-emerald-900/20 tabular-nums font-bold">
+            {masteredCount}
+          </span>
         </button>
       </div>
 
       {/* Trạng thái tải bộ lọc */}
       {isLoadingFilter && (
-        <div style={{ textAlign: "center", padding: "24px 0", color: "#64748b" }}>
-          Đang lọc danh sách...
+        <div className="text-center py-10 text-slate-400 text-sm font-medium">
+          Đang lọc danh sách thuật ngữ...
         </div>
       )}
 
       {/* Danh sách rỗng */}
       {!isLoadingFilter && filteredItems.length === 0 && (
-        <div
-          style={{
-            background: "#ffffff",
-            borderRadius: "16px",
-            border: "1px dashed #cbd5e1",
-            padding: "40px 20px",
-            textAlign: "center",
-          }}
-        >
-          <div style={{ fontSize: "2rem", marginBottom: "8px" }}>📖</div>
-          <div style={{ fontWeight: 700, color: "#1e293b", marginBottom: "6px" }}>
+        <div className="bg-white rounded-2xl border border-dashed border-slate-300 p-10 text-center shadow-xs max-w-lg mx-auto">
+          <BookOpenIcon className="w-12 h-12 text-slate-300 mx-auto mb-3" />
+          <h3 className="font-bold text-slate-800 text-base mb-1">
             {activeFilter === "due"
               ? "Tuyệt vời! Không có từ nào đang đến hạn ôn tập."
               : activeFilter === "mastered"
               ? "Chưa có từ nào được đánh dấu là Đã thuộc."
               : "Sổ từ vựng đang trống."}
-          </div>
-          <p style={{ fontSize: "0.875rem", color: "#64748b", margin: "0 0 16px" }}>
-            Vào bài tập Đọc–dịch y khoa, bôi đen cụm từ bất kỳ để tra cứu chuyên ngành và lưu 1-chạm vào sổ!
+          </h3>
+          <p className="text-xs sm:text-sm text-slate-500 leading-relaxed mb-5">
+            Khi luyện Đọc–dịch y khoa, bôi đen cụm từ bất kỳ để tra cứu chuyên ngành và lưu 1-chạm vào Sổ từ vựng!
           </p>
           <Link
             href="/library"
-            style={{
-              display: "inline-block",
-              padding: "10px 18px",
-              borderRadius: "8px",
-              background: "#4f46e5",
-              color: "#ffffff",
-              fontWeight: 600,
-              fontSize: "0.875rem",
-              textDecoration: "none",
-              minHeight: "44px",
-            }}
+            className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-semibold text-xs sm:text-sm shadow-xs transition cursor-pointer min-h-[44px]"
           >
-            Luyện đọc ngay (R1)
+            Luyện đọc ngay (R1) →
           </Link>
         </div>
       )}
@@ -371,37 +380,18 @@ export function VocabListView({ initialItems }: VocabListViewProps) {
       {/* Danh sách gom theo ngày */}
       {!isLoadingFilter &&
         Object.entries(groupedByDate).map(([dateStr, dateItems]) => (
-          <div key={dateStr} style={{ marginBottom: "24px" }}>
+          <div key={dateStr} className="space-y-3">
             {/* Tiêu đề nhóm ngày */}
-            <div
-              style={{
-                fontSize: "0.8125rem",
-                fontWeight: 700,
-                color: "#64748b",
-                textTransform: "uppercase",
-                letterSpacing: "0.05em",
-                marginBottom: "10px",
-                display: "flex",
-                alignItems: "center",
-                gap: "8px",
-              }}
-            >
-              <span>📅</span> Ngày lưu: {dateStr}
-              <span
-                style={{
-                  fontSize: "0.75rem",
-                  background: "#e2e8f0",
-                  color: "#475569",
-                  padding: "1px 6px",
-                  borderRadius: "10px",
-                }}
-              >
+            <div className="flex items-center gap-2 text-xs font-bold text-slate-500 uppercase tracking-wider pl-1">
+              <CalendarIcon className="w-3.5 h-3.5 text-slate-400" />
+              <span>Ngày lưu: {dateStr}</span>
+              <span className="text-[11px] bg-slate-200/70 text-slate-600 px-2 py-0.5 rounded-full font-semibold tabular-nums">
                 {dateItems.length}
               </span>
             </div>
 
             {/* Các thẻ từ vựng trong ngày */}
-            <div className="grid grid-cols-1 items-start gap-3 lg:grid-cols-2">
+            <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-2">
               {dateItems.map((item) => {
                 const isExpanded = expandedId === item.id;
                 const dueDate = new Date(item.dueAt);
@@ -414,182 +404,98 @@ export function VocabListView({ initialItems }: VocabListViewProps) {
                   <div
                     key={item.id}
                     data-tour={item.id === filteredItems[0]?.id ? "vocab-item" : undefined}
-                    style={{
-                      background: "#ffffff",
-                      borderRadius: "14px",
-                      border: isDue ? "2px solid #f87171" : "1px solid #e2e8f0",
-                      boxShadow: "0 1px 3px rgba(0,0,0,0.03)",
-                      overflow: "hidden",
-                    }}
+                    className={`bg-white rounded-2xl transition border overflow-hidden shadow-xs hover:shadow-sm ${
+                      isDue
+                        ? "border-amber-300 ring-1 ring-amber-200/50"
+                        : "border-slate-200/80"
+                    }`}
                   >
                     {/* Hàng tóm tắt từ vựng (Click để mở rộng/thu gọn) */}
                     <div
                       onClick={() => setExpandedId(isExpanded ? null : item.id)}
-                      style={{
-                        padding: "14px 18px",
-                        cursor: "pointer",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "space-between",
-                        flexWrap: "wrap",
-                        gap: "10px",
-                        background: isExpanded ? "#f8fafc" : "#ffffff",
-                      }}
+                      className={`p-4 sm:p-5 cursor-pointer flex items-start justify-between gap-3 transition ${
+                        isExpanded ? "bg-slate-50/70" : "bg-white"
+                      }`}
                     >
-                      <div>
-                        <div style={{ display: "flex", alignItems: "baseline", gap: "8px", flexWrap: "wrap" }}>
-                          <span style={{ fontWeight: 700, fontSize: "1rem", color: "#0f172a" }}>
+                      <div className="space-y-1 min-w-0">
+                        <div className="flex items-baseline gap-2.5 flex-wrap">
+                          <span className="font-bold text-base sm:text-lg text-slate-900 tracking-tight">
                             {item.phrase}
                           </span>
                           {item.ipa && (
-                            <span
-                              style={{
-                                color: "#6366f1",
-                                fontSize: "0.8125rem",
-                                fontFamily: "monospace",
-                              }}
-                            >
+                            <span className="text-xs text-teal-700 bg-teal-50 px-2 py-0.5 rounded-md font-mono border border-teal-200/60">
                               /{item.ipa.replace(/^\/|\/$/g, "")}/
                             </span>
                           )}
                         </div>
-                        <div
-                          style={{
-                            fontSize: "0.875rem",
-                            color: "#334155",
-                            marginTop: "2px",
-                            fontWeight: 500,
-                          }}
-                        >
+                        <div className="text-xs sm:text-sm text-slate-600 font-medium leading-relaxed">
                           {item.contextMeaning || "(Chưa có nghĩa ngữ cảnh)"}
                         </div>
                       </div>
 
-                      {/* Trạng thái Spaced Repetition */}
-                      <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                      {/* Trạng thái Spaced Repetition & Nút mở rộng */}
+                      <div className="flex items-center gap-2 shrink-0 pt-0.5">
                         {isMastered ? (
-                          <span
-                            style={{
-                              fontSize: "0.75rem",
-                              fontWeight: 700,
-                              padding: "3px 8px",
-                              borderRadius: "6px",
-                              background: "#f0fdf4",
-                              color: "#16a34a",
-                              border: "1px solid #bbf7d0",
-                            }}
-                          >
-                            ⭐ Đã thuộc
+                          <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200">
+                            <CheckCircleIcon className="w-3 h-3 text-emerald-600" />
+                            <span>Đã thuộc</span>
                           </span>
                         ) : isDue || diffDays <= 0 ? (
-                          <span
-                            style={{
-                              fontSize: "0.75rem",
-                              fontWeight: 700,
-                              padding: "3px 8px",
-                              borderRadius: "6px",
-                              background: "#fef2f2",
-                              color: "#dc2626",
-                              border: "1px solid #fecaca",
-                            }}
-                          >
-                            ⏰ Đến hạn
+                          <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full bg-amber-50 text-amber-900 border border-amber-300">
+                            <ClockIcon className="w-3 h-3 text-amber-700" />
+                            <span>Đến hạn</span>
                           </span>
                         ) : (
-                          <span
-                            style={{
-                              fontSize: "0.75rem",
-                              color: "#64748b",
-                              background: "#f1f5f9",
-                              padding: "3px 8px",
-                              borderRadius: "6px",
-                            }}
-                          >
-                            ⏳ Ôn sau {diffDays} ngày nữa
+                          <span className="text-[11px] font-semibold text-slate-500 bg-slate-100 px-2.5 py-1 rounded-full tabular-nums">
+                            Ôn sau {diffDays} ngày
                           </span>
                         )}
 
-                        <span style={{ color: "#94a3b8", fontSize: "0.875rem" }}>
-                          {isExpanded ? "▲" : "▼"}
+                        <span
+                          className={`text-slate-400 transition-transform duration-200 ${
+                            isExpanded ? "rotate-180" : ""
+                          }`}
+                        >
+                          <ChevronDownIcon className="w-4 h-4" />
                         </span>
                       </div>
                     </div>
 
-                    {/* Chi tiết mở rộng: Câu gốc, nguồn, ô Câu của tôi */}
+                    {/* Chi tiết mở rộng: Câu gốc, nguồn, YouGlish, ô Câu của tôi */}
                     {isExpanded && (
-                      <div
-                        style={{
-                          padding: "16px 18px",
-                          borderTop: "1px solid #f1f5f9",
-                          background: "#ffffff",
-                        }}
-                      >
-                        {/* 1. Câu gốc */}
-                        <div style={{ marginBottom: "14px" }}>
-                          <div
-                            style={{
-                              fontSize: "0.75rem",
-                              fontWeight: 700,
-                              color: "#475569",
-                              textTransform: "uppercase",
-                              marginBottom: "4px",
-                            }}
-                          >
-                            📖 Câu gốc trong tài liệu y khoa:
+                      <div className="p-4 sm:p-5 border-t border-slate-100 bg-white space-y-4">
+                        {/* 1. Câu gốc trong y khoa */}
+                        <div className="space-y-1.5">
+                          <div className="text-[11px] font-bold text-slate-500 uppercase tracking-wider flex items-center gap-1.5">
+                            <BookOpenIcon className="w-3 h-3 text-teal-600" />
+                            <span>Câu gốc trong tài liệu y khoa:</span>
                           </div>
-                          <div
-                            style={{
-                              fontSize: "0.875rem",
-                              lineHeight: 1.6,
-                              color: "#1e293b",
-                              background: "#f8fafc",
-                              padding: "10px 14px",
-                              borderRadius: "8px",
-                              border: "1px solid #e2e8f0",
-                              fontStyle: "italic",
-                            }}
-                          >
+                          <div className="text-xs sm:text-sm text-slate-800 leading-relaxed bg-slate-50 p-3.5 rounded-xl border border-slate-200/70 italic">
                             &ldquo;{item.originalSentence}&rdquo;
                           </div>
                         </div>
 
-                        {/* 2. Nguồn tham khảo */}
-                        {item.sourceRef && (
-                          <div style={{ marginBottom: "14px" }}>
-                            <span
-                              style={{
-                                fontSize: "0.75rem",
-                                fontWeight: 600,
-                                color: "#475569",
-                                background: "#eef2ff",
-                                padding: "4px 8px",
-                                borderRadius: "6px",
-                                border: "1px solid #e0e7ff",
-                              }}
-                            >
-                              📍 Nguồn: {item.sourceRef}
+                        {/* 2. Nguồn tham khảo & YouGlish widget */}
+                        <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
+                          {item.sourceRef ? (
+                            <span className="text-xs font-medium text-slate-600 bg-slate-100 px-2.5 py-1 rounded-lg border border-slate-200">
+                              Nguồn: {item.sourceRef}
                             </span>
-                          </div>
-                        )}
+                          ) : (
+                            <span />
+                          )}
 
-                        {/* 2b. Nghe người bản xứ nói cụm từ (YouGlish) — mở modal khi bấm */}
-                        <div style={{ marginBottom: "14px" }}>
                           <YouGlishButton query={item.phrase} />
                         </div>
 
                         {/* 3. Ô "Câu của tôi" (my_attempt) */}
-                        <div style={{ marginBottom: "14px" }}>
+                        <div className="space-y-1.5 pt-1">
                           <label
                             htmlFor={`attempt-${item.id}`}
-                            style={{
-                              display: "block",
-                              fontSize: "0.8125rem",
-                              fontWeight: 700,
-                              color: "#1e293b",
-                              marginBottom: "6px",
-                            }}
+                            className="text-xs font-bold text-slate-800 flex items-center gap-1.5"
                           >
-                            ✍️ Câu của tôi (Luyện đặt câu chuyên ngành hoặc giao tiếp):
+                            <PenIcon className="w-3.5 h-3.5 text-teal-700" />
+                            <span>Câu của tôi (Thực hành áp dụng lâm sàng / giao tiếp):</span>
                           </label>
                           <textarea
                             id={`attempt-${item.id}`}
@@ -602,71 +508,48 @@ export function VocabListView({ initialItems }: VocabListViewProps) {
                             }
                             placeholder="Tự đặt một câu tiếng Anh sử dụng cụm từ này trong bối cảnh công việc / phòng khám..."
                             rows={3}
-                            style={{
-                              width: "100%",
-                              padding: "10px 12px",
-                              borderRadius: "8px",
-                              border: "1px solid #cbd5e1",
-                              fontSize: "0.875rem",
-                              lineHeight: 1.5,
-                              color: "#0f172a",
-                              outline: "none",
-                              boxSizing: "border-box",
-                              fontFamily: "inherit",
-                            }}
+                            className="w-full p-3 rounded-xl border border-slate-300 text-xs sm:text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-teal-600 focus:border-transparent transition leading-relaxed"
                           />
                         </div>
 
                         {/* Thanh nút lưu & đánh dấu */}
-                        <div
-                          style={{
-                            display: "flex",
-                            justifyContent: "space-between",
-                            alignItems: "center",
-                            flexWrap: "wrap",
-                            gap: "8px",
-                          }}
-                        >
+                        <div className="flex items-center justify-between gap-3 pt-1 flex-wrap">
                           <button
                             onClick={() => handleSaveAttempt(item.id)}
                             disabled={savingMap[item.id]}
-                            style={{
-                              padding: "8px 16px",
-                              borderRadius: "8px",
-                              border: "none",
-                              background: savedMap[item.id] ? "#16a34a" : "#4f46e5",
-                              color: "#ffffff",
-                              fontSize: "0.875rem",
-                              fontWeight: 600,
-                              cursor: savingMap[item.id] ? "not-allowed" : "pointer",
-                              minHeight: "44px",
-                              display: "flex",
-                              alignItems: "center",
-                              gap: "6px",
-                            }}
+                            className={`inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition cursor-pointer min-h-[44px] ${
+                              savedMap[item.id]
+                                ? "bg-emerald-700 text-white"
+                                : savingMap[item.id]
+                                ? "bg-slate-300 text-slate-500 cursor-not-allowed"
+                                : "bg-teal-600 hover:bg-teal-700 text-white shadow-xs"
+                            }`}
                           >
-                            {savedMap[item.id]
-                              ? "✓ Đã lưu câu của tôi!"
-                              : savingMap[item.id]
-                              ? "Đang lưu..."
-                              : "💾 Lưu câu của tôi"}
+                            {savedMap[item.id] ? (
+                              <>
+                                <CheckCircleIcon className="w-4 h-4 text-emerald-300" />
+                                <span>Đã lưu câu của tôi!</span>
+                              </>
+                            ) : savingMap[item.id] ? (
+                              <span>Đang lưu...</span>
+                            ) : (
+                              <>
+                                <SaveIcon className="w-4 h-4" />
+                                <span>Lưu câu của tôi</span>
+                              </>
+                            )}
                           </button>
 
                           <button
                             onClick={() => handleToggleMastered(item.id, item.masteryLevel)}
-                            style={{
-                              padding: "8px 14px",
-                              borderRadius: "8px",
-                              border: "1px solid #cbd5e1",
-                              background: "#ffffff",
-                              color: isMastered ? "#dc2626" : "#16a34a",
-                              fontSize: "0.8125rem",
-                              fontWeight: 600,
-                              cursor: "pointer",
-                              minHeight: "44px",
-                            }}
+                            className={`inline-flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl text-xs font-semibold border transition cursor-pointer min-h-[44px] ${
+                              isMastered
+                                ? "bg-slate-50 hover:bg-slate-100 text-amber-800 border-amber-200"
+                                : "bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border-emerald-200"
+                            }`}
                           >
-                            {isMastered ? "Chuyển về cần ôn" : "⭐ Đánh dấu đã thuộc"}
+                            <CheckCircleIcon className="w-3.5 h-3.5" />
+                            <span>{isMastered ? "Chuyển về cần ôn" : "Đánh dấu đã thuộc"}</span>
                           </button>
                         </div>
                       </div>
