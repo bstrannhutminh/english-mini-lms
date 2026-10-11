@@ -55,8 +55,64 @@ export default function SettingsView() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
+  // Đổi mật khẩu
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showPwdForm, setShowPwdForm] = useState(false);
+  const [changingPassword, setChangingPassword] = useState(false);
+  const [passwordMessage, setPasswordMessage] = useState<{
+    type: "success" | "error";
+    text: string;
+  } | null>(null);
+
   // Đăng xuất
   const [loggingOut, setLoggingOut] = useState(false);
+
+  async function handleChangePassword(e: React.FormEvent) {
+    e.preventDefault();
+    if (!newPassword || newPassword.length < 6) {
+      setPasswordMessage({
+        type: "error",
+        text: "Mật khẩu mới phải có ít nhất 6 ký tự.",
+      });
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setPasswordMessage({
+        type: "error",
+        text: "Mật khẩu xác nhận không khớp.",
+      });
+      return;
+    }
+
+    try {
+      setChangingPassword(true);
+      setPasswordMessage(null);
+      const supabase = createClient();
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword,
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      setPasswordMessage({
+        type: "success",
+        text: "Đã cập nhật mật khẩu mới thành công!",
+      });
+      setNewPassword("");
+      setConfirmPassword("");
+      setTimeout(() => setPasswordMessage(null), 4000);
+    } catch (err) {
+      setPasswordMessage({
+        type: "error",
+        text: err instanceof Error ? err.message : "Không thể cập nhật mật khẩu.",
+      });
+    } finally {
+      setChangingPassword(false);
+    }
+  }
 
   useEffect(() => {
     let active = true;
@@ -232,6 +288,89 @@ export default function SettingsView() {
             {profile?.role === "admin" ? "Quản trị viên (Admin)" : "Người học (Learner)"}
           </span>
         </div>
+      </div>
+
+      {/* 2b. Bảo mật & Mật khẩu */}
+      <div className="bg-white rounded-xl p-5 shadow-sm border border-slate-200 space-y-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-base font-semibold text-slate-800">
+              Bảo mật & Mật khẩu
+            </h2>
+            <p className="text-xs text-slate-500 mt-0.5">
+              Đổi mật khẩu đăng nhập LMS cho tài khoản này
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              setShowPwdForm(!showPwdForm);
+              setPasswordMessage(null);
+            }}
+            className="text-xs font-semibold text-teal-700 hover:text-teal-800 bg-teal-50 hover:bg-teal-100 border border-teal-200 px-3 py-1.5 rounded-lg transition"
+          >
+            {showPwdForm ? "Đóng lại" : "Đổi mật khẩu 🔑"}
+          </button>
+        </div>
+
+        {passwordMessage && (
+          <div
+            className={`p-3 rounded-xl text-xs sm:text-sm ${
+              passwordMessage.type === "success"
+                ? "bg-teal-50 text-teal-800 border border-teal-200"
+                : "bg-red-50 text-red-700 border border-red-200"
+            }`}
+          >
+            {passwordMessage.type === "success" ? "✅ " : "⚠️ "}
+            {passwordMessage.text}
+          </div>
+        )}
+
+        {showPwdForm && (
+          <form onSubmit={handleChangePassword} className="pt-2 space-y-3 border-t border-slate-100">
+            <div>
+              <label
+                htmlFor="new-pwd"
+                className="block text-xs font-medium text-slate-700 mb-1"
+              >
+                Mật khẩu mới (tối thiểu 6 ký tự)
+              </label>
+              <input
+                id="new-pwd"
+                type="password"
+                required
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                placeholder="Nhập mật khẩu mới..."
+                className="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-600 transition"
+              />
+            </div>
+            <div>
+              <label
+                htmlFor="confirm-pwd"
+                className="block text-xs font-medium text-slate-700 mb-1"
+              >
+                Xác nhận mật khẩu mới
+              </label>
+              <input
+                id="confirm-pwd"
+                type="password"
+                required
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="Nhập lại mật khẩu mới..."
+                className="w-full px-3 py-2 text-sm bg-slate-50 border border-slate-200 rounded-lg focus:bg-white focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-600 transition"
+              />
+            </div>
+            <button
+              type="submit"
+              disabled={changingPassword || !newPassword || !confirmPassword}
+              className="w-full py-2 px-3 text-xs sm:text-sm font-semibold text-white bg-teal-600 hover:bg-teal-700 rounded-lg disabled:bg-slate-300 transition cursor-pointer disabled:cursor-not-allowed"
+            >
+              {changingPassword ? "Đang cập nhật..." : "Lưu mật khẩu mới"}
+            </button>
+          </form>
+        )}
       </div>
 
       {/* 3. Cài đặt nhắc học */}
