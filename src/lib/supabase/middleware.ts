@@ -41,7 +41,7 @@ export async function updateSession(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   // Public routes that don't require auth
-  const publicPaths = ["/login", "/auth/callback"];
+  const publicPaths = ["/login", "/auth/callback", "/api/v1/health"];
   const isPublicPath = publicPaths.some((path) =>
     request.nextUrl.pathname.startsWith(path)
   );
@@ -52,6 +52,9 @@ export async function updateSession(request: NextRequest) {
     process.env.DEV_BYPASS_AUTH === "true";
 
   if (!user && !isPublicPath && !isDevBypass) {
+    if (request.nextUrl.pathname.startsWith("/api/")) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     return NextResponse.redirect(url);

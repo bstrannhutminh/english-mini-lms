@@ -25,7 +25,11 @@ function getDb() {
   const client =
     globalForDb.postgresClient ??
     postgres(process.env.DATABASE_URL, {
-      max: process.env.NODE_ENV === "production" ? 10 : 2,
+      max: process.env.NODE_ENV === "production" ? 1 : 2,
+      ssl: "require",
+      prepare: false,
+      idle_timeout: 20,
+      connect_timeout: 10,
     });
 
   if (process.env.NODE_ENV !== "production") {
