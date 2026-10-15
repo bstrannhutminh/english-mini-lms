@@ -32,3 +32,5 @@ backups/*.sql
 # Chỉ ignore SQL trong thư mục backups, KHÔNG ignore migration files
 !src/db/migrations/**/*.sql
 !supabase/migrations/**/*.sql
+.vercel
+.env*
