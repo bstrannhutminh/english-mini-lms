@@ -18,7 +18,7 @@ function getDb() {
   if (!rawUrl) {
     throw new Error("DATABASE_URL is not set. Vui lòng kiểm tra file .env.local.");
   }
-  const dbUrl = rawUrl.trim();
+  const dbUrl = rawUrl.trim().replace(/^[\s"'\\]+|[\s"'\\]+$/g, "");
 
   const globalForDb = globalThis as unknown as {
     postgresClient: postgres.Sql | undefined;
