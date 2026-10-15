@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { SmartCapturePopup } from "./smart-capture-popup";
 import { SessionWrapUpModal } from "./session-wrap-up-modal";
 
@@ -243,7 +242,7 @@ Direct sonographic monitoring substantially minimizes the risk of accidental int
         surroundingSentence: surrounding,
         position: {
           x: rect.left + rect.width / 2,
-          y: rect.bottom + window.scrollY,
+          y: rect.bottom,
         },
       });
     }
@@ -338,20 +337,25 @@ Direct sonographic monitoring substantially minimizes the risk of accidental int
           marginBottom: "16px",
         }}
       >
-        <Link
-          href="/library"
+        <button
+          type="button"
+          onClick={handleSaveAndExit}
           style={{
             display: "inline-flex",
             alignItems: "center",
             gap: "6px",
             fontSize: "0.875rem",
             color: "#64748b",
-            textDecoration: "none",
+            background: "none",
+            border: "none",
+            cursor: "pointer",
             minHeight: "44px",
+            padding: 0,
           }}
+          title="Lưu nháp và thoát về Hôm nay"
         >
-          ← Về Thư viện bài tập
-        </Link>
+          ← Thoát & lưu nháp
+        </button>
 
         {/* Đồng hồ đếm ngược và trạng thái */}
         <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>

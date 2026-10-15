@@ -39,13 +39,14 @@ export async function quickCapture(
   if (!selectedText || !selectedText.trim()) {
     throw new ValidationError("selected_text is required", 400);
   }
-  if (!surroundingSentence || !surroundingSentence.trim()) {
-    throw new ValidationError("surrounding_sentence is required", 400);
+  const effectiveSentence = surroundingSentence?.trim() || selectedText?.trim();
+  if (!effectiveSentence) {
+    throw new ValidationError("surrounding_sentence or selected_text is required", 400);
   }
 
   const { result, tokenInput, tokenOutput, modelName } = await quickCaptureVocabulary(
     selectedText.trim(),
-    surroundingSentence.trim(),
+    effectiveSentence,
     sourceRef
   );
 

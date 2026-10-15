@@ -5,7 +5,7 @@ import { quickCapture, ValidationError } from "@/server/vocabulary/service";
 
 const QuickCaptureRequestSchema = z.object({
   selected_text: z.string().min(1, "selected_text is required"),
-  surrounding_sentence: z.string().min(1, "surrounding_sentence is required"),
+  surrounding_sentence: z.string().optional().default(""),
   source_ref: z.string().optional(),
 });
 
@@ -27,9 +27,12 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const effectiveSentence =
+      parsed.data.surrounding_sentence.trim() || parsed.data.selected_text.trim();
+
     const result = await quickCapture(
-      parsed.data.selected_text,
-      parsed.data.surrounding_sentence,
+      parsed.data.selected_text.trim(),
+      effectiveSentence,
       parsed.data.source_ref,
       learner.id
     );

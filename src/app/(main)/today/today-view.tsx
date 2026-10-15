@@ -296,10 +296,7 @@ export default function TodayView({
         router.push(`/learn/${json.sessionId}${revisionQuery}`);
       } else if (res.status === 409) {
         const errJson = await res.json();
-        const shouldContinue = window.confirm(
-          "Bạn đang có một phiên học chưa hoàn thành cho bài này.\n\nBạn có muốn tiếp tục phiên đang dở không?"
-        );
-        if (shouldContinue && errJson.sessionId) {
+        if (errJson.sessionId) {
           router.push(`/learn/${errJson.sessionId}${revisionQuery}`);
         } else {
           setStarting(false);

@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { SessionWrapUpModal } from "./session-wrap-up-modal";
 import { WritingFeedback } from "@/server/providers/gemini";
 import { SessionGrid } from "./components/session-grid";
@@ -298,19 +297,24 @@ export function WritingSessionView({
           boxShadow: "0 1px 2px rgba(0,0,0,0.02)",
         }}
       >
-        <Link
-          href={`/library/${activity.id}`}
+        <button
+          type="button"
+          onClick={handleSaveAndExit}
           style={{
             fontSize: "0.875rem",
             color: "#64748b",
-            textDecoration: "none",
+            background: "none",
+            border: "none",
+            cursor: "pointer",
             display: "flex",
             alignItems: "center",
             gap: "4px",
+            padding: 0,
           }}
+          title="Lưu nháp và thoát về Hôm nay"
         >
-          ← Thoát
-        </Link>
+          ← Thoát & lưu nháp
+        </button>
 
         {/* Đồng hồ đếm ngược */}
         <div

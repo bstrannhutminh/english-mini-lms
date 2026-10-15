@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { AudioRecorder } from "./audio-recorder";
 import { SpeakingFeedback } from "@/server/providers/gemini";
 import { SessionWrapUpModal } from "./session-wrap-up-modal";
@@ -191,20 +190,25 @@ export function SpeakingSessionView({
           flexWrap: "wrap",
         }}
       >
-        <Link
-          href="/library"
+        <button
+          type="button"
+          onClick={handleSaveAndExit}
           style={{
             fontSize: "0.875rem",
             color: "#64748b",
-            textDecoration: "none",
+            background: "none",
+            border: "none",
+            cursor: "pointer",
             display: "inline-flex",
             alignItems: "center",
             gap: "4px",
             minHeight: "44px",
+            padding: 0,
           }}
+          title="Thoát phiên học về Hôm nay"
         >
           ← Thoát phiên học
-        </Link>
+        </button>
 
         {/* Đồng hồ đếm ngược */}
         <div

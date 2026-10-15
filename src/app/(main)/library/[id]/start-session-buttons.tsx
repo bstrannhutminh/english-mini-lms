@@ -8,6 +8,8 @@ export function StartSessionButtons({ activityId }: { activityId: string }) {
   const [loadingMinutes, setLoadingMinutes] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  const [existingSessionId, setExistingSessionId] = useState<string | null>(null);
+
   async function handleStartSession(minutes: number) {
     try {
       setLoadingMinutes(minutes);
@@ -23,7 +25,16 @@ export function StartSessionButtons({ activityId }: { activityId: string }) {
       });
 
       const data = await res.json();
+      if (res.status === 409 && data.sessionId) {
+        // Có phiên đang dang dở của bài này -> tiếp tục phiên ngay
+        router.push(`/learn/${data.sessionId}`);
+        return;
+      }
+
       if (!res.ok) {
+        if (data.sessionId) {
+          setExistingSessionId(data.sessionId);
+        }
         throw new Error(data.error || "Không thể tạo phiên học");
       }
 
@@ -49,7 +60,24 @@ export function StartSessionButtons({ activityId }: { activityId: string }) {
             fontSize: "0.875rem",
           }}
         >
-          {error}
+          <p style={{ margin: "0 0 8px" }}>{error}</p>
+          {existingSessionId && (
+            <button
+              onClick={() => router.push(`/learn/${existingSessionId}`)}
+              style={{
+                background: "#b91c1c",
+                color: "#ffffff",
+                border: "none",
+                borderRadius: "8px",
+                padding: "6px 12px",
+                fontSize: "0.8125rem",
+                fontWeight: 600,
+                cursor: "pointer",
+              }}
+            >
+              Tiếp tục phiên đang dở →
+            </button>
+          )}
         </div>
       )}
 

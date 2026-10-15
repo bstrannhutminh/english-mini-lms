@@ -115,7 +115,7 @@ export function SmartCapturePopup({
           phrase: data.phrase,
           ipa: data.ipa,
           context_meaning: data.context_meaning,
-          original_sentence: surroundingSentence, // QUY TẮC BẮT BUỘC: phải có câu gốc
+          original_sentence: (surroundingSentence && surroundingSentence.trim()) || selectedText.trim(), // QUY TẮC BẮT BUỘC: phải có câu gốc
           source_ref: sourceRef || "Sổ tay siêu âm can thiệp tr.42",
           source_type: "book",
           my_attempt: "",
@@ -143,9 +143,14 @@ export function SmartCapturePopup({
 
   if (!position) return null;
 
-  // Tính vị trí an toàn trên màn hình (tránh tràn mép phải/dưới)
-  const left = Math.min(Math.max(16, position.x - 140), window.innerWidth - 320);
-  const top = position.y + 24;
+  // Tính vị trí an toàn trên viewport (tránh tràn mép phải/dưới khi fixed)
+  const viewportWidth = typeof window !== "undefined" ? window.innerWidth : 1024;
+  const viewportHeight = typeof window !== "undefined" ? window.innerHeight : 768;
+  const left = Math.min(Math.max(16, position.x - 140), Math.max(16, viewportWidth - 330));
+  const showAbove = position.y + 300 > viewportHeight && position.y > 320;
+  const top = showAbove
+    ? Math.max(16, position.y - 320)
+    : Math.min(position.y + 16, Math.max(16, viewportHeight - 340));
 
   return (
     <div
