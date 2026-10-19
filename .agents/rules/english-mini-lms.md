@@ -27,6 +27,14 @@
 - Upload: kiểm MIME + kích thước server-side (audio ≤ 5 phút/20 MB; ảnh ≤ 10 MB; text ≤ 20.000 ký tự). Storage bucket private, truy cập qua signed URL ngắn hạn.
 - Gemini nhận đoạn liên quan + schema JSON đầu ra; không đưa secret hay toàn bộ lịch sử vào prompt.
 
+## Đường dẫn chuẩn sau tái cấu trúc (19/10/2026)
+
+- `src/contracts/` là **nguồn sự thật duy nhất** cho body/response `/api/v1`: route parse bằng schema này, client gọi qua `apiFetch(schema)` (`src/lib/api-client.ts`). Cấm tự viết `fetch` với tên field gõ tay.
+- Route mới **bắt buộc** dùng helper ở `src/server/http/`: `withLearner` / `withAdmin` (auth + guard trong try/catch), `parseJson(schema)`, `apiError`, `mapServiceError`.
+- Mode → kỹ năng chỉ qua `modeSkill(mode)` ở `src/lib/modes.ts` (`MODE_META` là nguồn duy nhất cho nhãn/màu/icon). Màn Học chọn plugin qua `MODE_REGISTRY` / `resolvePlugin` ở `src/features/session/modes/registry.ts` — không `if mode === "..."` rải rác.
+- UI dùng `src/components/ui` + `src/components/layout`; hạn chế `style={{}}`, không `alert/confirm` (dùng `Toast`/`ConfirmDialog`).
+- Test: invariant mới viết ở `tests/unit/` (hermetic); test chạm DB đặt ở `tests/integration/` và chỉ dùng `TEST_DATABASE_URL`.
+
 ## Cách code
 
 - TypeScript strict; không `any` trừ khi có comment lý do.

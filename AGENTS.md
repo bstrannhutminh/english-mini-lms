@@ -13,21 +13,40 @@
 
 Next.js App Router + TypeScript · Tailwind + shadcn/ui · Supabase (Postgres, Auth, Storage) · Drizzle ORM · Gemini API · Vercel.
 
-## Cấu trúc thư mục
+## Cấu trúc thư mục (sau tái cấu trúc 19/10/2026)
 
 ```text
-src/app/              # routes + /api/v1
-src/server/           # domain services (learning, library, assessment, vocabulary, media)
-src/server/providers/ # gemini.ts — mọi gọi AI đi qua đây
-src/db/               # schema.ts, migrations/
+src/app/              # chỉ route: page.tsx mỏng (auth → lấy dữ liệu → ghép) + /api/v1
+src/app/_shared/      # màn lỗi/loading/not-found dùng chung cho error.tsx, loading.tsx
+src/features/         # UI + hook theo vùng: today, library, my-work, vocab, progress,
+                      # settings, admin, onboarding, auth, session
+src/features/session/ # khung phiên học: shell/ + modes/{writing,reading,speaking,listening}
+                      # + hooks/ — mỗi kỹ năng là 1 plugin trong modes/registry.ts
+src/contracts/        # zod schema + type DÙNG CHUNG route ⇄ client (nguồn sự thật API)
+src/components/       # ui/ (design system: Button, Card, Badge, Modal, Toast…) + layout/
+src/lib/              # hàm thuần: modes.ts (modeSkill + MODE_META — nguồn duy nhất
+                      # cho nhãn/màu/icon của mode), env.ts, api-client.ts
+src/server/           # domain services (learning, library, vocabulary, today, admin, media…)
+src/server/http/      # withLearner/withAdmin/parseJson/apiError/mapServiceError
+src/server/learning/  # session/ + assessment/ đã chia nhỏ (buildInput → provider → persist)
+src/server/providers/ # gemini/ — mọi gọi AI đi qua đây
+src/proxy.ts          # Next 16 "proxy" (trước là middleware.ts): refresh session + guard
+src/db/               # schema.ts, migrations/ (chỉ additive)
 content/english-lab/  # manifest.yaml + texts/ transcripts/ rubrics/ (nguồn học duy nhất)
 scripts/seed.ts       # đọc manifest → DB, chỉ review_state=approved
-tests/                # vitest
+tests/unit/           # vitest hermetic — KHÔNG cần env, không chạm DB (chạy bởi npm test)
+tests/integration/    # cần TEST_DATABASE_URL, gated bởi scripts/run-integration-tests.mjs
 ```
+
+Điểm then chốt của kiến trúc mới (chi tiết: `docs/plan/kien-truc-tai-cau-truc-2026-10-19.md`):
+
+- Route API mới: `withLearner`/`withAdmin` → `parseJson(schema)` → service → `mapServiceError`. `learner_id` lấy từ session, không từ body.
+- Màn Học: `page.tsx` ~40 dòng → `<SessionShell plugin={resolvePlugin(mode)}>`; `resolvePlugin` tra `MODE_REGISTRY` bằng `modeSkill(mode)` nên `ielts-*` tự động vào đúng skill.
+- Contract lỗi thống nhất `{ error: { code, message, fields? } }`; client gọi qua `apiFetch<T>(schema)` ở `lib/api-client.ts`.
 
 ## Lệnh
 
-`npm run dev` · `npm run lint` · `npm run typecheck` · `npm test` · `npm run db:migrate` · `npm run seed`
+`npm run dev` · `npm run lint` · `npm run typecheck` · `npm test` (unit, không cần env) · `npm run test:integration` (cần `TEST_DATABASE_URL`) · `npm run build` · `npm run db:migrate` · `npm run seed`
 
 ## Nguyên tắc làm việc
 
