@@ -21,6 +21,7 @@ import { modeSkill } from "@/lib/modes";
 import { ValidationError } from "../errors";
 import { MAX_SUBMISSION_BODY_CHARS } from "../limits";
 import { loadReadyMedia } from "./submission-media";
+import { toVietnameseGeminiError } from "@/server/providers/gemini/call-gemini";
 import { evaluateSubmission } from "./evaluate-submission";
 import { persistEvaluationResult } from "./persist-evaluation";
 import {
@@ -195,8 +196,9 @@ export async function createSubmissionAndAssess(
   } catch (evalError) {
     console.error("Lỗi khi gọi AI chấm bài:", evalError);
 
-    const resultRef =
-      evalError instanceof Error ? evalError.message : String(evalError);
+    // Chuẩn hoá qua toVietnameseGeminiError: EnvError (thiếu GEMINI_API_KEY)
+    // không được lộ tên biến môi trường cho người học — chi tiết ở log trên.
+    const resultRef = toVietnameseGeminiError(evalError).message;
     await markAssessmentFailed(assessment.id, resultRef);
 
     return {

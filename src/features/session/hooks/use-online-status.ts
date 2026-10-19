@@ -1,23 +1,26 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
 
-/** Theo dõi online/offline để shell hiện cảnh báo mất mạng + nút thử lại. */
+function subscribe(onChange: () => void) {
+  window.addEventListener("online", onChange);
+  window.addEventListener("offline", onChange);
+  return () => {
+    window.removeEventListener("online", onChange);
+    window.removeEventListener("offline", onChange);
+  };
+}
+
+/**
+ * Theo dõi online/offline để shell hiện cảnh báo mất mạng + nút thử lại.
+ * Server snapshot luôn là `true`: Node ≥ 21 có global `navigator` nhưng
+ * `navigator.onLine` là undefined — đọc nó lúc SSR làm banner "Mất kết nối"
+ * lọt vào HTML và gây hydration mismatch.
+ */
 export function useOnlineStatus(): boolean {
-  const [isOnline, setIsOnline] = useState(() =>
-    typeof navigator === "undefined" ? true : navigator.onLine,
+  return useSyncExternalStore(
+    subscribe,
+    () => navigator.onLine,
+    () => true,
   );
-
-  useEffect(() => {
-    const onOnline = () => setIsOnline(true);
-    const onOffline = () => setIsOnline(false);
-    window.addEventListener("online", onOnline);
-    window.addEventListener("offline", onOffline);
-    return () => {
-      window.removeEventListener("online", onOnline);
-      window.removeEventListener("offline", onOffline);
-    };
-  }, []);
-
-  return isOnline;
 }

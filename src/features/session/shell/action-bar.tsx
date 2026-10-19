@@ -24,7 +24,7 @@ export function ActionBar({
   submitLabel?: string;
 }) {
   return (
-    <div className="sticky bottom-0 z-20 -mx-4 mt-4 border-t border-slate-200 bg-white/95 px-4 py-3 backdrop-blur">
+    <div className="sticky bottom-[var(--nav-height)] z-20 -mx-4 lg:bottom-0 mt-4 border-t border-slate-200 bg-white/95 px-4 py-3 backdrop-blur">
       <div className="mx-auto w-full max-w-[1200px]">
         {submitError && (
           <div

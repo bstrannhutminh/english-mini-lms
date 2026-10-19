@@ -5,7 +5,7 @@ import {
   getSubmissionWithFeedback,
 } from "@/server/learning/service";
 import { resolvePlugin } from "@/features/session/modes/registry";
-import { SessionShell } from "@/features/session/shell/session-shell";
+import { SessionRoot } from "@/features/session/shell/session-root";
 
 export const dynamic = "force-dynamic";
 
@@ -48,8 +48,8 @@ export default async function LearnSessionPage({ params, searchParams }: PagePro
   if (!resolved?.plugin) notFound();
 
   return (
-    <SessionShell
-      plugin={resolved.plugin}
+    <SessionRoot
+      skill={resolved.skill}
       isIelts={resolved.isIelts}
       data={{
         sessionId,

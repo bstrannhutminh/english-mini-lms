@@ -20,6 +20,7 @@ import {
   activities,
 } from "@/db/schema";
 import { ValidationError } from "../errors";
+import { toVietnameseGeminiError } from "@/server/providers/gemini/call-gemini";
 import { evaluateSubmission } from "./evaluate-submission";
 import { persistEvaluationResult } from "./persist-evaluation";
 import {
@@ -115,7 +116,8 @@ export async function retryAssessment(
 
     return { success: true as const, feedback };
   } catch (err) {
-    const detail = err instanceof Error ? err.message : String(err);
+    // Chuẩn hoá: EnvError không lộ tên biến môi trường cho người học.
+    const detail = toVietnameseGeminiError(err).message;
     await markAssessmentFailed(assessment.id, detail);
 
     // Trả thông báo tiếng Việt về client (503 → envelope có message rõ).

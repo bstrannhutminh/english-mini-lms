@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef } from "react";
+import { MarkdownText } from "@/components/ui";
 import type { ModePanelProps } from "../types";
 import { usePluginState } from "../types";
 import { useRecorder } from "../../hooks/use-recorder";
@@ -128,7 +129,7 @@ export function SpeakingPanel(props: ModePanelProps) {
           {...capture.selectHandlers(promptText, sourceRef)}
           className="whitespace-pre-wrap rounded-xl border border-slate-200 bg-slate-50 px-4 py-3.5 text-[15px] leading-relaxed text-slate-700"
         >
-          {promptText}
+          <MarkdownText text={promptText} />
         </div>
         {activity.objective && (
           <p className="mt-2.5 text-sm leading-snug text-slate-600">

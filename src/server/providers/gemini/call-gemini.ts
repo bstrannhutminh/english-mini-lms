@@ -15,6 +15,7 @@
  * can exercise the policy with fake providers (no real API calls).
  */
 import { GEMINI_TIMEOUT_MS } from "./client";
+import { EnvError } from "@/lib/env";
 
 /**
  * Thrown when Gemini responded but the body is not valid JSON or does not
@@ -70,6 +71,17 @@ export function toVietnameseGeminiError(error: unknown): Error {
       `Gemini không phản hồi trong ${Math.round(
         GEMINI_TIMEOUT_MS / 1000
       )} giây. Bài nộp đã được lưu — bạn có thể bấm "Chấm lại" sau ít phút.`
+    );
+  }
+
+  // EnvError nói thẳng tên biến môi trường — chi tiết đó dành cho log/admin,
+  // người học chỉ cần biết hệ thống chấm tạm nghỉ.
+  if (
+    error instanceof EnvError ||
+    (error as { name?: string } | null)?.name === "EnvError"
+  ) {
+    return new Error(
+      "Hệ thống chấm bài tạm thời chưa sẵn sàng. Bài nộp đã được lưu — bạn có thể bấm \"Chấm lại\" sau ít phút."
     );
   }
 

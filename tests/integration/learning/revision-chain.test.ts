@@ -3,7 +3,8 @@ dotenv.config({ path: ".env.local" });
 dotenv.config();
 
 import { describe, it, expect, vi, beforeAll, afterAll } from "vitest";
-import { eq } from "drizzle-orm";
+import { randomUUID } from "node:crypto";
+import { eq, inArray } from "drizzle-orm";
 import { db } from "@/db";
 import {
   learners,
@@ -56,15 +57,18 @@ describe("Revision Chain (Bản 1 → Bản 2) Invariants & Validation", () => {
       modelName: "gemini-2.5-flash",
     });
 
-    // Lấy 2 test learners có sẵn trong DB
-    const existingLearners = await db
-      .select({ id: learners.id })
-      .from(learners)
-      .limit(2);
+    // Tự tạo 2 test learners — test phải hermetic trên DB trống,
+    // không giả định có sẵn learner nào.
+    const [l1, l2] = await db
+      .insert(learners)
+      .values([
+        { userId: randomUUID(), displayName: "Test Learner R1" },
+        { userId: randomUUID(), displayName: "Test Learner R2" },
+      ])
+      .returning({ id: learners.id });
 
-    expect(existingLearners.length).toBeGreaterThanOrEqual(2);
-    learner1Id = existingLearners[0].id;
-    learner2Id = existingLearners[1].id;
+    learner1Id = l1.id;
+    learner2Id = l2.id;
   });
 
   afterAll(async () => {
@@ -82,6 +86,10 @@ describe("Revision Chain (Bản 1 → Bản 2) Invariants & Validation", () => {
     }
     for (const sId of createdSessionIds) {
       await db.delete(learningSessions).where(eq(learningSessions.id, sId));
+    }
+    const learnerIds = [learner1Id, learner2Id].filter(Boolean);
+    if (learnerIds.length > 0) {
+      await db.delete(learners).where(inArray(learners.id, learnerIds));
     }
   });
 

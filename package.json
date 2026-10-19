@@ -13,7 +13,8 @@
     "test:integration": "node scripts/run-integration-tests.mjs",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsx src/db/migrate.ts",
-    "seed": "tsx scripts/seed.ts"
+    "seed": "tsx scripts/seed.ts",
+    "smoke": "node scripts/smoke-e2e.mjs"
   },
   "dependencies": {
     "@google/genai": "^2.24.0",

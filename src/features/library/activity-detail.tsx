@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Badge, Card, Icon } from "@/components/ui";
+import { Badge, Card, Icon, MarkdownText } from "@/components/ui";
 import { modeMeta } from "@/lib/modes";
 import type { ActivityDetailContract } from "@/contracts/library";
 import {
@@ -120,7 +120,7 @@ export function ActivityDetail({
               Đề bài &amp; Hướng dẫn
             </h2>
             <div className="whitespace-pre-line rounded-xl border border-border bg-surface p-4 text-[0.9375rem] leading-relaxed text-text-secondary">
-              {activity.promptText}
+              <MarkdownText text={activity.promptText} />
             </div>
           </div>
         ) : null}

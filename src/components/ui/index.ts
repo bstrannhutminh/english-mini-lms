@@ -11,6 +11,7 @@ export { Icon, type IconName, type IconProps } from "./icons";
 export { Modal, type ModalProps } from "./modal";
 export { Skeleton, SkeletonText, type SkeletonProps } from "./skeleton";
 export { Spinner, type SpinnerProps } from "./spinner";
+export { MarkdownText } from "./markdown-text";
 export { Tabs, type TabItem, type TabsProps } from "./tabs";
 export {
   ToastProvider,

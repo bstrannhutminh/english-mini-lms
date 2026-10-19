@@ -1,5 +1,6 @@
 "use client";
 
+import { MarkdownText } from "@/components/ui";
 import type { ModePanelProps } from "../types";
 import { usePluginState } from "../types";
 import { SessionColumns } from "../../shell/session-columns";
@@ -51,7 +52,7 @@ export function WritingPanel(props: ModePanelProps) {
             {...capture.selectHandlers(activity.promptText, sourceRef)}
             className="whitespace-pre-line rounded-xl border border-slate-100 bg-slate-50 p-3 text-sm leading-relaxed text-slate-700"
           >
-            {activity.promptText}
+            <MarkdownText text={activity.promptText} />
           </div>
         )}
       </div>

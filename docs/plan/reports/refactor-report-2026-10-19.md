@@ -45,15 +45,20 @@ Tái cấu trúc không đổi stack/invariant/mục tiêu học: (1) vào là h
 | Integration test | `npm run test:integration` (cần `TEST_DATABASE_URL`) | ⚠️ **chưa chạy** — máy không có `TEST_DATABASE_URL` (không giả vờ pass) |
 | File > 250 dòng | — | ✅ 0 file (duy nhất `src/db/schema.ts` 400 dòng — spec cho phép) |
 | `style={{` ≤ 30 · 0 `alert/confirm` · `as any` có comment | — | ✅ 15 `style={{` (đều dynamic) · 0 `alert/confirm/prompt` thật (chỉ còn comment) · 9 `as any` đều có eslint-disable + lý do |
-| Mỗi mode + `ielts-*` mở đúng màn | QA C1 + unit invariant | ✅ `mode-routing` invariant test: mọi mode & `ielts-*` → đúng plugin qua `modeSkill`/`resolvePlugin`; route `/learn/[id]` tồn tại (C1). Click-through nộp thật cần DB — chưa QA được |
-| Mở app → đang làm bài ≤ 2 chạm | QA C1 + unit | ✅ theo thiết kế: Hôm nay → CTA "Bắt đầu/Tiếp tục" → `/learn/…` (unit `buildDailyPlan`); click-through thật cần DB |
-| Admin thêm bài → duyệt → thấy Thư viện → học | QA C1 | ⚠️ chưa click-through được (cần DB + Drive) — wizard 4 bước + routes + service đã có unit test; kiểm tay khi deploy |
+| Mỗi mode + `ielts-*` mở đúng màn | smoke real-DB | ✅ Đã verify trên DB thật: 8 màn học (writing/reading/speaking/listening + 4 ielts-*) render đúng plugin, badge IELTS, nút Nộp không bị che @390 (elementFromPoint) |
+| Mở app → đang làm bài ≤ 2 chạm | smoke real-DB | ✅ Đã verify trên DB thật: `/today` render dữ liệu → `/learn/<id>` mở được, nộp bài → `/my-work/<id>` |
+| Admin thêm bài → duyệt → thấy Thư viện → học | smoke real-DB (phần khả dụng) | ⚠️ `/admin` render được trên DB thật; wizard→duyệt→học cần Drive thật — kiểm tay khi deploy |
+| Vòng lặp nộp bài thật | smoke real-DB | ✅ POST submission 201 → redirect `/my-work/<id>` cả 390+1280; lỗi thiếu GEMINI_API_KEY hiện câu thân thiện, không lộ tên biến env |
 
-**Ảnh QA:** `docs/plan/reports/qa-2026-10-19/` — 24 ảnh 390px + 1280px (login, ui-preview, Hôm nay/Thư viện/Sổ từ/Tiến độ/Cài đặt/Admin ở trạng thái lỗi Việt & env-error, `/learn/[id]`, unauth redirect). Kèm `README.md` ma trận QA + `capture.mjs`/`innertext.mjs` tái hiện.
+**Ảnh QA:**
+- `docs/plan/reports/qa-2026-10-19/` — 24 ảnh môi trường KHÔNG DB (login, ui-preview, các màn lỗi Việt, unauth redirect). Vẫn giữ giá trị kiểm chứng error path.
+- `docs/plan/reports/qa-real-2026-10-19/` — **32 ảnh DB thật** (Postgres tạm + seed + 4 bài ielts clone): 6 trang chính × 2 viewport, 8 màn học (4 skill + 4 ielts-*) × 2 viewport, submit-flow + /my-work/<id>. Tái tạo bằng `npm run smoke`.
 
 ## 4. Rủi ro còn lại
 
-- **Luồng phụ thuộc DB chưa QA end-to-end** (nộp bài thật → chấm → sửa lại; admin nạp → duyệt → học): unit + invariant test đủ, nhưng cần smoke trên môi trường có DB trước khi bàn giao BS. Minh.
+- **3 lỗi chặn tìm bởi review (đã vá + verify):** (1) `page.tsx` truyền `plugin` (object chứa hàm) vào client component → RSC error — giờ qua `SessionRoot` nhận `skill` string; (2) `useOnlineStatus` đọc `navigator.onLine` lúc SSR (Node ≥21 có navigator nhưng `onLine` undefined) → hydration mismatch — giờ `useSyncExternalStore` + server snapshot `true`; (3) ActionBar sticky `bottom-0` bị tab bar fixed che nút Nộp @390 → giờ `bottom-[var(--nav-height)]`. Chốt chặn: invariant test `rsc-boundary` + `npm run smoke` (scripts/smoke-e2e.mjs).
+- **Sửa lại trong đợt review:** chấm bài thiếu GEMINI_API_KEY không còn lộ "Thiếu biến môi trường: GEMINI_API_KEY" cho người học (chuẩn hoá qua `toVietnameseGeminiError` ở cả create & retry); `promptText` render Markdown tối giản an toàn (`MarkdownText`, không dependency); test revision-chain tự tạo learner (hermetic).
+- Admin wizard→duyệt→học cần Drive thật — chưa QA được; kiểm tay khi deploy.
 - `.gitignore` có pattern `Icon?` (macOS) — đã thêm `!public/icons/`; kiểm tra lại nếu sau này thêm thư mục `icons/` khác.
 - Proxy chỉ redirect unauth khi có env Supabase — khi thiếu env hoàn toàn nó pass-through (chủ đích, `session-proxy.ts`), trang con tự hiện màn lỗi Việt.
 - Client đọc cả error shape cũ trong giai đoạn chuyển (`apiFetch` hiểu `{ error: "..." }`): cần rà lại các route chưa migrate sang envelope mới trước khi bỏ nhánh legacy.
@@ -70,6 +75,7 @@ Tái cấu trúc không đổi stack/invariant/mục tiêu học: (1) vào là h
 
 ## 6. Câu hỏi mở (cho Thuận)
 
-- `docs/huong-dan-lms-2026-10-14.md` **không tồn tại** trên nhánh tích hợp — file là uncommitted trong checkout chính của Thuận (bị .gitignore/spec chặn vào nhánh?). Nếu cần, Thuận commit riêng — lead không đụng checkout chính theo quy tắc an toàn.
+- `docs/huong-dan-lms-2026-10-14.md` **không tồn tại** trên nhánh tích hợp — file là uncommitted trong checkout chính của Thuận. Nếu cần, Thuận commit riêng — lead không đụng checkout chính theo quy tắc an toàn.
+- Remote URL: `git remote -v` vẫn `thuanyogi/...` và push chạy được — GitHub chỉ báo "repository moved → bstrannhutminh/english-mini-lms" trong output push (redirect server-side). Nên `git remote set-url` cho sạch, không bắt buộc.
 - IELTS Academic hay General — nội dung `ielts-*` hiện dùng chung skill + badge; chốt lại khi nạp bài IELTS thật.
 - Có muốn đổi tên tab "Sổ từ" → "Ôn tập" (ghi chú mục 7 của spec)?
