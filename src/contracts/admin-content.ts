@@ -7,7 +7,6 @@
 import { z } from "zod";
 import { activityModeSchema, isoDateTimeSchema } from "./common";
 import { difficultySchema } from "./library";
-import { feedbackObservationSchema } from "./submission";
 
 export const reviewStateSchema = z.enum([
   "draft",
@@ -176,6 +175,3 @@ export const adminSegmentListResponseSchema = z.object({
 export const adminSegmentResponseSchema = z.object({
   segment: adminSegmentSchema,
 });
-
-// Re-export for admin feedback-review screens that parse observations.
-export { feedbackObservationSchema };
