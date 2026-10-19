@@ -150,6 +150,8 @@ export const submissionListItemSchema = z.object({
   id: uuidSchema,
   sessionId: uuidSchema,
   revision: z.number().int(),
+  /** Append-only chain: bản sửa trỏ về submission gốc (để UI vẽ chuỗi Bản 1→2). */
+  parentId: uuidSchema.nullable(),
   modality: modalitySchema,
   assisted: z.boolean(),
   submittedAt: isoDateTimeSchema,
