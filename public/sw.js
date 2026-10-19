@@ -1,7 +1,9 @@
 // Service Worker tối thiểu cho English Mini LMS
 // BẢO MẬT: Chỉ cache App Shell, TUYỆT ĐỐI KHÔNG cache audio, bài nộp cá nhân, hay API endpoints.
 
-const CACHE_NAME = "english-lms-shell-v1";
+// v2: bản v1 không bao giờ cài được vì cache.addAll() fail khi thiếu
+// public/icons/* (đã vá bằng SVG thật) — bump để chắc chắn cài lại sạch.
+const CACHE_NAME = "english-lms-shell-v2";
 const APP_SHELL_ASSETS = [
   "/manifest.json",
   "/icons/icon-192.svg",

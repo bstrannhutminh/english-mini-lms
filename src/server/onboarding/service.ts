@@ -1,6 +1,7 @@
 import { db } from "@/db";
 import { learners } from "@/db/schema";
 import { eq } from "drizzle-orm";
+import { ApiRouteError } from "@/server/http/errors";
 
 export interface OnboardingProfileData {
   displayName?: string;
@@ -67,7 +68,7 @@ export async function saveLearnerOnboardingProfile(
     .limit(1);
 
   if (!existing) {
-    throw new Error("Không tìm thấy học viên");
+    throw new ApiRouteError(404, "not_found", "Không tìm thấy hồ sơ học viên.");
   }
 
   const currentGoals = (existing.goals as Record<string, unknown>) || {};

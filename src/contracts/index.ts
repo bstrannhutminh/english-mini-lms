@@ -13,3 +13,5 @@ export * from "./progress";
 export * from "./library";
 export * from "./admin-content";
 export * from "./admin-dashboard";
+export * from "./settings";
+export * from "./onboarding";

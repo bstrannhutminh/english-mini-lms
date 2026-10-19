@@ -1,7 +1,12 @@
 import { type NextRequest } from "next/server";
-import { updateSession } from "@/lib/supabase/middleware";
+import { updateSession } from "@/lib/supabase/session-proxy";
 
-export async function middleware(request: NextRequest) {
+/**
+ * Next.js 16 "proxy" (tên mới của middleware convention — xem
+ * node_modules/next/dist/docs/.../proxy.md). Chỉ chạy runtime Node.js.
+ * Nhiệm vụ duy nhất: refresh Supabase session + chặn route cần đăng nhập.
+ */
+export async function proxy(request: NextRequest) {
   return await updateSession(request);
 }
 

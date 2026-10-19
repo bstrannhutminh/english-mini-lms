@@ -1,6 +1,17 @@
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
+/**
+ * updateSession(request) — chạy trong src/proxy.ts (Next 16 "proxy", Node.js
+ * runtime). Làm mới auth cookie qua supabase.auth.getUser() rồi quyết định
+ * cho qua / chuyển hướng.
+ *
+ * BUG đã vá (kien-truc §5.5): trước đây khi redirect/401, code trả về một
+ * NextResponse MỚI → làm rơi các cookie phiên vừa được refresh ghi trên
+ * `supabaseResponse` (session hết hạn → đá về /login với cookie cũ → login
+ * lặp vô tận). Nay mọi response rời khỏi đây đều đi qua `withSessionCookies`
+ * để sao chép Set-Cookie đã phát hành.
+ */
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
     request,
@@ -50,8 +61,33 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  // Public routes that don't require auth
-  const publicPaths = ["/login", "/auth/callback", "/api/v1/health"];
+  /**
+   * Trả về `response` kèm theo mọi cookie phiên vừa được refresh trên
+   * `supabaseResponse`. KHÔNG BAO GIỜ trả response trần — mất cookie mới.
+   */
+  function withSessionCookies(response: NextResponse): NextResponse {
+    for (const cookie of supabaseResponse.cookies.getAll()) {
+      response.cookies.set(cookie);
+    }
+    return response;
+  }
+
+  function redirectTo(pathname: string): NextResponse {
+    const url = request.nextUrl.clone();
+    url.pathname = pathname;
+    url.search = "";
+    return withSessionCookies(NextResponse.redirect(url));
+  }
+
+  // Public routes that don't require auth. manifest/sw phải public để PWA
+  // cài đặt/đăng ký hoạt động kể cả khi chưa đăng nhập.
+  const publicPaths = [
+    "/login",
+    "/auth/callback",
+    "/api/v1/health",
+    "/manifest.json",
+    "/sw.js",
+  ];
   const isPublicPath = publicPaths.some((path) =>
     request.nextUrl.pathname.startsWith(path)
   );
@@ -63,18 +99,24 @@ export async function updateSession(request: NextRequest) {
 
   if (!user && !isPublicPath && !isDevBypass) {
     if (request.nextUrl.pathname.startsWith("/api/")) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+      return withSessionCookies(
+        NextResponse.json(
+          {
+            error: {
+              code: "unauthorized",
+              message: "Chưa đăng nhập — vui lòng đăng nhập lại.",
+            },
+          },
+          { status: 401 }
+        )
+      );
     }
-    const url = request.nextUrl.clone();
-    url.pathname = "/login";
-    return NextResponse.redirect(url);
+    return redirectTo("/login");
   }
 
   // If logged in and trying to access login, redirect to /today
   if (user && request.nextUrl.pathname === "/login") {
-    const url = request.nextUrl.clone();
-    url.pathname = "/today";
-    return NextResponse.redirect(url);
+    return redirectTo("/today");
   }
 
   return supabaseResponse;
