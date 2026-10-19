@@ -95,7 +95,7 @@ export function WritingPanel(props: ModePanelProps) {
         disabled={busy}
         placeholder="Viết email của bạn tại đây bằng tiếng Anh..."
         rows={12}
-        className="box-border w-full resize-vertical rounded-xl border border-slate-300 p-3.5 text-base leading-relaxed text-slate-900 outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 disabled:opacity-60"
+        className="box-border w-full resize-y rounded-xl border border-slate-300 p-3.5 text-base leading-relaxed text-slate-900 outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 disabled:opacity-60"
       />
     </div>
   );
