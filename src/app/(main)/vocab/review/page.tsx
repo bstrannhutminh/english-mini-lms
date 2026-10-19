@@ -1,6 +1,8 @@
 import { getCurrentLearner } from "@/server/auth";
 import { redirect } from "next/navigation";
-import VocabReviewView from "./vocab-review-view";
+import { ReviewSession } from "@/features/vocab/review-session";
+
+export const dynamic = "force-dynamic";
 
 export default async function VocabReviewPage() {
   const learner = await getCurrentLearner();
@@ -8,5 +10,5 @@ export default async function VocabReviewPage() {
     redirect("/login");
   }
 
-  return <VocabReviewView />;
+  return <ReviewSession />;
 }
