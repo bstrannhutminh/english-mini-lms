@@ -1,12 +1,21 @@
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { cookies } from "next/headers";
+import { requireEnv } from "@/lib/env";
 
+/**
+ * Server-side Supabase client (RSC / route handlers).
+ * Validates env at call time — throws EnvError (Vietnamese, names the missing
+ * variables) instead of crashing the module or leaking a cryptic
+ * "supabaseUrl is required" from @supabase/ssr.
+ */
 export async function createClient() {
   const cookieStore = await cookies();
+  const { NEXT_PUBLIC_SUPABASE_URL, NEXT_PUBLIC_SUPABASE_ANON_KEY } =
+    requireEnv(["NEXT_PUBLIC_SUPABASE_URL", "NEXT_PUBLIC_SUPABASE_ANON_KEY"]);
 
   return createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    NEXT_PUBLIC_SUPABASE_URL!,
+    NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
         getAll() {
