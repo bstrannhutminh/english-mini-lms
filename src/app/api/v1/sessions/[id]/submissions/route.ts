@@ -1,67 +1,41 @@
-import { NextRequest, NextResponse } from "next/server";
-import { z } from "zod";
-import { getCurrentLearner } from "@/server/auth";
-import { createSubmissionAndAssess, ValidationError } from "@/server/learning/service";
+import { NextResponse } from "next/server";
+import { withLearner, parseJson } from "@/server/http";
+import { createSubmissionRequestSchema } from "@/contracts/submission";
+import { createSubmissionAndAssess } from "@/server/learning/service";
 
-const SubmissionSchema = z.object({
-  body: z.string().max(20000, "Nội dung bài nộp quá dài (tối đa 20.000 ký tự)").optional(),
-  parentId: z.string().uuid().optional(),
-  mediaId: z.string().uuid().optional(),
-  media_id: z.string().uuid().optional(),
-});
-
-interface RouteProps {
-  params: Promise<{ id: string }>;
+interface RouteParams {
+  id: string;
 }
 
 export const maxDuration = 60;
 
-export async function POST(req: NextRequest, { params }: RouteProps) {
-  try {
-    const learner = await getCurrentLearner();
-    if (!learner) {
-      return NextResponse.json({ error: "Chưa đăng nhập" }, { status: 401 });
-    }
+/**
+ * POST /api/v1/sessions/[id]/submissions — nộp bài + kích hoạt chấm AI.
+ * Contract chấp nhận cả `mediaId` và `media_id` (legacy); trường `assisted`
+ * nếu client cố gửi sẽ bị zod strip — server tự tính từ session_events.
+ */
+export const POST = withLearner<RouteParams>(async ({ req, learner, params }) => {
+  const body = await parseJson(req, createSubmissionRequestSchema);
 
-    const { id: sessionId } = await params;
-    const jsonBody = await req.json();
-    const parsed = SubmissionSchema.safeParse(jsonBody);
-    if (!parsed.success) {
-      return NextResponse.json(
-        { error: "Dữ liệu bài nộp không hợp lệ", details: parsed.error.format() },
-        { status: 422 }
-      );
-    }
+  const effectiveMediaId = body.mediaId ?? body.media_id;
 
-    const effectiveMediaId = parsed.data.mediaId || parsed.data.media_id;
+  const result = await createSubmissionAndAssess(
+    params.id,
+    learner.id,
+    body.body || "",
+    body.parentId,
+    effectiveMediaId
+  );
 
-    const result = await createSubmissionAndAssess(
-      sessionId,
-      learner.id,
-      parsed.data.body || "",
-      parsed.data.parentId,
-      effectiveMediaId
-    );
-
-    return NextResponse.json(
-      {
-        submissionId: result.submission.id,
-        assessmentId: result.assessment.id,
-        status: result.assessment.status,
-        revision: result.submission.revision,
-        assisted: result.submission.assisted,
-        feedback: result.feedback,
-      },
-      { status: 201 }
-    );
-  } catch (error) {
-    if (error instanceof ValidationError) {
-      return NextResponse.json({ error: error.message }, { status: error.statusCode });
-    }
-    console.error("Lỗi POST /api/v1/sessions/[id]/submissions:", error);
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Internal Server Error" },
-      { status: 500 }
-    );
-  }
-}
+  return NextResponse.json(
+    {
+      submissionId: result.submission.id,
+      assessmentId: result.assessment.id,
+      status: result.assessment.status,
+      revision: result.submission.revision,
+      assisted: result.submission.assisted,
+      feedback: result.feedback,
+    },
+    { status: 201 }
+  );
+});

@@ -4,6 +4,11 @@ import {
   EvaluateSpeakingResult,
 } from "./types";
 import { getGeminiClient } from "./client";
+import {
+  GeminiResponseError,
+  callGeminiWithRetry,
+  geminiAbortSignal,
+} from "./call-gemini";
 
 export const SPEAKING_SYSTEM_INSTRUCTION = `Bạn là Giảng viên Cố vấn Speaking tiếng Anh Y khoa & Giao tiếp Hội nghị dành cho Bác sĩ Minh (chuyên ngành Cơ xương khớp và can thiệp giảm đau siêu âm).
 Nhiệm vụ: Đánh giá bài nói (Speaking / Shadowing) từ âm thanh trực tiếp của bác sĩ.
@@ -90,43 +95,47 @@ ${verifiedTranscript ? `BẢN TRANSCRIPT MẪU ĐƯỢC DUYỆT:\n${verifiedTran
 LƯU Ý: Người dùng nộp bài dạng văn bản, KHÔNG CÓ FILE ÂM THANH THỰC TẾ.
 Bắt buộc đặt pronunciation.status = "not_assessable".`;
 
-    const response = await ai.models.generateContent({
-      model: modelName,
-      contents: textPrompt,
-      config: {
-        systemInstruction: SPEAKING_SYSTEM_INSTRUCTION,
-        responseMimeType: "application/json",
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        responseSchema: speakingJsonSchema as any,
-        temperature: 0.2,
-      },
-    });
+    // Đường text-only: vẫn timeout + retry-on-schema như các nhánh khác.
+    return callGeminiWithRetry(async () => {
+      const response = await ai.models.generateContent({
+        model: modelName,
+        contents: textPrompt,
+        config: {
+          systemInstruction: SPEAKING_SYSTEM_INSTRUCTION,
+          responseMimeType: "application/json",
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          responseSchema: speakingJsonSchema as any,
+          temperature: 0.2,
+          abortSignal: geminiAbortSignal(),
+        },
+      });
 
-    const responseText = response.text || "";
-    let parsed: unknown;
-    try {
-      parsed = JSON.parse(responseText);
-    } catch (e) {
-      throw new Error(`Gemini không trả về JSON hợp lệ: ${e instanceof Error ? e.message : String(e)}`);
-    }
+      const responseText = response.text || "";
+      let parsed: unknown;
+      try {
+        parsed = JSON.parse(responseText);
+      } catch (e) {
+        throw new GeminiResponseError(`Gemini không trả về JSON hợp lệ: ${e instanceof Error ? e.message : String(e)}`);
+      }
 
-    const validated = SpeakingFeedbackSchema.safeParse(parsed);
-    if (!validated.success) {
-      throw new Error(`JSON không đúng schema: ${validated.error.message}`);
-    }
+      const validated = SpeakingFeedbackSchema.safeParse(parsed);
+      if (!validated.success) {
+        throw new GeminiResponseError(`JSON không đúng schema: ${validated.error.message}`);
+      }
 
-    // Đảm bảo nghiêm ngặt bất biến not_assessable
-    validated.data.pronunciation = {
-      status: "not_assessable",
-      notes: "Không thể chấm phát âm do thiếu dữ liệu âm thanh thực tế.",
-    };
+      // Đảm bảo nghiêm ngặt bất biến not_assessable
+      validated.data.pronunciation = {
+        status: "not_assessable",
+        notes: "Không thể chấm phát âm do thiếu dữ liệu âm thanh thực tế.",
+      };
 
-    return {
-      feedback: validated.data,
-      tokenInput: response.usageMetadata?.promptTokenCount || 0,
-      tokenOutput: response.usageMetadata?.candidatesTokenCount || 0,
-      modelName,
-    };
+      return {
+        feedback: validated.data,
+        tokenInput: response.usageMetadata?.promptTokenCount || 0,
+        tokenOutput: response.usageMetadata?.candidatesTokenCount || 0,
+        modelName,
+      };
+    }, "evaluateSpeaking(no-audio)");
   }
 
   // Trường hợp CÓ FILE AUDIO THỰC TẾ: Gửi trực tiếp audio buffer qua multimodal inlineData
@@ -161,6 +170,7 @@ Hãy lắng nghe trực tiếp tệp âm thanh đính kèm, bóc băng chính x�
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         responseSchema: speakingJsonSchema as any,
         temperature: 0.2,
+        abortSignal: geminiAbortSignal(),
       },
     });
 
@@ -169,12 +179,12 @@ Hãy lắng nghe trực tiếp tệp âm thanh đính kèm, bóc băng chính x�
     try {
       parsed = JSON.parse(responseText);
     } catch (e) {
-      throw new Error(`Lỗi parse JSON phản hồi từ Gemini: ${e instanceof Error ? e.message : String(e)}`);
+      throw new GeminiResponseError(`Lỗi parse JSON phản hồi từ Gemini: ${e instanceof Error ? e.message : String(e)}`);
     }
 
     const validated = SpeakingFeedbackSchema.safeParse(parsed);
     if (!validated.success) {
-      throw new Error(`Phản hồi Speaking không đúng schema: ${validated.error.message}`);
+      throw new GeminiResponseError(`Phản hồi Speaking không đúng schema: ${validated.error.message}`);
     }
 
     // Đảm bảo tối đa 3 observations
@@ -190,17 +200,6 @@ Hãy lắng nghe trực tiếp tệp âm thanh đính kèm, bóc băng chính x�
     };
   }
 
-  try {
-    return await callGeminiAudioOnce();
-  } catch (firstErr) {
-    console.warn("⚠️ evaluateSpeaking lần 1 thất bại, thử lại lần 2...", firstErr);
-    try {
-      return await callGeminiAudioOnce();
-    } catch (secondErr) {
-      console.error("❌ evaluateSpeaking lần 2 tiếp tục thất bại:", secondErr);
-      throw new Error(
-        `Đánh giá bài nói thất bại sau 2 lần thử: ${secondErr instanceof Error ? secondErr.message : String(secondErr)}`
-      );
-    }
-  }
+  // Chính sách retry chung: chỉ retry khi JSON/schema sai.
+  return callGeminiWithRetry(callGeminiAudioOnce, "evaluateSpeaking");
 }
