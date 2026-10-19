@@ -1,7 +1,7 @@
 import { getCurrentLearner } from "@/server/auth";
 import { redirect } from "next/navigation";
 import { RouteErrorScreen } from "@/app/_shared/route-error-screen";
-import TodayView from "./today-view";
+import TodayView from "@/features/today/today-view";
 
 export const dynamic = "force-dynamic";
 
@@ -28,7 +28,6 @@ export default async function TodayPage() {
   return (
     <TodayView
       initialTargetMinutes={30}
-      userEmail={learner.displayName || "Bác sĩ Minh"}
       displayName={learner.displayName || "Bác sĩ Minh"}
     />
   );

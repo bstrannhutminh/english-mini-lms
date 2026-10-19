@@ -53,6 +53,35 @@ export const inProgressSessionSchema = z.object({
 });
 export type InProgressSession = z.infer<typeof inProgressSessionSchema>;
 
+/* ── Kế hoạch phiên (buildDailyPlan — src/server/today/daily-plan.ts) ──
+ * 4 bước cố định: Ôn từ (≤5') → Bài chính → Sửa/vận dụng → Kết thúc.
+ * Mỗi bước là deep-link, trạng thái suy ra từ dữ liệu hôm nay (D-5: không
+ * bảng mới). `description` luôn giải thích lý do bằng tiếng Việt. */
+export const planStepKeySchema = z.enum([
+  "warmup",
+  "main",
+  "revise",
+  "wrapup",
+]);
+export type PlanStepKey = z.infer<typeof planStepKeySchema>;
+
+export const planStepStatusSchema = z.enum(["done", "current", "upcoming"]);
+export type PlanStepStatus = z.infer<typeof planStepStatusSchema>;
+
+export const planStepSchema = z.object({
+  key: planStepKeySchema,
+  /** Nhãn tiếng Việt của bước. */
+  title: z.string(),
+  /** Lý do/mô tả tiếng Việt (rule-based, giải thích được). */
+  description: z.string(),
+  /** Ngân sách phút trong khung 30'/45'. */
+  estimatedMinutes: z.number().int(),
+  /** Deep-link tới màn của bước; null khi chưa có đích rõ. */
+  href: z.string().nullable(),
+  status: planStepStatusSchema,
+});
+export type PlanStep = z.infer<typeof planStepSchema>;
+
 export const todayRecommendationSchema = z.object({
   learnerName: z.string(),
   baselineStatus: z.string(),
@@ -65,5 +94,7 @@ export const todayRecommendationSchema = z.object({
   leastPracticedSkill: z.string(),
   streakDays: z.number().int(),
   inProgressSession: inProgressSessionSchema.nullable(),
+  /** Kế hoạch phiên 4 bước suy ra từ dữ liệu hôm nay. */
+  dailyPlan: z.array(planStepSchema),
 });
 export type TodayRecommendationContract = z.infer<typeof todayRecommendationSchema>;

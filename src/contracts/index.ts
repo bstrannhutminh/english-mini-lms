@@ -9,6 +9,7 @@ export * from "./submission";
 export * from "./media";
 export * from "./vocabulary";
 export * from "./today";
+export * from "./progress";
 export * from "./library";
 export * from "./admin-content";
 export * from "./admin-dashboard";
