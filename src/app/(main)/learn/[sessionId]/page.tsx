@@ -71,6 +71,7 @@ export default async function LearnSessionPage({ params, searchParams }: PagePro
           targetMinutes: data.session.targetMinutes,
           activity,
           initialDraft: data.draft?.content || "",
+          segment: data.segment,
           parentId,
           parentData,
         }}

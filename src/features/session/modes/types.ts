@@ -42,6 +42,18 @@ export interface SessionActivity {
   durationMinutes?: number | null;
 }
 
+/**
+ * Đoạn văn gốc của bài đọc–dịch (source_segments join sources),
+ * khớp shape `data.segment` của getSessionDetails.
+ */
+export interface SessionSegment {
+  id: string;
+  page: number | null;
+  textContent: string | null;
+  sourceId: string;
+  sourceTitle: string | null;
+}
+
 /** Bài nộp bản trước (cho luồng "Sửa lại" qua ?parentId=). */
 export interface SessionParentData {
   submission: {
@@ -62,6 +74,8 @@ export interface SessionData {
   targetMinutes: number;
   activity: SessionActivity;
   initialDraft: string;
+  /** Đoạn văn gốc cho mode Đọc — null khi bài chưa gắn source segment. */
+  segment?: SessionSegment | null;
   parentId?: string;
   parentData?: SessionParentData | null;
 }
