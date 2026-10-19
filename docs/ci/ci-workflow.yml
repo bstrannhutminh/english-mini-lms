@@ -1,3 +1,7 @@
+# CI workflow — COPY to .github/workflows/ci.yml to activate.
+# Kept outside .github/ because the lead OAuth token lacks "workflow"
+# scope and GitHub rejects pushes containing workflow files.
+# Steps identical to /verify: lint -> typecheck -> unit -> build, no secrets.
 name: CI
 
 on:
