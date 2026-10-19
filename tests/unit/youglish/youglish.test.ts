@@ -4,7 +4,7 @@ import {
   normalizeYouGlishQuery,
   YOUGLISH_MAX_QUERY_LENGTH,
   YOUGLISH_SCRIPT_URL,
-} from "@/lib/youglish";
+} from "@/features/vocab/youglish";
 
 describe("YouGlish helpers", () => {
   it("trỏ tới script widget chính thức qua HTTPS", () => {

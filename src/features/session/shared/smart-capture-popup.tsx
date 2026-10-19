@@ -1,7 +1,11 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { YouGlishButton } from "@/components/youglish-widget";
+import { YouGlishButton } from "@/features/vocab/youglish-button";
+import {
+  createVocabularyEntry,
+  quickCaptureLookup,
+} from "@/features/vocab/api";
 
 interface SmartCapturePopupProps {
   selectedText: string;
@@ -43,24 +47,13 @@ export function SmartCapturePopup({
         setLoading(true);
         setError(null);
 
-        const res = await fetch("/api/v1/vocabulary/quick-capture", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            selected_text: selectedText,
-            surrounding_sentence: surroundingSentence,
-            source_ref: sourceRef || "Sổ tay siêu âm can thiệp tr.42",
-          }),
+        const result = await quickCaptureLookup({
+          selected_text: selectedText,
+          surrounding_sentence: surroundingSentence,
+          source_ref: sourceRef || "Sổ tay siêu âm can thiệp tr.42",
         });
 
         if (isCancelled) return;
-
-        if (!res.ok) {
-          const errData = await res.json();
-          throw new Error(errData.error || "Tra cứu thất bại");
-        }
-
-        const result = await res.json();
         setData(result);
       } catch (err) {
         if (!isCancelled) {
@@ -108,24 +101,17 @@ export function SmartCapturePopup({
       setIsSaving(true);
       setError(null);
 
-      const res = await fetch("/api/v1/vocabulary", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          phrase: data.phrase,
-          ipa: data.ipa,
-          context_meaning: data.context_meaning,
-          original_sentence: (surroundingSentence && surroundingSentence.trim()) || selectedText.trim(), // QUY TẮC BẮT BUỘC: phải có câu gốc
-          source_ref: sourceRef || "Sổ tay siêu âm can thiệp tr.42",
-          source_type: "book",
-          my_attempt: "",
-        }),
+      await createVocabularyEntry({
+        phrase: data.phrase,
+        ipa: data.ipa,
+        context_meaning: data.context_meaning,
+        original_sentence:
+          (surroundingSentence && surroundingSentence.trim()) ||
+          selectedText.trim(), // QUY TẮC BẮT BUỘC: phải có câu gốc
+        source_ref: sourceRef || "Sổ tay siêu âm can thiệp tr.42",
+        source_type: "book",
+        my_attempt: "",
       });
-
-      if (!res.ok) {
-        const errData = await res.json();
-        throw new Error(errData.error || "Lưu thất bại");
-      }
 
       setIsSaved(true);
       if (onSaved) onSaved();

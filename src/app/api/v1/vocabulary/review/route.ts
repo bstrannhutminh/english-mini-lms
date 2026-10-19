@@ -1,162 +1,97 @@
-import { NextRequest, NextResponse } from "next/server";
-import { z } from "zod";
-import { getCurrentLearner } from "@/server/auth";
+import { NextResponse } from "next/server";
+import { withLearner, parseJson, ApiRouteError } from "@/server/http";
 import {
   getDueVocabularyForReview,
   getVocabularyForFlashcards,
   submitVocabularyReview,
   submitQuickFlashcardReviews,
-  ValidationError,
+  type QuickReviewSubmission,
 } from "@/server/vocabulary/service";
-
-const SubmitReviewSchema = z.object({
-  vocab_id: z.string().uuid("vocab_id must be a valid UUID"),
-  scenario: z.string().min(1, "scenario is required"),
-  user_response: z.string().min(1, "user_response is required"),
-  modality: z.enum(["text", "audio"]).default("text"),
-});
-
-const QuickReviewItemSchema = z.object({
-  vocab_id: z.string().uuid("vocab_id must be a valid UUID"),
-  result: z.enum(["know", "dont_know"]),
-  clientReviewId: z.string().uuid("clientReviewId must be a valid UUID").optional(),
-});
-
-const SubmitQuickReviewSchema = z.object({
-  mode: z.literal("quick"),
-  vocab_id: z.string().uuid().optional(),
-  result: z.enum(["know", "dont_know"]).optional(),
-  clientReviewId: z.string().uuid().optional(),
-  reviews: z.array(QuickReviewItemSchema).max(200, "Tối đa 200 từ mỗi lượt").optional(),
-});
+import {
+  submitReviewPostRequestSchema,
+  type ReviewListResponse,
+} from "@/contracts/vocabulary";
 
 export const maxDuration = 60;
 
-export async function GET(req: NextRequest) {
-  try {
-    const learner = await getCurrentLearner();
-    if (!learner) {
-      return NextResponse.json({ error: "Chưa đăng nhập" }, { status: 401 });
-    }
+/**
+ * GET /api/v1/vocabulary/review
+ *  - ?mode=quick&limit=N&all=true → bộ thẻ flashcard (đến hạn / ôn tự do).
+ *  - mặc định (&limit&extra) → từ đến hạn kèm challengePrompt (micro-challenge).
+ */
+export const GET = withLearner(async ({ req, learner }) => {
+  const { searchParams } = new URL(req.url);
+  const mode = searchParams.get("mode");
 
-    const { searchParams } = new URL(req.url);
-    const mode = searchParams.get("mode");
+  // Chế độ Flashcard Quick Review
+  if (mode === "quick") {
+    const limit = Math.min(50, Math.max(1, Number(searchParams.get("limit")) || 20));
+    const isFreePractice =
+      searchParams.get("free") === "true" || searchParams.get("all") === "true";
 
-    // Chế độ Flashcard Quick Review
-    if (mode === "quick") {
-      const limit = Math.min(50, Math.max(1, Number(searchParams.get("limit")) || 20));
-      const isFreePractice =
-        searchParams.get("free") === "true" || searchParams.get("all") === "true";
-
-      const items = await getVocabularyForFlashcards(
-        learner.id,
-        limit,
-        isFreePractice ? "all" : "due"
-      );
-
-      return NextResponse.json({
-        items,
-        count: items.length,
-      });
-    }
-
-    // Chế độ Micro-challenge thông thường
-    const allowExtra = searchParams.get("extra") === "true";
-    const limit = Math.min(10, Math.max(1, Number(searchParams.get("limit")) || 5));
-
-    const items = await getDueVocabularyForReview(learner.id, limit, allowExtra);
-
-    return NextResponse.json({
-      items,
-      count: items.length,
-    });
-  } catch (error) {
-    console.error("Lỗi GET /api/v1/vocabulary/review:", error);
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Internal Server Error" },
-      { status: 500 }
+    const items = await getVocabularyForFlashcards(
+      learner.id,
+      limit,
+      isFreePractice ? "all" : "due"
     );
+
+    const payload: ReviewListResponse = { items, count: items.length };
+    return NextResponse.json(payload);
   }
-}
 
-export async function POST(req: NextRequest) {
-  try {
-    const learner = await getCurrentLearner();
-    if (!learner) {
-      return NextResponse.json({ error: "Chưa đăng nhập" }, { status: 401 });
-    }
+  // Chế độ Micro-challenge thông thường
+  const allowExtra = searchParams.get("extra") === "true";
+  const limit = Math.min(10, Math.max(1, Number(searchParams.get("limit")) || 5));
 
-    const body = await req.json();
+  const items = await getDueVocabularyForReview(learner.id, limit, allowExtra);
 
-    // 1. Kiểm tra nếu là mode="quick" (Flashcards SRS không gọi AI)
-    if (body?.mode === "quick") {
-      const parsedQuick = SubmitQuickReviewSchema.safeParse(body);
-      if (!parsedQuick.success) {
-        return NextResponse.json(
-          {
-            error: "Dữ liệu flashcard không hợp lệ",
-            details: parsedQuick.error.format(),
-          },
-          { status: 422 }
-        );
-      }
+  const payload: ReviewListResponse = { items, count: items.length };
+  return NextResponse.json(payload);
+});
 
-      const reviewsToProcess: Array<{
-        vocab_id: string;
-        result: "know" | "dont_know";
-        clientReviewId?: string;
-      }> = [];
+/**
+ * POST /api/v1/vocabulary/review
+ *  - { mode: "quick", reviews[] | vocab_id+result } → batch SRS không gọi AI.
+ *  - { vocab_id, scenario, user_response, modality } → micro-challenge qua Gemini.
+ */
+export const POST = withLearner(async ({ req, learner }) => {
+  const body = await parseJson(req, submitReviewPostRequestSchema);
 
-      if (parsedQuick.data.reviews && parsedQuick.data.reviews.length > 0) {
-        reviewsToProcess.push(...parsedQuick.data.reviews);
-      } else if (parsedQuick.data.vocab_id && parsedQuick.data.result) {
-        reviewsToProcess.push({
-          vocab_id: parsedQuick.data.vocab_id,
-          result: parsedQuick.data.result,
-          clientReviewId: parsedQuick.data.clientReviewId,
-        });
-      } else {
-        return NextResponse.json(
-          { error: "Cần cung cấp vocab_id + result hoặc mảng reviews" },
-          { status: 422 }
-        );
-      }
-
-      const quickResult = await submitQuickFlashcardReviews(learner.id, reviewsToProcess);
-      return NextResponse.json(quickResult, { status: 200 });
-    }
-
-    // 2. Chế độ Micro-challenge truyền thống qua Gemini
-    const parsed = SubmitReviewSchema.safeParse(body);
-    if (!parsed.success) {
-      return NextResponse.json(
-        {
-          error: "Dữ liệu không hợp lệ",
-          details: parsed.error.format(),
-        },
-        { status: 422 }
+  // 1. mode="quick" (Flashcards SRS — không gọi AI)
+  if ("mode" in body && body.mode === "quick") {
+    const reviewsToProcess: QuickReviewSubmission[] = [];
+    if (body.reviews && body.reviews.length > 0) {
+      reviewsToProcess.push(...body.reviews);
+    } else if (body.vocab_id && body.result) {
+      reviewsToProcess.push({
+        vocab_id: body.vocab_id,
+        result: body.result,
+        clientReviewId: body.clientReviewId,
+      });
+    } else {
+      throw new ApiRouteError(
+        422,
+        "validation_failed",
+        "Cần cung cấp vocab_id + result hoặc mảng reviews."
       );
     }
 
-    const { vocab_id, scenario, user_response, modality } = parsed.data;
+    const quickResult = await submitQuickFlashcardReviews(learner.id, reviewsToProcess);
+    return NextResponse.json(quickResult, { status: 200 });
+  }
 
+  // 2. Micro-challenge truyền thống qua Gemini
+  if ("scenario" in body) {
     const result = await submitVocabularyReview(
       learner.id,
-      vocab_id,
-      scenario,
-      user_response,
-      modality
+      body.vocab_id,
+      body.scenario,
+      body.user_response,
+      body.modality
     );
-
     return NextResponse.json(result, { status: 200 });
-  } catch (error) {
-    if (error instanceof ValidationError) {
-      return NextResponse.json({ error: error.message }, { status: error.statusCode });
-    }
-    console.error("Lỗi POST /api/v1/vocabulary/review:", error);
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Internal Server Error" },
-      { status: 500 }
-    );
   }
-}
+
+  // Union zod luôn khớp 1 trong 2 nhánh — đến đây nghĩa là contract lệch.
+  throw new ApiRouteError(422, "validation_failed", "Dữ liệu không hợp lệ.");
+});

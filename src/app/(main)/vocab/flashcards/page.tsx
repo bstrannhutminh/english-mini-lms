@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { getCurrentLearner } from "@/server/auth";
-import { FlashcardsView } from "./flashcards-view";
+import { FlashcardDeck } from "@/features/vocab/flashcard-deck";
 
 export const dynamic = "force-dynamic";
 
@@ -15,5 +15,5 @@ export default async function FlashcardsPage() {
     redirect("/login");
   }
 
-  return <FlashcardsView />;
+  return <FlashcardDeck />;
 }

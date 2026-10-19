@@ -68,7 +68,8 @@ export type VocabularyListResponse = z.infer<typeof vocabularyListResponseSchema
 /** PATCH /api/v1/vocabulary/[id] — snake_case, all optional. */
 export const updateVocabularyRequestSchema = z.object({
   my_attempt: z.string().optional(),
-  mastery_level: z.number().int().min(0).max(5).optional(),
+  // Thang mastery chốt 0–4 (hiển thị "x/5") — quyết định D-2.
+  mastery_level: z.number().int().min(0).max(4).optional(),
   context_meaning: z.string().optional(),
 });
 export type UpdateVocabularyRequest = z.infer<typeof updateVocabularyRequestSchema>;
@@ -182,3 +183,14 @@ export const submitQuickReviewResponseSchema = z.object({
   results: z.array(quickReviewResultSchema),
 });
 export type SubmitQuickReviewResponse = z.infer<typeof submitQuickReviewResponseSchema>;
+
+/**
+ * POST /api/v1/vocabulary/review — một route nhận 2 dạng body:
+ * quick-flashcard (có mode:"quick") hoặc micro-challenge (không có mode).
+ * Union này để parseJson gom validation về một chỗ.
+ */
+export const submitReviewPostRequestSchema = z.union([
+  submitQuickReviewRequestSchema,
+  submitReviewRequestSchema,
+]);
+export type SubmitReviewPostRequest = z.infer<typeof submitReviewPostRequestSchema>;
