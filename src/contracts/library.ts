@@ -76,6 +76,8 @@ export const activityDetailSchema = z.object({
   topic: z.string().nullable(),
   promptText: z.string().nullable(),
   feedbackGuide: z.string().nullable(),
+  /** Listening only: number of questions (count only — never content/answers). */
+  questionCount: z.number().int().optional(),
   sourceContext: sourceContextSchema.nullable().optional(),
 });
 export type ActivityDetailContract = z.infer<typeof activityDetailSchema>;
