@@ -1,0 +1,5 @@
+import { LoadingScreen } from "./_shared/loading-screen";
+
+export default function RootLoading() {
+  return <LoadingScreen />;
+}
