@@ -1,0 +1,11 @@
+[
+  { "url": "/today", "name": "today-error", "viewport": [390, 844] },
+  { "url": "/library", "name": "library-error", "viewport": [390, 844] },
+  { "url": "/vocab", "name": "vocab-error", "viewport": [390, 844] },
+  { "url": "/progress", "name": "progress-error", "viewport": [390, 844] },
+  { "url": "/settings", "name": "settings-error", "viewport": [390, 844] },
+  { "url": "/admin", "name": "admin-error", "viewport": [390, 844] },
+  { "url": "/today", "name": "today-error", "viewport": [1280, 800] },
+  { "url": "/library", "name": "library-error", "viewport": [1280, 800] },
+  { "url": "/learn/any-id", "name": "learn-any-id", "viewport": [1280, 800] }
+]
