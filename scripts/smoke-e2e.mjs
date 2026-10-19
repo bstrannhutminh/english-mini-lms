@@ -144,6 +144,8 @@ const ERR_BOUNDARY = /Có lỗi xảy ra|Something went wrong/;
 // Chi tiết kỹ thuật KHÔNG được hiện cho người học (env var, đường dẫn env).
 const SECRET_LEAK = /biến môi trường|GEMINI_API_KEY|DATABASE_URL|\\.env/i;
 
+let checks = 0;
+
 async function visit(browser, url, name, w, fails) {
   const ctx = await browser.newContext({ viewport: { width: w, height: 844 } });
   const page = await ctx.newPage();
@@ -154,7 +156,10 @@ async function visit(browser, url, name, w, fails) {
   const ENV_NOISE = /Permissions policy|compute-pressure|Third-party cookie|Deprecation/i;
   page.on("console", (m) => { if (m.type() === "error" && !ENV_NOISE.test(m.text())) errs.push("console: " + m.text()); });
   await page.goto(BASE + url, { waitUntil: "networkidle" }).catch((e) => errs.push("goto: " + e.message));
+  // Ẩn dev-overlay "Compiling..." của Next (nextjs-portal) khỏi ảnh chụp.
+  await page.addStyleTag({ content: "nextjs-portal{display:none!important}" }).catch(() => {});
   await page.screenshot({ path: path.join(OUT, name + "-" + w + ".png"), fullPage: true });
+  checks++;
   const body = await page.innerText("body").catch(() => "");
   if (ERR_BOUNDARY.test(body)) errs.push("error boundary hiển thị");
   // /admin được phép hiện cờ env boolean (admin = chủ app); trang học thì không.
@@ -173,10 +178,11 @@ async function visit(browser, url, name, w, fails) {
   const fails = [];
 
   // 1) Các trang chính có DB: Hôm nay, Thư viện, Sổ từ, Tiến độ, Admin, My Work
-  for (const [url, name] of [
+  const MAIN = [
     ["/today", "today"], ["/library", "library"], ["/vocab", "vocab"],
     ["/progress", "progress"], ["/admin", "admin"], ["/my-work", "my-work"],
-  ]) {
+  ];
+  for (const [url, name] of MAIN) {
     for (const w of [390, 1280]) {
       const { ctx } = await visit(browser, url, name, w, fails);
       await ctx.close();
@@ -215,8 +221,18 @@ async function visit(browser, url, name, w, fails) {
         if (b) b.click();
       });
       await page.waitForURL(/\\/my-work\\//, { timeout: 90000 }).catch(() => fails.push("submit-flow @" + w + " không về /my-work"));
-      await page.waitForLoadState("networkidle").catch(() => {});
+      // Chờ trang chi tiết load xong thật (không còn spinner "Đang tải")
+      // trước khi chụp + kiểm — nếu không các phép kiểm chạy trên trang rỗng.
+      const loaded = await page
+        .getByText(/Sửa ngay|Chấm lại|Nội dung bài|Nhận xét|Kết quả/)
+        .first()
+        .waitFor({ timeout: 60000 })
+        .then(() => true)
+        .catch(() => false);
+      if (!loaded) fails.push("my-work-detail @" + w + " vẫn 'Đang tải' sau 60s");
+      await page.addStyleTag({ content: "nextjs-portal{display:none!important}" }).catch(() => {});
       await page.screenshot({ path: path.join(OUT, "my-work-detail-" + w + ".png"), fullPage: true });
+      checks++;
       const body = await page.innerText("body").catch(() => "");
       if (ERR_BOUNDARY.test(body)) fails.push("my-work-detail @" + w + " error boundary");
       if (SECRET_LEAK.test(body)) fails.push("my-work-detail @" + w + " LỘ chi tiết kỹ thuật (env/GEMINI)");
@@ -224,9 +240,11 @@ async function visit(browser, url, name, w, fails) {
       await ctx.close();
     }
   }
+  const expected = MAIN.length * 2 + sessions.length * 2 + submitRuns.length * 2;
   await browser.close();
-  if (fails.length) { console.error("\\nSMOKE FAIL:\\n" + fails.join("\\n")); process.exit(1); }
-  console.log("\\nSMOKE PASS — ảnh: " + OUT);
+  if (checks < expected) fails.push("thiếu bước kiểm: chỉ chạy " + checks + "/" + expected);
+  if (fails.length) { console.error("\\nSMOKE FAIL (" + checks + "/" + expected + " bước):\\n" + fails.join("\\n")); process.exit(1); }
+  console.log("\\nSMOKE PASS — " + checks + "/" + expected + " bước kiểm — ảnh: " + OUT);
 })().catch((e) => { console.error(e); process.exit(1); });
 `;
 writeFileSync(path.join(pwDir, "spec.cjs"), spec);
