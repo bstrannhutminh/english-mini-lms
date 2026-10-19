@@ -2,7 +2,11 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import type { ModePlugin, SessionData } from "../modes/types";
+import type {
+  ModePlugin,
+  SessionData,
+  SubmissionResult,
+} from "../modes/types";
 import { useSessionTimer } from "../hooks/use-session-timer";
 import { useAutosaveDraft } from "../hooks/use-autosave-draft";
 import { useSessionEvents } from "../hooks/use-session-events";
@@ -42,6 +46,8 @@ export function SessionShell({
   }, [state]);
 
   const [showWrapUp, setShowWrapUp] = useState(false);
+  const [submissionResult, setSubmissionResult] =
+    useState<SubmissionResult | null>(null);
   const [hintShown, setHintShown] = useState(false);
   const [hintLoading, setHintLoading] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
@@ -74,7 +80,13 @@ export function SessionShell({
       data.parentId,
     );
     if (result) {
-      router.push(`/my-work/${result.submissionId}`);
+      // Plugin ở lại trang (listening: xem đáp án + shadowing) — Panel tự
+      // render màn kết quả từ `submission`; các mode khác sang /my-work.
+      if (plugin.staysAfterSubmit) {
+        setSubmissionResult(result);
+      } else {
+        router.push(`/my-work/${result.submissionId}`);
+      }
     }
   }, [plugin, state, submit, timer, data.parentId, router, setError]);
 
@@ -192,6 +204,7 @@ export function SessionShell({
         busy={isSubmitting}
         postEvent={postEvent}
         capture={capture.helpers}
+        submission={submissionResult}
       />
 
       <ActionBar
@@ -202,6 +215,7 @@ export function SessionShell({
         submitError={submitError}
         onSaveDraft={handleSaveDraft}
         onSubmit={handleSubmit}
+        submitLabel={plugin.submitLabel}
       />
     </div>
   );

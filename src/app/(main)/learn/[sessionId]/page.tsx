@@ -73,6 +73,9 @@ export default async function LearnSessionPage({ params, searchParams }: PagePro
           initialDraft: data.draft?.content || "",
           parentId,
           parentData,
+          // Payload mode nghe (đã gate transcript phía server); null với
+          // skill khác hoặc ielts-listening tới khi B8 mở rộng service.
+          listening: data.listening,
         }}
       />
     );
