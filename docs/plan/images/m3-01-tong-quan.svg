@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="860" height="400" viewBox="0 0 860 400" font-family="-apple-system, 'Helvetica Neue', Arial, sans-serif">
+  <rect width="860" height="400" fill="#ffffff"/>
+  <text x="430" y="38" text-anchor="middle" font-size="20" font-weight="700" fill="#1a1a2e">Bản cập nhật M3 gồm 5 việc — làm theo thứ tự này</text>
+
+  <defs>
+    <marker id="m3arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#5b6b8c"/>
+    </marker>
+  </defs>
+
+  <!-- Step 1 -->
+  <rect x="40" y="90" width="140" height="150" rx="12" fill="#fdf3e3" stroke="#e6a23c" stroke-width="2"/>
+  <circle cx="70" cy="72" r="16" fill="#e6a23c"/>
+  <text x="70" y="77" text-anchor="middle" font-size="14" font-weight="700" fill="#ffffff">1</text>
+  <text x="110" y="120" text-anchor="middle" font-size="13" font-weight="700" fill="#b26a00">Vá luồng học</text>
+  <text x="110" y="142" text-anchor="middle" font-size="11" fill="#1a1a2e">menu rõ ràng,</text>
+  <text x="110" y="158" text-anchor="middle" font-size="11" fill="#1a1a2e">trang "Bài của tôi",</text>
+  <text x="110" y="174" text-anchor="middle" font-size="11" fill="#1a1a2e">streak ngày học</text>
+  <text x="110" y="210" text-anchor="middle" font-size="10.5" fill="#6b7280">không đổi dữ liệu</text>
+
+  <!-- arrow -->
+  <line x1="182" y1="165" x2="204" y2="165" stroke="#5b6b8c" stroke-width="2" marker-end="url(#m3arr)"/>
+
+  <!-- Step 2 -->
+  <rect x="206" y="90" width="140" height="150" rx="12" fill="#eaf0fb" stroke="#2f80ed" stroke-width="2"/>
+  <circle cx="236" cy="72" r="16" fill="#2f80ed"/>
+  <text x="236" y="77" text-anchor="middle" font-size="14" font-weight="700" fill="#ffffff">2</text>
+  <text x="276" y="120" text-anchor="middle" font-size="13" font-weight="700" fill="#1a5fb4">Chủ đề</text>
+  <text x="276" y="142" text-anchor="middle" font-size="11" fill="#1a1a2e">thư viện gom</text>
+  <text x="276" y="158" text-anchor="middle" font-size="11" fill="#1a1a2e">theo chủ đề,</text>
+  <text x="276" y="174" text-anchor="middle" font-size="11" fill="#1a1a2e">chọn chủ đề trước</text>
+  <text x="276" y="210" text-anchor="middle" font-size="10.5" fill="#6b7280">thêm 1 cột topic</text>
+
+  <line x1="348" y1="165" x2="370" y2="165" stroke="#5b6b8c" stroke-width="2" marker-end="url(#m3arr)"/>
+
+  <!-- Step 3 -->
+  <rect x="372" y="90" width="140" height="150" rx="12" fill="#eaf7ec" stroke="#3aa757" stroke-width="2"/>
+  <circle cx="402" cy="72" r="16" fill="#3aa757"/>
+  <text x="402" y="77" text-anchor="middle" font-size="14" font-weight="700" fill="#ffffff">3</text>
+  <text x="442" y="120" text-anchor="middle" font-size="13" font-weight="700" fill="#237a3c">Admin nội dung</text>
+  <text x="442" y="142" text-anchor="middle" font-size="11" fill="#1a1a2e">đăng/sửa/duyệt bài</text>
+  <text x="442" y="158" text-anchor="middle" font-size="11" fill="#1a1a2e">ngay trong app,</text>
+  <text x="442" y="174" text-anchor="middle" font-size="11" fill="#1a1a2e">không cần agent</text>
+  <text x="442" y="210" text-anchor="middle" font-size="10.5" fill="#6b7280">ghi thẳng vào DB</text>
+
+  <line x1="514" y1="165" x2="536" y2="165" stroke="#5b6b8c" stroke-width="2" marker-end="url(#m3arr)"/>
+
+  <!-- Step 4 -->
+  <rect x="538" y="90" width="140" height="150" rx="12" fill="#f1ecfb" stroke="#7b5cd6" stroke-width="2"/>
+  <circle cx="568" cy="72" r="16" fill="#7b5cd6"/>
+  <text x="568" y="77" text-anchor="middle" font-size="14" font-weight="700" fill="#ffffff">4</text>
+  <text x="608" y="120" text-anchor="middle" font-size="13" font-weight="700" fill="#5b3fae">Google Drive</text>
+  <text x="608" y="142" text-anchor="middle" font-size="11" fill="#1a1a2e">thư mục Drive làm</text>
+  <text x="608" y="158" text-anchor="middle" font-size="11" fill="#1a1a2e">kho, bấm 1 nút</text>
+  <text x="608" y="174" text-anchor="middle" font-size="11" fill="#1a1a2e">đồng bộ vào app</text>
+  <text x="608" y="210" text-anchor="middle" font-size="10.5" fill="#6b7280">cần NC3 xong trước</text>
+
+  <line x1="680" y1="165" x2="702" y2="165" stroke="#5b6b8c" stroke-width="2" marker-end="url(#m3arr)"/>
+
+  <!-- Step 5 -->
+  <rect x="704" y="90" width="140" height="150" rx="12" fill="#fdeaea" stroke="#e05a5a" stroke-width="2"/>
+  <circle cx="734" cy="72" r="16" fill="#e05a5a"/>
+  <text x="734" y="77" text-anchor="middle" font-size="14" font-weight="700" fill="#ffffff">5</text>
+  <text x="774" y="120" text-anchor="middle" font-size="13" font-weight="700" fill="#b03a3a">Thẻ quẹt từ</text>
+  <text x="774" y="142" text-anchor="middle" font-size="11" fill="#1a1a2e">ôn từ kiểu</text>
+  <text x="774" y="158" text-anchor="middle" font-size="11" fill="#1a1a2e">quẹt trái/phải,</text>
+  <text x="774" y="174" text-anchor="middle" font-size="11" fill="#1a1a2e">không cần gõ chữ</text>
+  <text x="774" y="210" text-anchor="middle" font-size="10.5" fill="#6b7280">làm lúc nào cũng được</text>
+
+  <!-- Result -->
+  <rect x="120" y="290" width="620" height="70" rx="12" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.5"/>
+  <text x="430" y="318" text-anchor="middle" font-size="13.5" font-weight="700" fill="#1a1a2e">Sau đợt này: anh Minh tự đăng bài — tự duyệt — tự sắp chủ đề ngay trong app,</text>
+  <text x="430" y="340" text-anchor="middle" font-size="12.5" fill="#4a4a68">không cần sửa file hay chạy lệnh qua người kỹ thuật nữa</text>
+</svg>

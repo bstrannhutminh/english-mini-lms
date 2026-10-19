@@ -2,7 +2,7 @@
 
 Anh Minh ơi, app đã build xong phần lớn nhưng khi rà soát lại kỹ thì có một số lỗi làm luồng học chưa chạy trọn được (nộp bài speaking bị lỗi, trang Hôm nay chưa tạo được phiên, phút học chưa được đếm...). Tài liệu này hướng dẫn sửa từng bước rồi deploy + pilot.
 
-Cách làm y hệt như khi build: **mỗi phiên chat Antigravity làm đúng 1 bước**, dán prompt, đọc Implementation Plan rồi mới duyệt, xong thì tự kiểm tay trên điện thoại theo mục "Xong khi".
+Cách làm y hệt như khi build: **mỗi phiên chat Antigravity làm đúng 1 bước**, dán prompt, đọc Implementation Plan rồi mới duyệt, xong thì tự kiểm tay trên điện thoại theo mục "Xong khi". Sau khi app chạy ổn thì làm tiếp **M2** (nâng cấp trải nghiệm: YouGlish, tour hướng dẫn lần đầu, giao diện desktop) ở file [m2-nang-cap-trai-nghiem-2026-10-02.md](m2-nang-cap-trai-nghiem-2026-10-02.md).
 
 ---
 

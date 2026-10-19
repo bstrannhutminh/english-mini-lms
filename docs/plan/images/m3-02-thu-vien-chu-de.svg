@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="860" height="430" viewBox="0 0 860 430" font-family="-apple-system, 'Helvetica Neue', Arial, sans-serif">
+  <rect width="860" height="430" fill="#ffffff"/>
+  <text x="430" y="36" text-anchor="middle" font-size="20" font-weight="700" fill="#1a1a2e">NC1 — Thư viện: chọn chủ đề trước, rồi mới chọn bài</text>
+
+  <defs>
+    <marker id="m3arr2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#5b6b8c"/>
+    </marker>
+  </defs>
+
+  <!-- Phone 1: topics -->
+  <rect x="60" y="70" width="240" height="300" rx="20" fill="#1a1a2e"/>
+  <rect x="70" y="85" width="220" height="270" rx="10" fill="#ffffff"/>
+  <text x="180" y="110" text-anchor="middle" font-size="13" font-weight="700" fill="#1a1a2e">📖 Thư viện</text>
+  <text x="180" y="128" text-anchor="middle" font-size="10" fill="#6b7280">Chọn chủ đề muốn học</text>
+
+  <rect x="82" y="140" width="92" height="70" rx="10" fill="#eaf0fb" stroke="#2f80ed" stroke-width="1.5"/>
+  <text x="128" y="168" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1a5fb4">🎤 Hội nghị</text>
+  <text x="128" y="186" text-anchor="middle" font-size="9.5" fill="#4a4a68">6 bài</text>
+
+  <rect x="186" y="140" width="92" height="70" rx="10" fill="#eaf7ec" stroke="#3aa757" stroke-width="1.5"/>
+  <text x="232" y="168" text-anchor="middle" font-size="11.5" font-weight="700" fill="#237a3c">📚 Sách y khoa</text>
+  <text x="232" y="186" text-anchor="middle" font-size="9.5" fill="#4a4a68">6 bài</text>
+
+  <rect x="82" y="222" width="92" height="70" rx="10" fill="#fdf3e3" stroke="#e6a23c" stroke-width="1.5"/>
+  <text x="128" y="250" text-anchor="middle" font-size="11.5" font-weight="700" fill="#b26a00">🩺 Lâm sàng</text>
+  <text x="128" y="268" text-anchor="middle" font-size="9.5" fill="#4a4a68">4 bài</text>
+
+  <rect x="186" y="222" width="92" height="70" rx="10" fill="#f1ecfb" stroke="#7b5cd6" stroke-width="1.5"/>
+  <text x="232" y="250" text-anchor="middle" font-size="11.5" font-weight="700" fill="#5b3fae">📝 IELTS</text>
+  <text x="232" y="268" text-anchor="middle" font-size="9.5" fill="#4a4a68">sắp ra mắt</text>
+
+  <text x="180" y="330" text-anchor="middle" font-size="10" fill="#6b7280">+ nhóm "Chưa phân loại" cho bài cũ</text>
+
+  <!-- Arrow -->
+  <line x1="310" y1="220" x2="360" y2="220" stroke="#5b6b8c" stroke-width="2.5" marker-end="url(#m3arr2)"/>
+  <text x="335" y="205" text-anchor="middle" font-size="11" font-weight="600" fill="#4a4a68">chạm 1 chủ đề</text>
+
+  <!-- Phone 2: activity list inside topic -->
+  <rect x="370" y="70" width="240" height="300" rx="20" fill="#1a1a2e"/>
+  <rect x="380" y="85" width="220" height="270" rx="10" fill="#ffffff"/>
+  <text x="490" y="110" text-anchor="middle" font-size="13" font-weight="700" fill="#1a1a2e">← 🎤 Hội nghị</text>
+  <text x="490" y="128" text-anchor="middle" font-size="10" fill="#6b7280">vẫn lọc được: Viết · Nói · Nghe · Đọc</text>
+
+  <rect x="390" y="140" width="200" height="60" rx="10" fill="#f8fafc" stroke="#e2e8f0"/>
+  <text x="400" y="162" font-size="10.5" font-weight="700" fill="#4338ca">W1 · Viết</text>
+  <text x="400" y="180" font-size="10" fill="#1a1a2e">Email xin tham dự hội nghị</text>
+  <rect x="540" y="148" width="44" height="16" rx="8" fill="#fef9c3"/>
+  <text x="562" y="159" text-anchor="middle" font-size="8.5" fill="#854d0e">💡 Gợi ý</text>
+
+  <rect x="390" y="208" width="200" height="60" rx="10" fill="#f8fafc" stroke="#e2e8f0"/>
+  <text x="400" y="230" font-size="10.5" font-weight="700" fill="#b45309">S3 · Nói</text>
+  <text x="400" y="248" font-size="10" fill="#1a1a2e">Trả lời Q&amp;A tại hội nghị</text>
+  <rect x="536" y="216" width="48" height="16" rx="8" fill="#dcfce7"/>
+  <text x="560" y="227" text-anchor="middle" font-size="8.5" fill="#166534">Đã học</text>
+
+  <rect x="390" y="276" width="200" height="60" rx="10" fill="#f8fafc" stroke="#e2e8f0"/>
+  <text x="400" y="298" font-size="10.5" font-weight="700" fill="#0369a1">L4 · Nghe</text>
+  <text x="400" y="316" font-size="10" fill="#1a1a2e">Nghe thuyết trình: POCUS</text>
+
+  <!-- Note right -->
+  <rect x="640" y="90" width="190" height="250" rx="12" fill="#f8fafc" stroke="#cbd5e1"/>
+  <text x="735" y="118" text-anchor="middle" font-size="12.5" font-weight="700" fill="#1a1a2e">Thay đổi gì?</text>
+  <text x="655" y="146" font-size="11" fill="#4a4a68">• Trước: 16 bài trộn lẫn</text>
+  <text x="655" y="166" font-size="11" fill="#4a4a68">  một danh sách phẳng</text>
+  <text x="655" y="192" font-size="11" fill="#4a4a68">• Sau: 4 chủ đề rõ ràng,</text>
+  <text x="655" y="212" font-size="11" fill="#4a4a68">  mỗi chủ đề có chip</text>
+  <text x="655" y="230" font-size="11" fill="#4a4a68">  trạng thái học từng bài</text>
+  <text x="655" y="256" font-size="11" fill="#4a4a68">• 1 bài = 1 chủ đề</text>
+  <text x="655" y="276" font-size="11" fill="#4a4a68">  (đã chốt, đủ dùng)</text>
+  <text x="655" y="302" font-size="11" fill="#4a4a68">• Bài đầu mỗi chủ đề có</text>
+  <text x="655" y="322" font-size="11" fill="#4a4a68">  nhãn 💡 Gợi ý cho anh</text>
+</svg>

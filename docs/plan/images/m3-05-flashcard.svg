@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="860" height="430" viewBox="0 0 860 430" font-family="-apple-system, 'Helvetica Neue', Arial, sans-serif">
+  <rect width="860" height="430" fill="#ffffff"/>
+  <text x="430" y="36" text-anchor="middle" font-size="20" font-weight="700" fill="#1a1a2e">NC4 — Ôn từ bằng thẻ quẹt: phải = thuộc, trái = chưa thuộc</text>
+
+  <defs>
+    <marker id="m3arr5r" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#e05a5a"/>
+    </marker>
+    <marker id="m3arr5g" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#3aa757"/>
+    </marker>
+  </defs>
+
+  <!-- Left arrow (don't know) -->
+  <line x1="240" y1="220" x2="120" y2="220" stroke="#e05a5a" stroke-width="4" marker-end="url(#m3arr5r)"/>
+  <text x="120" y="180" text-anchor="middle" font-size="15" font-weight="700" fill="#e05a5a">← Quẹt trái</text>
+  <text x="120" y="200" text-anchor="middle" font-size="11.5" fill="#4a4a68">CHƯA THUỘC</text>
+  <text x="120" y="260" text-anchor="middle" font-size="10.5" fill="#6b7280">từ quay lại</text>
+  <text x="120" y="276" text-anchor="middle" font-size="10.5" fill="#6b7280">ôn ngày mai</text>
+
+  <!-- Right arrow (know) -->
+  <line x1="620" y1="220" x2="740" y2="220" stroke="#3aa757" stroke-width="4" marker-end="url(#m3arr5g)"/>
+  <text x="740" y="180" text-anchor="middle" font-size="15" font-weight="700" fill="#3aa757">Quẹt phải →</text>
+  <text x="740" y="200" text-anchor="middle" font-size="11.5" fill="#4a4a68">ĐÃ THUỘC</text>
+  <text x="740" y="260" text-anchor="middle" font-size="10.5" fill="#6b7280">hẹn lịch ôn</text>
+  <text x="740" y="276" text-anchor="middle" font-size="10.5" fill="#6b7280">xa hơn (3–14 ngày)</text>
+
+  <!-- Phone -->
+  <rect x="310" y="60" width="240" height="330" rx="22" fill="#1a1a2e"/>
+  <rect x="320" y="75" width="220" height="300" rx="10" fill="#f8fafc"/>
+
+  <text x="430" y="100" text-anchor="middle" font-size="10.5" fill="#6b7280">Từ 3 / 20</text>
+
+  <!-- Card -->
+  <rect x="345" y="115" width="170" height="190" rx="14" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5"/>
+  <text x="430" y="175" text-anchor="middle" font-size="16" font-weight="800" fill="#1a1a2e">tendinopathy</text>
+  <text x="430" y="197" text-anchor="middle" font-size="10.5" fill="#6366f1" font-family="monospace">/ˌtendɪˈnɒpəθi/</text>
+  <rect x="395" y="215" width="70" height="24" rx="12" fill="#eef2ff" stroke="#c7d2fe"/>
+  <text x="430" y="231" text-anchor="middle" font-size="10" fill="#4338ca">🔊 Nghe</text>
+  <text x="430" y="268" text-anchor="middle" font-size="9.5" fill="#94a3b8">chạm để lật thẻ</text>
+  <text x="430" y="284" text-anchor="middle" font-size="9.5" fill="#94a3b8">xem nghĩa + câu gốc</text>
+
+  <!-- Buttons -->
+  <circle cx="385" cy="335" r="20" fill="#ffffff" stroke="#e05a5a" stroke-width="2.5"/>
+  <text x="385" y="341" text-anchor="middle" font-size="15" font-weight="700" fill="#e05a5a">✗</text>
+  <circle cx="475" cy="335" r="20" fill="#ffffff" stroke="#3aa757" stroke-width="2.5"/>
+  <text x="475" y="341" text-anchor="middle" font-size="15" font-weight="700" fill="#3aa757">✓</text>
+
+  <!-- Notes bottom -->
+  <rect x="60" y="395" width="740" height="0" fill="none"/>
+  <text x="60" y="402" font-size="11" fill="#4a4a68">↩️ Có nút "Hoàn tác" nếu quẹt nhầm  ·  ⌨️ Máy tính: phím ← / → hoặc bấm ✗ ✓  ·  Không tốn tiền AI — chỉ xếp lại lịch ôn</text>
+</svg>

@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="860" height="430" viewBox="0 0 860 430" font-family="-apple-system, 'Helvetica Neue', Arial, sans-serif">
+  <rect width="860" height="430" fill="#ffffff"/>
+  <text x="430" y="36" text-anchor="middle" font-size="20" font-weight="700" fill="#1a1a2e">NC3 — Google Drive làm "kho nguyên liệu", đồng bộ bằng 1 nút</text>
+
+  <defs>
+    <marker id="m3arr4" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#5b6b8c"/>
+    </marker>
+  </defs>
+
+  <!-- Drive folder -->
+  <rect x="40" y="90" width="200" height="240" rx="12" fill="#fdf3e3" stroke="#e6a23c" stroke-width="2"/>
+  <text x="140" y="118" text-anchor="middle" font-size="13.5" font-weight="700" fill="#b26a00">☁️ Thư mục Drive</text>
+  <text x="140" y="138" text-anchor="middle" font-size="10.5" fill="#4a4a68">"english-lab-content"</text>
+  <text x="140" y="152" text-anchor="middle" font-size="10" fill="#6b7280">(anh soạn &amp; kéo thả file vào đây)</text>
+  <rect x="58" y="170" width="164" height="26" rx="6" fill="#ffffff" stroke="#e6a23c"/>
+  <text x="140" y="187" text-anchor="middle" font-size="10.5" fill="#1a1a2e">📄 manifest.yaml</text>
+  <rect x="58" y="204" width="164" height="26" rx="6" fill="#ffffff" stroke="#e6a23c"/>
+  <text x="140" y="221" text-anchor="middle" font-size="10.5" fill="#1a1a2e">📁 texts/ (đề bài, đoạn sách)</text>
+  <rect x="58" y="238" width="164" height="26" rx="6" fill="#ffffff" stroke="#e6a23c"/>
+  <text x="140" y="255" text-anchor="middle" font-size="10.5" fill="#1a1a2e">📁 transcripts/ (bản nghe)</text>
+  <rect x="58" y="272" width="164" height="26" rx="6" fill="#ffffff" stroke="#e6a23c"/>
+  <text x="140" y="289" text-anchor="middle" font-size="10.5" fill="#1a1a2e">📁 rubrics/ (thang chấm)</text>
+  <text x="140" y="318" text-anchor="middle" font-size="9.5" fill="#6b7280">giữ nguyên cấu trúc như hiện tại</text>
+
+  <!-- Arrow to button -->
+  <line x1="244" y1="210" x2="294" y2="210" stroke="#5b6b8c" stroke-width="2.5" marker-end="url(#m3arr4)"/>
+
+  <!-- Sync button -->
+  <rect x="298" y="150" width="200" height="120" rx="14" fill="#f1ecfb" stroke="#7b5cd6" stroke-width="2"/>
+  <text x="398" y="182" text-anchor="middle" font-size="13" font-weight="700" fill="#5b3fae">Trong trang Quản trị</text>
+  <rect x="322" y="196" width="152" height="34" rx="8" fill="#7b5cd6"/>
+  <text x="398" y="218" text-anchor="middle" font-size="12" font-weight="700" fill="#ffffff">☁️ Đồng bộ từ Drive</text>
+  <text x="398" y="252" text-anchor="middle" font-size="10" fill="#4a4a68">nút "Xem thử" xem trước</text>
+
+  <!-- Arrow to DB -->
+  <line x1="502" y1="210" x2="552" y2="210" stroke="#5b6b8c" stroke-width="2.5" marker-end="url(#m3arr4)"/>
+
+  <!-- DB -->
+  <rect x="556" y="140" width="140" height="140" rx="12" fill="#eaf0fb" stroke="#2f80ed" stroke-width="2"/>
+  <text x="626" y="172" text-anchor="middle" font-size="13" font-weight="700" fill="#1a5fb4">Database</text>
+  <text x="626" y="196" text-anchor="middle" font-size="10.5" fill="#4a4a68">thêm mới: +N</text>
+  <text x="626" y="216" text-anchor="middle" font-size="10.5" fill="#4a4a68">cập nhật: ~N</text>
+  <text x="626" y="236" text-anchor="middle" font-size="10.5" fill="#4a4a68">bỏ qua: N</text>
+  <text x="626" y="256" text-anchor="middle" font-size="10.5" fill="#b03a3a">xung đột: báo rõ</text>
+
+  <!-- Arrow to library -->
+  <line x1="700" y1="210" x2="746" y2="210" stroke="#5b6b8c" stroke-width="2.5" marker-end="url(#m3arr4)"/>
+  <rect x="750" y="160" width="80" height="100" rx="12" fill="#eaf7ec" stroke="#3aa757" stroke-width="2"/>
+  <text x="790" y="192" text-anchor="middle" font-size="12" font-weight="700" fill="#237a3c">📖</text>
+  <text x="790" y="212" text-anchor="middle" font-size="11" font-weight="600" fill="#237a3c">Thư viện</text>
+  <text x="790" y="232" text-anchor="middle" font-size="9.5" fill="#4a4a68">bài mới hiện</text>
+  <text x="790" y="246" text-anchor="middle" font-size="9.5" fill="#4a4a68">ngay</text>
+
+  <!-- Safety strip -->
+  <rect x="40" y="350" width="790" height="56" rx="12" fill="#f8fafc" stroke="#cbd5e1"/>
+  <text x="435" y="372" text-anchor="middle" font-size="11.5" font-weight="700" fill="#1a1a2e">Luật chống ghi đè: bài anh soạn tay trong app không bao giờ bị Drive đè — trùng mã thì báo "xung đột" để anh quyết</text>
+  <text x="435" y="392" text-anchor="middle" font-size="10.5" fill="#4a4a68">File lỗi báo đúng tên file · Lỗi mạng/quota Google báo riêng · Chỉ nạp nội dung đã đánh dấu "đã duyệt" trong manifest</text>
+</svg>
