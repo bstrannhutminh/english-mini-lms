@@ -6,6 +6,7 @@
 
 export * from "./gemini/types";
 export * from "./gemini/client";
+export * from "./gemini/call-gemini";
 export * from "./gemini/writing";
 export * from "./gemini/reading";
 export * from "./gemini/speaking";
