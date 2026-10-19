@@ -24,7 +24,7 @@ import {
 } from "@/server/media/service";
 import { ValidationError } from "./session.service";
 import { loadListeningQuestions } from "./listening-questions";
-import { getCorrectOptionId, getTimestampReference } from "@/lib/listening-questions";
+import { gradeListeningAnswers } from "@/lib/listening-grading";
 
 /**
  * 1. Nộp bài (submissions APPEND-ONLY) và kích hoạt chấm AI
@@ -230,55 +230,17 @@ export async function createSubmissionAndAssess(
         // parse error
       }
 
-      let correctCount = 0;
-      const totalCount = questionsList.length;
-      const detailedFeedback = questionsList.map((q) => {
-        const qId = String(q.id ?? "");
-        const userChoice = (userAnswers[qId] || "").trim().toUpperCase();
-        const correctOpt = getCorrectOptionId(q);
-        const isCorrect = correctOpt !== "" && userChoice === correctOpt;
-        if (isCorrect) correctCount++;
-        return {
-          id: qId,
-          prompt: q.prompt,
-          userOption: userChoice,
-          correctOption: correctOpt,
-          isCorrect,
-          explanation: q.explanation as string | undefined,
-          timestamp: getTimestampReference(q),
-        };
-      });
-
-      const scoreVal = totalCount > 0 ? Math.round((correctCount / totalCount) * 10 * 10) / 10 : 0;
+      // Chấm qua module chuẩn dùng chung với parser client
+      // (src/lib/listening-answer-checking.ts đọc lại đúng format này).
+      const graded = gradeListeningAnswers(questionsList, userAnswers);
 
       evalResult = {
         feedback: {
-          observations: detailedFeedback
-            .filter((item: { isCorrect: boolean }) => !item.isCorrect)
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            .map((item: any) => ({
-              category: "comprehension",
-              location: `Mốc ${item.timestamp || 0}s (câu ${item.id})`,
-              original: `Câu ${item.id}: Bạn chọn (${item.userOption || "Chưa trả lời"})`,
-              issue: `Đáp án đúng là (${item.correctOption}). ${item.explanation || "Chưa chính xác theo audio."}`,
-              suggestion: `Xem lại đoạn audio tại mốc ${item.timestamp || 0}s. ${item.explanation || ""}`.trim(),
-              example: `Đáp án đúng là (${item.correctOption})`,
-              retry_prompt: `Nghe lại đoạn có thông tin câu ${item.id} và ghi chú từ khóa`,
-            })),
-          strengths: [`Đã trả lời đúng ${correctCount}/${totalCount} câu hỏi nghe hiểu`],
-          next_action:
-            correctCount === totalCount
-              ? "Xuất sắc! Bạn có thể chuyển sang luyện Shadowing các câu nói hay trong bài."
-              : "Hãy nghe lại các đoạn có câu hỏi sai mà không nhìn transcript để tăng phản xạ.",
-          limitations: "Điểm số phản ánh kết quả bài nghe trắc nghiệm cụ thể này.",
-          scores: [
-            {
-              kind: "practice_estimate",
-              dimension: "listening_comprehension",
-              value: scoreVal,
-              note: `Đúng ${correctCount}/${totalCount} câu`,
-            },
-          ],
+          observations: graded.observations,
+          strengths: graded.strengths,
+          next_action: graded.next_action,
+          limitations: graded.limitations,
+          scores: graded.scores,
         },
         tokenInput: 0,
         tokenOutput: 0,
