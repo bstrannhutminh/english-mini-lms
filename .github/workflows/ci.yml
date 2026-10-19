@@ -1,0 +1,53 @@
+name: CI
+
+on:
+  push:
+    branches: [main, "refactor/**"]
+  pull_request:
+
+jobs:
+  unit:
+    name: Lint, typecheck, unit tests, build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - run: npm run lint
+
+      - run: npm run typecheck
+
+      # Hermetic unit suite (vitest.unit.config.ts) — needs NO env vars,
+      # no DB, no network.
+      - run: npm test
+
+      # Build runs without secrets by design (env is read lazily at
+      # request time via src/lib/env.ts, not at build time).
+      - run: npm run build
+
+  # ── Integration tests are OPT-IN ────────────────────────────────────
+  # `npm run test:integration` requires a real Postgres database
+  # (TEST_DATABASE_URL) and external service credentials. Do NOT enable
+  # this in CI until a dedicated ephemeral database is provisioned and
+  # TEST_DATABASE_URL is stored as a repository secret — the job below is
+  # kept as a commented template:
+  #
+  # integration:
+  #   name: Integration tests (opt-in)
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - uses: actions/setup-node@v4
+  #       with:
+  #         node-version: 20
+  #         cache: npm
+  #     - run: npm ci
+  #     - run: npm run test:integration
+  #       env:
+  #         TEST_DATABASE_URL: ${{ secrets.TEST_DATABASE_URL }}
