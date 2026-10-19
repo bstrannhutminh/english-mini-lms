@@ -22,31 +22,17 @@ import {
 import { modeMeta, modeSkill } from "@/lib/modes";
 import { updateActivity } from "../admin-api";
 import { ErrorList, Field, inputCls, textareaCls, toErrorState } from "../form-bits";
-import { REVIEW_STATE_OPTIONS } from "../labels";
+import {
+  DIFFICULTY_LABEL,
+  OUTPUT_LABEL,
+  PURPOSE_LABEL,
+  REVEAL_LABEL,
+  REVIEW_STATE_OPTIONS,
+} from "../labels";
 import QuestionsFields, { questionsToDrafts } from "../questions-fields";
 import SegmentPicker from "./segment-picker";
 
 const orNull = (s: string) => (s.trim() === "" ? null : s);
-const DIFFICULTY_LABEL: Record<string, string> = {
-  trial: "Dùng thử",
-  beginner: "Cơ bản",
-  intermediate: "Trung bình",
-  advanced: "Nâng cao",
-};
-const PURPOSE_LABEL: Record<string, string> = {
-  baseline: "Đầu vào (baseline)",
-  practice: "Luyện tập",
-  assessment: "Đánh giá",
-};
-const REVEAL_LABEL: Record<string, string> = {
-  none: "Không hiện",
-  after_submit: "Sau khi nộp",
-  on_request: "Khi yêu cầu",
-};
-const OUTPUT_LABEL: Record<string, string> = {
-  text: "Văn bản",
-  audio: "Ghi âm",
-};
 
 export default function ActivityEditForm({
   activity,

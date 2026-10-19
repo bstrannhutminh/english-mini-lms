@@ -1,6 +1,8 @@
 "use client";
 
 import { useCallback, useState } from "react";
+import { apiFetch, ApiClientError } from "@/lib/api-client";
+import { createSubmissionResponseSchema } from "@/contracts/submission";
 import type { SubmissionInput, SubmissionResult } from "../modes/types";
 
 export interface SubmitHook {
@@ -28,24 +30,25 @@ export function useSubmit(sessionId: string): SubmitHook {
       try {
         setIsSubmitting(true);
         setError(null);
-        const res = await fetch(`/api/v1/sessions/${sessionId}/submissions`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            body: input.body,
-            mediaId: input.mediaId,
-            parentId: parentId || undefined,
-          }),
-        });
-        const data = await res.json();
-        if (!res.ok) {
-          throw new Error(data.error || "Lỗi khi nộp bài");
-        }
-        return data as SubmissionResult;
+        return await apiFetch(
+          `/api/v1/sessions/${sessionId}/submissions`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              body: input.body,
+              mediaId: input.mediaId,
+              parentId: parentId || undefined,
+            }),
+          },
+          createSubmissionResponseSchema,
+        );
       } catch (err) {
         console.error("Lỗi nộp bài:", err);
         setError(
-          err instanceof Error ? err.message : "Đã có lỗi xảy ra. Vui lòng thử lại.",
+          err instanceof ApiClientError
+            ? err.message
+            : "Đã có lỗi xảy ra. Vui lòng thử lại.",
         );
         return null;
       } finally {

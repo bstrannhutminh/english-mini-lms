@@ -36,3 +36,25 @@ export const REVIEW_STATE_OPTIONS = REVIEW_STATES.map((s) => ({
   value: s,
   label: REVIEW_STATE_META[s].label,
 }));
+
+/* ── Nhãn tiếng Việt cho select trong form sửa bài (activity-edit-form) ── */
+export const DIFFICULTY_LABEL: Record<string, string> = {
+  trial: "Dùng thử",
+  beginner: "Cơ bản",
+  intermediate: "Trung bình",
+  advanced: "Nâng cao",
+};
+export const PURPOSE_LABEL: Record<string, string> = {
+  baseline: "Đầu vào (baseline)",
+  practice: "Luyện tập",
+  assessment: "Đánh giá",
+};
+export const REVEAL_LABEL: Record<string, string> = {
+  none: "Không hiện",
+  after_submit: "Sau khi nộp",
+  on_request: "Khi yêu cầu",
+};
+export const OUTPUT_LABEL: Record<string, string> = {
+  text: "Văn bản",
+  audio: "Ghi âm",
+};

@@ -1,11 +1,11 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { YouGlishButton } from "@/features/vocab/youglish-button";
 import {
   createVocabularyEntry,
   quickCaptureLookup,
 } from "@/features/vocab/api";
+import { SmartCaptureResult, type CapturedResult } from "./smart-capture-result";
 
 interface SmartCapturePopupProps {
   selectedText: string;
@@ -16,13 +16,11 @@ interface SmartCapturePopupProps {
   onSaved?: () => void;
 }
 
-interface CapturedResult {
-  phrase: string;
-  ipa: string;
-  context_meaning: string;
-  example_sentence: string;
-}
-
+/**
+ * Popup nổi khi bôi đen chữ trong phiên học: tra cứu thuật ngữ (Gemini
+ * quick-capture), nghe YouGlish, lưu vào Sổ từ với câu gốc bắt buộc.
+ * Vị trí tính theo tọa độ bôi đen — clamp trong viewport.
+ */
 export function SmartCapturePopup({
   selectedText,
   surroundingSentence,
@@ -141,50 +139,20 @@ export function SmartCapturePopup({
   return (
     <div
       ref={popupRef}
-      style={{
-        position: "fixed",
-        left: `${left}px`,
-        top: `${top}px`,
-        width: "310px",
-        maxWidth: "92vw",
-        background: "#ffffff",
-        borderRadius: "14px",
-        border: "1px solid #cbd5e1",
-        boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.1)",
-        padding: "16px",
-        zIndex: 9999,
-        fontSize: "0.875rem",
-        animation: "fadeIn 0.15s ease-out",
-      }}
+      style={{ left: `${left}px`, top: `${top}px` }}
+      className="fixed z-[9999] w-[310px] max-w-[92vw] animate-fade-in rounded-xl border border-slate-300 bg-white p-4 text-sm shadow-xl"
     >
       {/* Header popup */}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "flex-start",
-          marginBottom: "10px",
-          gap: "8px",
-        }}
-      >
-        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-          <span style={{ fontSize: "1rem" }}>⚡</span>
-          <span style={{ fontWeight: 700, color: "#1e293b", fontSize: "0.8125rem", textTransform: "uppercase" }}>
+      <div className="mb-2.5 flex items-start justify-between gap-2">
+        <div className="flex items-center gap-1.5">
+          <span className="text-base">⚡</span>
+          <span className="text-[13px] font-bold uppercase text-slate-800">
             Quick-Capture Vault
           </span>
         </div>
         <button
           onClick={onClose}
-          style={{
-            background: "none",
-            border: "none",
-            color: "#94a3b8",
-            cursor: "pointer",
-            fontSize: "1rem",
-            padding: "2px 6px",
-            lineHeight: 1,
-            borderRadius: "4px",
-          }}
+          className="rounded px-1.5 py-0.5 text-base leading-none text-slate-400"
           aria-label="Đóng"
         >
           ✕
@@ -193,39 +161,19 @@ export function SmartCapturePopup({
 
       {/* Trạng thái Loading */}
       {loading && (
-        <div style={{ textAlign: "center", padding: "16px 0", color: "#64748b" }}>
-          <div
-            style={{
-              display: "inline-block",
-              width: "20px",
-              height: "20px",
-              border: "2px solid #e2e8f0",
-              borderTopColor: "#4f46e5",
-              borderRadius: "50%",
-              animation: "spin 0.8s linear infinite",
-              marginBottom: "8px",
-            }}
-          />
-          <div style={{ fontSize: "0.8125rem" }}>Đang tra cứu chuyên ngành y khoa...</div>
+        <div className="py-4 text-center text-slate-500">
+          <div className="mx-auto mb-2 h-5 w-5 animate-spin rounded-full border-2 border-slate-200 border-t-indigo-600" />
+          <div className="text-[13px]">Đang tra cứu chuyên ngành y khoa...</div>
         </div>
       )}
 
       {/* Trạng thái Lỗi */}
       {error && !loading && (
-        <div style={{ padding: "8px 0" }}>
-          <div style={{ color: "#dc2626", fontSize: "0.8125rem", marginBottom: "8px" }}>
-            {error}
-          </div>
+        <div className="py-2">
+          <div className="mb-2 text-[13px] text-red-600">{error}</div>
           <button
             onClick={onClose}
-            style={{
-              padding: "4px 10px",
-              fontSize: "0.75rem",
-              borderRadius: "6px",
-              background: "#f1f5f9",
-              border: "1px solid #cbd5e1",
-              cursor: "pointer",
-            }}
+            className="rounded-md border border-slate-300 bg-slate-100 px-2.5 py-1 text-xs"
           >
             Đóng
           </button>
@@ -234,84 +182,12 @@ export function SmartCapturePopup({
 
       {/* Kết quả Tra cứu */}
       {data && !loading && (
-        <div>
-          {/* Cụm từ & Phiên âm */}
-          <div style={{ marginBottom: "8px" }}>
-            <div style={{ fontWeight: 700, fontSize: "1rem", color: "#0f172a" }}>
-              {data.phrase}
-            </div>
-            {data.ipa && (
-              <div style={{ color: "#6366f1", fontSize: "0.8125rem", fontFamily: "monospace" }}>
-                /{data.ipa.replace(/^\/|\/$/g, "")}/
-              </div>
-            )}
-          </div>
-
-          {/* Nghĩa chuyên ngành */}
-          <div
-            style={{
-              background: "#f8fafc",
-              border: "1px solid #e2e8f0",
-              borderRadius: "8px",
-              padding: "8px 10px",
-              marginBottom: "8px",
-            }}
-          >
-            <div style={{ fontSize: "0.75rem", fontWeight: 600, color: "#475569", marginBottom: "2px" }}>
-              Nghĩa cơ xương khớp / lâm sàng:
-            </div>
-            <div style={{ color: "#1e293b", fontWeight: 500, fontSize: "0.875rem" }}>
-              {data.context_meaning}
-            </div>
-          </div>
-
-          {/* Câu ví dụ */}
-          {data.example_sentence && (
-            <div style={{ fontSize: "0.75rem", color: "#64748b", fontStyle: "italic", marginBottom: "12px" }}>
-              &ldquo;{data.example_sentence}&rdquo;
-            </div>
-          )}
-
-          {/* Nghe người bản xứ nói cụm từ này (YouGlish) — mở modal, không nhúng sẵn */}
-          <div style={{ marginBottom: "8px" }}>
-            <YouGlishButton query={data.phrase} className="inline-flex w-full min-h-[44px] items-center justify-center gap-1.5 rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-2 text-sm font-semibold text-indigo-700 transition hover:bg-indigo-100" />
-          </div>
-
-          {/* Nút 1-click Lưu vào sổ */}
-          <button
-            onClick={handleSaveToVault}
-            disabled={isSaving || isSaved}
-            style={{
-              width: "100%",
-              padding: "10px 14px",
-              borderRadius: "8px",
-              border: "none",
-              background: isSaved ? "#16a34a" : "#4f46e5",
-              color: "#ffffff",
-              fontWeight: 600,
-              fontSize: "0.875rem",
-              cursor: isSaving || isSaved ? "default" : "pointer",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: "6px",
-              minHeight: "44px",
-              transition: "background 0.2s",
-            }}
-          >
-            {isSaved ? (
-              <>
-                <span>✓</span> Đã lưu vào Sổ từ!
-              </>
-            ) : isSaving ? (
-              "Đang lưu..."
-            ) : (
-              <>
-                <span>📥</span> Lưu vào sổ (1 ngày ôn)
-              </>
-            )}
-          </button>
-        </div>
+        <SmartCaptureResult
+          data={data}
+          isSaving={isSaving}
+          isSaved={isSaved}
+          onSave={handleSaveToVault}
+        />
       )}
     </div>
   );

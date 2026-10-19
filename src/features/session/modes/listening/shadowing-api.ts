@@ -1,5 +1,8 @@
 "use client";
 
+import { apiFetch } from "@/lib/api-client";
+import { uploadMediaResponseSchema } from "@/contracts/media";
+import { shadowingResponseSchema } from "@/contracts/session";
 import type { SpeakingFeedback } from "@/contracts/submission";
 
 /**
@@ -24,16 +27,12 @@ export async function uploadShadowingAudio(
   formData.append("file", file);
   formData.append("sessionId", sessionId);
 
-  const res = await fetch("/api/v1/media", { method: "POST", body: formData });
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok || !data.media_id) {
-    throw new Error(
-      typeof data.error === "string"
-        ? data.error
-        : "Không thể tải file âm thanh shadowing lên.",
-    );
-  }
-  return data.media_id as string;
+  const data = await apiFetch(
+    "/api/v1/media",
+    { method: "POST", body: formData },
+    uploadMediaResponseSchema,
+  );
+  return data.media_id;
 }
 
 /** Gọi chấm phát âm cho một câu shadowing theo media_id đã upload. */
@@ -46,23 +45,19 @@ export async function evaluateShadowingSegment(
     endSeconds: number;
   },
 ): Promise<SpeakingFeedback> {
-  const res = await fetch(`/api/v1/sessions/${sessionId}/shadowing`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      media_id: params.mediaId,
-      sentence: params.sentence,
-      startSeconds: params.startSeconds,
-      endSeconds: params.endSeconds,
-    }),
-  });
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok || !data.feedback) {
-    throw new Error(
-      typeof data.error === "string"
-        ? data.error
-        : "Lỗi khi chấm phát âm shadowing.",
-    );
-  }
-  return data.feedback as SpeakingFeedback;
+  const data = await apiFetch(
+    `/api/v1/sessions/${sessionId}/shadowing`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        media_id: params.mediaId,
+        sentence: params.sentence,
+        startSeconds: params.startSeconds,
+        endSeconds: params.endSeconds,
+      }),
+    },
+    shadowingResponseSchema,
+  );
+  return data.feedback;
 }

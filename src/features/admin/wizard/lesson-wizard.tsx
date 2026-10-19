@@ -8,7 +8,6 @@
  */
 import { useMemo, useState } from "react";
 import { Button, Icon, useToast } from "@/components/ui";
-import { ApiClientError } from "@/lib/api-client";
 import { slugifyTopic } from "@/lib/topics";
 import {
   createActivity,
@@ -26,15 +25,12 @@ import StepSource from "./step-source";
 import StepTranscript from "./step-transcript";
 import {
   draftToQuestion,
-  newQuestionDraft,
-  suggestActivityId,
-  suggestSegmentId,
-  suggestSourceId,
   validateQuestionsStep,
   validateSourceStep,
   validateTranscriptStep,
   type WizardData,
 } from "./wizard-types";
+import { initialData, intOrNull, upsert } from "./wizard-submit";
 
 const STEPS = [
   { key: "source", label: "1. Nguồn" },
@@ -43,46 +39,6 @@ const STEPS = [
   { key: "review", label: "4. Kiểm tra" },
 ] as const;
 type StepKey = (typeof STEPS)[number]["key"];
-
-const intOrNull = (s: string) => (s.trim() === "" ? null : Number(s));
-
-function initialData(existingIds: string[]): WizardData {
-  const sourceId = suggestSourceId("bai-nghe-moi");
-  return {
-    mode: "listening",
-    title: "",
-    topic: "",
-    durationMinutes: "",
-    youtubeUrl: "",
-    startSeconds: "",
-    endSeconds: "",
-    sourceId,
-    segmentId: suggestSegmentId(sourceId),
-    activityId: suggestActivityId("listening", existingIds),
-    idsTouched: false,
-    transcript: "",
-    verifiedTranscript: false,
-    questions: [newQuestionDraft(0)],
-  };
-}
-
-/** Tạo mới; nếu đã tồn tại (409) thì PATCH nội dung — an toàn để bấm lại. */
-async function upsert(
-  createFn: (body: unknown) => Promise<unknown>,
-  updateFn: (id: string, body: unknown) => Promise<unknown>,
-  id: string,
-  body: Record<string, unknown>
-): Promise<void> {
-  try {
-    await createFn({ ...body, id });
-  } catch (err) {
-    if (err instanceof ApiClientError && err.status === 409) {
-      await updateFn(id, body);
-      return;
-    }
-    throw err;
-  }
-}
 
 export default function LessonWizard({
   existingActivityIds,
