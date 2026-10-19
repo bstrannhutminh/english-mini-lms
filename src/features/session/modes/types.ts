@@ -68,6 +68,34 @@ export interface SessionParentData {
   feedback: unknown | null;
 }
 
+/** Câu hỏi nghe trắc nghiệm gửi client — đã trần đáp án/giải thích/mốc giây. */
+export interface SessionListeningQuestion {
+  id: string;
+  prompt: string;
+  options: Array<{ id: string; text: string }>;
+}
+
+/** Một câu transcript của đoạn nghe (định dạng nguồn: "start|end|text"). */
+export interface SessionTranscriptSegment {
+  startSeconds: number;
+  endSeconds: number;
+  text: string;
+}
+
+/**
+ * Payload mode Nghe từ getSessionDetails.listening.
+ * Invariant: transcriptSegments chỉ có dữ liệu khi server đã ghi nhận
+ * event reveal hoặc đã tồn tại submission — trước đó là mảng rỗng.
+ */
+export interface SessionListeningData {
+  videoUrl: string | null;
+  startSeconds: number;
+  endSeconds: number;
+  questions: SessionListeningQuestion[];
+  transcriptSegments: SessionTranscriptSegment[];
+  isTranscriptRevealed: boolean;
+}
+
 /** Toàn bộ dữ liệu phiên mà shell/plugin cần, lấy từ getSessionDetails. */
 export interface SessionData {
   sessionId: string;
@@ -78,6 +106,8 @@ export interface SessionData {
   segment?: SessionSegment | null;
   parentId?: string;
   parentData?: SessionParentData | null;
+  /** Chỉ có khi activity là skill listening (null khi thiếu segment/câu hỏi). */
+  listening?: SessionListeningData | null;
 }
 
 /** Kết quả kiểm tra "đủ điều kiện nộp chưa" — reason là thông báo tiếng Việt. */
@@ -114,6 +144,12 @@ export interface ModePanelProps {
     payload?: Record<string, unknown>,
   ) => Promise<boolean>;
   capture: CaptureHelpers;
+  /**
+   * Kết quả nộp gần nhất — chỉ khác null khi plugin đặt
+   * `staysAfterSubmit` (shell không chuyển trang, Panel tự render
+   * màn kết quả: vd. listening = đáp án + shadowing).
+   */
+  submission?: SubmissionResult | null;
 }
 
 export interface ModePlugin {
@@ -129,6 +165,14 @@ export interface ModePlugin {
   Hint?: ComponentType<{ data: SessionData }>;
   /** Nhãn nút gợi ý, ví dụ "Xin gợi ý dàn bài". */
   hintLabel?: string;
+  /** Nhãn nút nộp trên thanh hành động (mặc định của shell). */
+  submitLabel?: string;
+  /**
+   * true → shell KHÔNG chuyển sang /my-work sau khi nộp mà truyền
+   * `submission` vào props Panel (listening cần ở lại để xem đáp án
+   * và luyện shadowing). Mặc định/undefined = chuyển trang như cũ.
+   */
+  staysAfterSubmit?: boolean;
   /** Text overlay trong lúc đợi chấm bài. */
   submittingCopy?: { title: string; description: string };
 }

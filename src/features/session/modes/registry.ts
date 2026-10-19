@@ -8,15 +8,14 @@ import type { ModePlugin, Skill } from "./types";
 import { writingPlugin } from "./writing";
 import { readingPlugin } from "./reading";
 import { speakingPlugin } from "./speaking";
+import { listeningPlugin } from "./listening";
 
-/**
- * Plugin đã port; skill còn lại (listening) do agent B2 bổ sung —
- * page.tsx fallback về view cũ khi plugin chưa có.
- */
+/** Cả 4 skill đều đã có plugin — mode lạ → resolvePlugin trả null. */
 export const MODE_REGISTRY: Partial<Record<Skill, ModePlugin>> = {
   writing: writingPlugin,
   reading: readingPlugin,
   speaking: speakingPlugin,
+  listening: listeningPlugin,
 };
 
 export interface ResolvedMode {

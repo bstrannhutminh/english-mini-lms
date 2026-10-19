@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
 import yaml from "yaml";
+import { toClientQuestion } from "@/lib/listening-answer-checking";
 
 type RawQuestion = Record<string, unknown>;
 
@@ -29,4 +30,17 @@ export function loadListeningQuestions(activity: {
     console.warn("Could not parse listening questions file:", err);
     return [];
   }
+}
+
+/**
+ * Payload câu hỏi an toàn gửi client TRƯỚC khi nộp: bỏ correct_option_id,
+ * explanation, timestamp_reference. getSessionDetails nên dùng hàm này
+ * (hiện đang map tay — B8 sẽ chuyển sang đây cho một nguồn chuẩn).
+ */
+export function toClientQuestions(questions: RawQuestion[]): Array<{
+  id: string;
+  prompt: string;
+  options: Array<{ id: string; text: string }>;
+}> {
+  return questions.map((q) => toClientQuestion(q));
 }
