@@ -1,6 +1,6 @@
 import { eq, and } from "drizzle-orm";
 import { db } from "@/db";
-import { drafts } from "@/db/schema";
+import { drafts, learningSessions } from "@/db/schema";
 import { ValidationError } from "../errors";
 import { MAX_DRAFT_CHARS } from "../limits";
 
@@ -20,6 +20,18 @@ export async function saveDraft(
       `Bản nháp quá dài (${content.length.toLocaleString("vi-VN")} ký tự). Giới hạn ${MAX_DRAFT_CHARS.toLocaleString("vi-VN")} ký tự.`,
       422
     );
+  }
+
+  // Phiên phải thuộc learner — trước đây thiếu check, cho phép ghi draft
+  // trỏ vào sessionId của người khác.
+  const [session] = await db
+    .select({ id: learningSessions.id })
+    .from(learningSessions)
+    .where(and(eq(learningSessions.id, sessionId), eq(learningSessions.learnerId, learnerId)))
+    .limit(1);
+
+  if (!session) {
+    throw new ValidationError("Không tìm thấy phiên học hoặc phiên không thuộc người dùng.", 404);
   }
 
   const [existingDraft] = await db
