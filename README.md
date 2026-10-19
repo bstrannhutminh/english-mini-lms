@@ -17,11 +17,23 @@ Dự án tách khỏi repo `dr-minh-clinic` ngày 22/09/2026; **không dùng, kh
 AGENTS.md                 # ngữ cảnh dự án cho agent
 .agents/rules/            # luật bắt buộc (append-only submissions, assisted, not_assessable…)
 .agents/workflows/        # /build-step, /verify
-docs/plan/                # plan đầy đủ (Lite track + v2: phase-01..08, contract, kiến trúc)
+docs/README.md            # mục lục tài liệu — "sự thật hiện tại" ở đâu
+docs/plan/                # plan đầy đủ (Lite track + v2 + kiến trúc tái cấu trúc 2026-10-19)
+docs/adr/                 # quyết định kiến trúc ngắn (ADR)
+docs/RUNBOOK.md           # sổ tay vận hành (backup, env, deploy, health)
 docs/journals/            # nhật ký làm việc
 content/english-lab/      # nguồn học duy nhất (manifest.yaml + texts/ transcripts/ rubrics/)
-src/                      # (tạo ở Bước 1) Next.js app
+src/app/                  # routes (page.tsx mỏng) + /api/v1
+src/features/             # UI + hook theo vùng (today, session, vocab, admin…)
+src/contracts/            # zod schema API dùng chung route ⇄ client
+src/components/           # ui/ design system + layout/
+src/server/               # domain services + http/ helpers + providers/gemini
+tests/unit/               # hermetic, không cần env · tests/integration/ cần TEST_DATABASE_URL
 ```
+
+## Lệnh thường dùng
+
+`npm run dev` · `npm test` (unit) · `npm run test:integration` · `npm run lint` · `npm run typecheck` · `npm run build` · `npm run db:migrate` · `npm run seed`
 
 ## Stack (Lite)
 
