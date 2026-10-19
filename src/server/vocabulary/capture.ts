@@ -6,8 +6,10 @@ import { eq, and, desc, lte, gte } from "drizzle-orm";
 import { db } from "@/db";
 import { vocabularyVault, usageEvents } from "@/db/schema";
 import { quickCaptureVocabulary, QuickCaptureResult } from "@/server/providers/gemini";
+import type { VocabularyItem } from "@/contracts/vocabulary";
 import { ValidationError } from "./errors";
 import { clampMastery } from "./schedule";
+import { toVocabularyItem } from "./serialize";
 
 export interface CreateVocabularyInput {
   phrase: string;
@@ -94,22 +96,23 @@ export async function createVocabulary(learnerId: string, input: CreateVocabular
     })
     .returning();
 
-  return record;
+  return toVocabularyItem(record);
 }
 
 /**
  * Lấy danh sách từ vựng của học viên với bộ lọc.
  * "due" = due_at <= now (mọi mastery — trùng định nghĩa badge trên layout).
  * "mastered" = mastery_level >= MASTERY_MAX (4).
+ * Trả về contract VocabularyItem (Date → ISO string).
  */
 export async function getLearnerVocabulary(
   learnerId: string,
   filter?: "all" | "due" | "mastered"
-) {
+): Promise<VocabularyItem[]> {
   const now = new Date();
 
   if (filter === "due") {
-    return await db
+    const rows = await db
       .select()
       .from(vocabularyVault)
       .where(
@@ -119,10 +122,11 @@ export async function getLearnerVocabulary(
         )
       )
       .orderBy(desc(vocabularyVault.createdAt));
+    return rows.map(toVocabularyItem);
   }
 
   if (filter === "mastered") {
-    return await db
+    const rows = await db
       .select()
       .from(vocabularyVault)
       .where(
@@ -132,13 +136,15 @@ export async function getLearnerVocabulary(
         )
       )
       .orderBy(desc(vocabularyVault.createdAt));
+    return rows.map(toVocabularyItem);
   }
 
-  return await db
+  const rows = await db
     .select()
     .from(vocabularyVault)
     .where(eq(vocabularyVault.learnerId, learnerId))
     .orderBy(desc(vocabularyVault.createdAt));
+  return rows.map(toVocabularyItem);
 }
 
 /**
@@ -189,6 +195,6 @@ export async function updateVocabulary(
     throw new ValidationError("Từ vựng không tồn tại hoặc không thuộc quyền sở hữu", 404);
   }
 
-  return updated;
+  return toVocabularyItem(updated);
 }
 
