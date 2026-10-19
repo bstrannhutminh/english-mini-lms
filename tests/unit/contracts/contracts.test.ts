@@ -167,6 +167,7 @@ describe("todayRecommendationSchema", () => {
       leastPracticedSkill: "Nói",
       streakDays: 4,
       inProgressSession: null,
+      dailyPlan: [],
     });
     expect(parsed.recommendedActivity?.actionType).toBe("new_session");
   });

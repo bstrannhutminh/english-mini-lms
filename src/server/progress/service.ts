@@ -21,14 +21,19 @@ export interface RecurringErrorCategory {
   samples: string[];
 }
 
+/**
+ * Wire shape: contracts/progress.ts (revisionComparisonSchema).
+ * Dates are ISO-8601 strings — identical over the API and across the
+ * server→client boundary (avoids Date-vs-string drift).
+ */
 export interface RevisionComparisonItem {
   activityId: string;
   activityTitle: string;
   mode: string;
   originalSubmissionId: string;
   revisedSubmissionId: string;
-  originalDate: Date;
-  revisedDate: Date;
+  originalDate: string;
+  revisedDate: string;
   originalAssisted: boolean;
   revisedAssisted: boolean;
   originalExcerpt: string;
@@ -209,8 +214,8 @@ export async function getProgressSummary(learnerId: string): Promise<ProgressSum
           mode: rev.activityMode,
           originalSubmissionId: original.id,
           revisedSubmissionId: rev.id,
-          originalDate: original.submittedAt,
-          revisedDate: rev.submittedAt,
+          originalDate: original.submittedAt.toISOString(),
+          revisedDate: rev.submittedAt.toISOString(),
           originalAssisted: original.assisted,
           revisedAssisted: rev.assisted,
           originalExcerpt: (original.body || "").slice(0, 150),

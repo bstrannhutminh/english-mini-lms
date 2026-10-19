@@ -1,12 +1,24 @@
-import { eq, and, lte, inArray, desc } from "drizzle-orm";
+import { eq, and, gte, isNull, lte, inArray, desc } from "drizzle-orm";
 import { db } from "@/db";
-import { activities, vocabularyVault, learners, learningSessions } from "@/db/schema";
+import {
+  activities,
+  vocabularyVault,
+  learners,
+  learningSessions,
+  submissions,
+} from "@/db/schema";
 import {
   getLearnerPracticeContext,
   pickRecommendedActivity,
   SKILL_NAMES_VI,
   type RecommendedActivity,
 } from "./pick-activity";
+import {
+  buildDailyPlan,
+  startOfTodayVietnam,
+  type PlanStep,
+} from "./daily-plan";
+import { computeStreakDays } from "./streak";
 
 export interface InProgressSessionInfo {
   sessionId: string;
@@ -37,49 +49,8 @@ export interface TodayRecommendation {
   leastPracticedSkill: string;
   streakDays: number;
   inProgressSession: InProgressSessionInfo | null;
-}
-
-function computeStreakDays(completedDates: Date[], timeZone = "Asia/Ho_Chi_Minh"): number {
-  if (completedDates.length === 0) return 0;
-
-  const formatter = new Intl.DateTimeFormat("en-CA", {
-    timeZone,
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  });
-
-  const uniqueDays = Array.from(
-    new Set(completedDates.map((d) => formatter.format(d)))
-  ).sort().reverse();
-
-  if (uniqueDays.length === 0) return 0;
-
-  const today = new Date();
-  const todayStr = formatter.format(today);
-  const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000);
-  const yesterdayStr = formatter.format(yesterday);
-
-  // Nếu ngày gần nhất không phải hôm nay và cũng không phải hôm qua thì chuỗi đã đứt
-  const mostRecent = uniqueDays[0];
-  if (mostRecent !== todayStr && mostRecent !== yesterdayStr) {
-    return 0;
-  }
-
-  let streak = 0;
-  let cursor = new Date(mostRecent === todayStr ? today : yesterday);
-
-  for (const dayStr of uniqueDays) {
-    const expectedStr = formatter.format(cursor);
-    if (dayStr === expectedStr) {
-      streak++;
-      cursor = new Date(cursor.getTime() - 24 * 60 * 60 * 1000);
-    } else if (dayStr < expectedStr) {
-      break;
-    }
-  }
-
-  return streak;
+  /** Kế hoạch phiên 4 bước (spec §3.3) — suy ra từ dữ liệu hôm nay, không bảng mới. */
+  dailyPlan: PlanStep[];
 }
 
 export async function getTodayRecommendation(
@@ -196,6 +167,39 @@ export async function getTodayRecommendation(
       }
     : null;
 
+  // 8. Trạng thái "hôm nay" (mốc 00:00 giờ VN — cùng computeStreakDays) để
+  // suy ra kế hoạch phiên: đã nộp bài chính chưa, đã sửa bản nào chưa.
+  const todaySubs = await db
+    .select({
+      revision: submissions.revision,
+      parentId: submissions.parentId,
+    })
+    .from(submissions)
+    .where(
+      and(
+        eq(submissions.learnerId, learnerId),
+        isNull(submissions.deletedAt),
+        gte(submissions.submittedAt, startOfTodayVietnam())
+      )
+    );
+
+  const submittedToday = todaySubs.length > 0;
+  const revisedToday = todaySubs.some(
+    (s) => s.revision > 1 || s.parentId !== null
+  );
+
+  const dailyPlan = buildDailyPlan(
+    {
+      dueVocabCount,
+      inProgressSessionId: inProgressSession?.sessionId ?? null,
+      recommendedActivityId: recommended?.id ?? null,
+      submittedToday,
+      revisedToday,
+      unrevisedSubmissionId: ctx.unrevisedSubmission?.id ?? null,
+    },
+    targetMinutes
+  );
+
   return {
     learnerName,
     baselineStatus,
@@ -207,5 +211,6 @@ export async function getTodayRecommendation(
     leastPracticedSkill: SKILL_NAMES_VI[leastPracticedMode] || leastPracticedMode,
     streakDays,
     inProgressSession,
+    dailyPlan,
   };
 }
