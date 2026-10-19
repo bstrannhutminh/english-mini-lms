@@ -3,12 +3,17 @@
  * (docs/plan/kien-truc-tai-cau-truc-2026-10-19.md).
  *
  * Mỗi kỹ năng là một plugin; SessionShell lo mọi thứ không phụ thuộc kỹ năng.
- * `SubmissionInput` ở đây là định nghĩa tạm — sẽ được thay bằng
- * `src/contracts/submission.ts` khi contracts chính thức land.
+ * `SubmissionInput`/`SubmissionResult` re-export từ `src/contracts/submission.ts`
+ * (nguồn dùng chung route ⇄ client).
  */
 import type { ComponentType, Dispatch, SetStateAction } from "react";
+import type {
+  CreateSubmissionRequest,
+  CreateSubmissionResponse,
+} from "@/contracts/submission";
 
-export type Skill = "writing" | "reading" | "speaking" | "listening";
+export type { Skill } from "@/lib/modes";
+import type { Skill } from "@/lib/modes";
 
 /**
  * Trạng thái làm bài của plugin, do `initialState` tạo và shell giữ hộ.
@@ -17,20 +22,13 @@ export type Skill = "writing" | "reading" | "speaking" | "listening";
 export type ModeState = unknown;
 
 /** Body của POST /api/v1/sessions/[id]/submissions (trừ parentId do shell thêm). */
-export interface SubmissionInput {
-  body?: string;
-  mediaId?: string;
-}
+export type SubmissionInput = Pick<
+  CreateSubmissionRequest,
+  "body" | "mediaId"
+>;
 
 /** Kết quả trả về của API submissions mà shell cần để điều hướng. */
-export interface SubmissionResult {
-  submissionId: string;
-  assessmentId?: string;
-  status?: string;
-  revision?: number;
-  assisted?: boolean;
-  feedback?: unknown;
-}
+export type SubmissionResult = CreateSubmissionResponse;
 
 /** Thông tin bài học (activities) mà page.tsx truyền xuống. */
 export interface SessionActivity {

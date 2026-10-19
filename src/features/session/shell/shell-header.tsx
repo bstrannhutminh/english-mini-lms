@@ -1,7 +1,6 @@
 "use client";
 
-import type { Skill } from "../modes/types";
-import { SKILL_META } from "../modes/registry";
+import { SKILL_INFO, type Skill } from "@/lib/modes";
 
 interface ShellHeaderProps {
   title: string;
@@ -35,7 +34,7 @@ export function ShellHeader({
   onSaveAndExit,
   saveStatus,
 }: ShellHeaderProps) {
-  const meta = SKILL_META[skill];
+  const meta = SKILL_INFO[skill];
 
   return (
     <div className="mb-4 space-y-2">
@@ -51,9 +50,9 @@ export function ShellHeader({
 
         <div className="flex items-center gap-2">
           <span
-            className={`rounded-md px-2 py-0.5 text-xs font-bold ${meta.chipClassName}`}
+            className={`rounded-md border px-2 py-0.5 text-xs font-bold ${meta.badgeClass}`}
           >
-            {meta.label}
+            {meta.shortLabel}
           </span>
           {isIelts && (
             <span className="rounded-md bg-rose-100 px-2 py-0.5 text-xs font-bold text-rose-700">

@@ -3,23 +3,9 @@
  * Tra bằng modeSkill(mode): "ielts-reading" → skill "reading" → cùng plugin,
  * kèm cờ isIelts để shell hiện huy hiệu "IELTS".
  */
-import { modeSkill } from "@/lib/content-constants";
+import { modeSkill } from "@/lib/modes";
 import type { ModePlugin, Skill } from "./types";
 import { writingPlugin } from "./writing";
-
-/**
- * Nhãn/màu tạm cho chip kỹ năng — sẽ chuyển sang MODE_META trong
- * src/lib/modes.ts (agent A1) khi file đó land; lead reconcile lúc merge.
- */
-export const SKILL_META: Record<
-  Skill,
-  { label: string; chipClassName: string }
-> = {
-  writing: { label: "Viết", chipClassName: "bg-indigo-50 text-indigo-700" },
-  reading: { label: "Đọc–dịch", chipClassName: "bg-emerald-50 text-emerald-700" },
-  speaking: { label: "Nói", chipClassName: "bg-amber-100 text-amber-700" },
-  listening: { label: "Nghe", chipClassName: "bg-blue-100 text-blue-800" },
-};
 
 /**
  * Plugin đã port; các skill còn lại (reading/speaking/listening) do agent
