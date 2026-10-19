@@ -52,13 +52,12 @@ export interface Validated<T> {
   value: T;
 }
 
-/** Mode "ielts-listening" → skill "listening". */
-export function modeSkill(mode: string): "writing" | "reading" | "speaking" | "listening" | null {
-  const skill = mode.replace(/^ielts-/, "");
-  return skill === "writing" || skill === "reading" || skill === "speaking" || skill === "listening"
-    ? skill
-    : null;
-}
+/**
+ * `modeSkill` đã chuyển sang `./modes` (MODE_META — nguồn duy nhất cho mode).
+ * Re-export để các import hiện có (admin/manifest/validation) không phải đổi.
+ */
+export { modeSkill } from "./modes";
+export type { Skill } from "./modes";
 
 export function isOneOf<T extends string>(list: readonly T[], v: unknown): v is T {
   return typeof v === "string" && (list as readonly string[]).includes(v);
