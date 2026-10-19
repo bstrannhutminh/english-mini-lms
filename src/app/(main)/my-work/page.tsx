@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 import { getCurrentLearner } from "@/server/auth";
-import { MyWorkListView } from "./my-work-list-view";
+import { WorkListView } from "@/features/my-work";
 
 export const dynamic = "force-dynamic";
 
@@ -10,5 +10,5 @@ export default async function MyWorkPage() {
     redirect("/login");
   }
 
-  return <MyWorkListView />;
+  return <WorkListView />;
 }
