@@ -1,6 +1,6 @@
 "use client";
 
-import { SmartCapturePopup } from "@/app/(main)/learn/[sessionId]/smart-capture-popup";
+import { SmartCapturePopup } from "@/features/session/shared/smart-capture-popup";
 import type { CaptureSelection } from "../hooks/use-smart-capture";
 import { SubmitOverlay } from "./submit-overlay";
 import { SessionWrapUpModal } from "./wrap-up-modal";

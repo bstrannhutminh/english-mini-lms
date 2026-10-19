@@ -3,9 +3,9 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { YouTubePlayer, type YouTubePlayerHandle } from "./youtube-player";
+import { YouTubePlayer, type YouTubePlayerHandle } from "@/features/session/shared/youtube-player";
 import type { SpeakingFeedback } from "@/server/providers/gemini";
-import { SessionWrapUpModal } from "./session-wrap-up-modal";
+import { SessionWrapUpModal } from "@/features/session/shared/session-wrap-up-modal";
 import { ListeningQuestions } from "./components/listening-questions";
 import { ListeningTranscript } from "./components/listening-transcript";
 import { ListeningReview, type QuestionFeedback } from "./components/listening-review";

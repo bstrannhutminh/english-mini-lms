@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { SessionWrapUpModal } from "./session-wrap-up-modal";
+import { SessionWrapUpModal } from "@/features/session/shared/session-wrap-up-modal";
 import { WritingFeedback } from "@/server/providers/gemini";
 import { SessionGrid } from "./components/session-grid";
 

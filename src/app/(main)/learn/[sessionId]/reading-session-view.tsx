@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { SmartCapturePopup } from "./smart-capture-popup";
-import { SessionWrapUpModal } from "./session-wrap-up-modal";
+import { SmartCapturePopup } from "@/features/session/shared/smart-capture-popup";
+import { SessionWrapUpModal } from "@/features/session/shared/session-wrap-up-modal";
 
 interface ReadingSessionViewProps {
   sessionId: string;

@@ -2,9 +2,9 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { AudioRecorder } from "./audio-recorder";
+import { AudioRecorder } from "@/features/session/shared/audio-recorder";
 import { SpeakingFeedback } from "@/server/providers/gemini";
-import { SessionWrapUpModal } from "./session-wrap-up-modal";
+import { SessionWrapUpModal } from "@/features/session/shared/session-wrap-up-modal";
 import { SessionGrid } from "./components/session-grid";
 
 interface SpeakingSessionViewProps {

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, type RefObject } from "react";
-import type { YouTubePlayerHandle } from "../youtube-player";
+import type { YouTubePlayerHandle } from "@/features/session/shared/youtube-player";
 
 /** Số giây tua mỗi lần bấm ← / →. */
 export const HOTKEY_SEEK_SECONDS = 5;

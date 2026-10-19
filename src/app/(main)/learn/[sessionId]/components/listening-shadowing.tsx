@@ -1,6 +1,6 @@
 "use client";
 
-import { AudioRecorder } from "../audio-recorder";
+import { AudioRecorder } from "@/features/session/shared/audio-recorder";
 import type { SpeakingFeedback } from "@/server/providers/gemini";
 
 interface TranscriptSegment {
