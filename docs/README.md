@@ -1,6 +1,6 @@
 # Mục lục tài liệu — "sự thật hiện tại" ở đâu?
 
-Cập nhật: 19/10/2026 (sau đợt tái cấu trúc). Khi tài liệu mâu thuẫn, đọc theo thứ tự ưu tiên dưới đây.
+Khi tài liệu mâu thuẫn, đọc theo thứ tự ưu tiên dưới đây; hành vi và shape API hiện hành đối chiếu với mã nguồn.
 
 ## Đọc trước khi code (bắt buộc)
 
@@ -12,6 +12,7 @@ Cập nhật: 19/10/2026 (sau đợt tái cấu trúc). Khi tài liệu mâu thu
 
 ## Vận hành & hướng dẫn người dùng
 
+- [Hướng dẫn dùng LMS](huong-dan-lms-2026-11-19.md) — thiết lập lộ trình, vòng học hằng ngày, tìm bài và kiểm tra tay trên điện thoại.
 - `RUNBOOK.md` — backup/restore, biến môi trường, deploy Vercel, health endpoints, chi phí Gemini.
 - `google-drive-setup.md` — cấu hình Drive sync cho admin.
 - `plan/huong-dan-tu-build-anh-minh.md`, `plan/huong-dan-tom-gon-gui-anh-minh.md`, `plan/ban-gui-anh-minh.md` — hướng dẫn gửi BS. Minh.
