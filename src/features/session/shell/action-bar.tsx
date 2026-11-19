@@ -1,8 +1,11 @@
 "use client";
 
+import { Icon } from "@/components/ui";
+
 /**
- * Thanh hành động dính đáy (mọi viewport): Lưu nháp + Nộp bài.
- * Touch target ≥ 44px; lý do chưa-thể-nộp / lỗi nộp hiện phía trên nút.
+ * Thanh hành động dính đáy trong Focus Mode (mọi viewport):
+ * Lưu nháp + Nộp bài với màu chủ đạo Teal, không bị che bởi bottom nav,
+ * và không đè lên nội dung nhờ padding đáy của SessionShell.
  */
 export function ActionBar({
   canSubmit,
@@ -12,7 +15,7 @@ export function ActionBar({
   submitError,
   onSaveDraft,
   onSubmit,
-  submitLabel = "🚀 Nộp bài & nhận nhận xét",
+  submitLabel = "Nộp bài & nhận nhận xét",
 }: {
   canSubmit: boolean;
   submitDisabledReason?: string;
@@ -24,18 +27,19 @@ export function ActionBar({
   submitLabel?: string;
 }) {
   return (
-    <div className="sticky bottom-[var(--nav-height)] z-20 -mx-4 lg:bottom-0 mt-4 border-t border-slate-200 bg-white/95 px-4 py-3 backdrop-blur">
+    <div className="fixed inset-x-0 bottom-0 z-20 border-t border-border bg-surface/95 px-4 py-3 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))] backdrop-blur-md shadow-[0_-4px_16px_rgba(15,23,42,0.04)]">
       <div className="mx-auto w-full max-w-[1200px]">
         {submitError && (
           <div
             role="alert"
-            className="mb-2 rounded-lg border border-red-200 bg-red-50 px-3.5 py-2.5 text-sm text-red-700"
+            className="mb-2 flex items-center gap-2 rounded-xl border border-red-200 bg-red-50 px-3.5 py-2 text-sm text-red-700"
           >
-            ⚠️ {submitError}
+            <Icon name="alert-triangle" className="h-4 w-4 shrink-0" />
+            <span>{submitError}</span>
           </div>
         )}
         {!canSubmit && submitDisabledReason && (
-          <p className="mb-2 text-center text-xs text-slate-500">
+          <p className="mb-2 text-center text-xs text-text-muted">
             {submitDisabledReason}
           </p>
         )}
@@ -44,21 +48,23 @@ export function ActionBar({
             type="button"
             onClick={onSaveDraft}
             disabled={isSaving || isSubmitting}
-            className="inline-flex min-h-[48px] items-center justify-center rounded-xl bg-slate-100 px-4 text-sm font-semibold text-slate-700 hover:bg-slate-200 disabled:opacity-60 sm:px-5"
+            className="inline-flex min-h-12 cursor-pointer items-center justify-center gap-2 rounded-xl border border-border bg-surface-muted px-4 text-sm font-semibold text-text-secondary transition hover:bg-slate-200/70 hover:text-text disabled:opacity-60 sm:px-5"
           >
-            {isSaving ? "Đang lưu..." : "💾 Lưu nháp"}
+            <Icon name="save" className="h-4 w-4" />
+            <span>{isSaving ? "Đang lưu..." : "Lưu nháp"}</span>
           </button>
           <button
             type="button"
             onClick={onSubmit}
             disabled={!canSubmit || isSubmitting}
-            className="min-h-[48px] flex-1 rounded-xl bg-blue-600 px-6 text-base font-semibold text-white shadow-md shadow-blue-600/25 transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-60"
+            className="inline-flex min-h-12 flex-1 cursor-pointer items-center justify-center gap-2 rounded-xl bg-primary px-6 text-base font-semibold text-white shadow-sm transition hover:bg-primary-dark active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-55"
           >
-            {isSubmitting ? "Đang gửi bài..." : submitLabel}
+            <Icon name="send" className="h-4 w-4" />
+            <span>{isSubmitting ? "Đang gửi bài..." : submitLabel}</span>
           </button>
         </div>
-        <p className="mt-1.5 hidden text-center text-[11px] text-slate-400 lg:block">
-          ⌨️ Ctrl/⌘+S lưu nháp · Ctrl/⌘+Enter nộp bài
+        <p className="mt-1.5 hidden text-center text-[11px] text-text-muted lg:block">
+          Phím tắt: Ctrl/⌘+S lưu nháp · Ctrl/⌘+Enter nộp bài
         </p>
       </div>
     </div>

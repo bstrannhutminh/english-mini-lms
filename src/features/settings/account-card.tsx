@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Badge, Card, CardHeader } from "@/components/ui";
+import { Badge, Card, CardHeader, Icon } from "@/components/ui";
 import type { LearnerProfile } from "@/contracts/settings";
 
 /** Thẻ thông tin tài khoản: tên, múi giờ, vai trò + link Quản trị nếu admin. */
@@ -17,9 +17,10 @@ export function AccountCard({ profile }: { profile: LearnerProfile | null }) {
         {isAdmin && (
           <Link
             href="/admin"
-            className="rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-1.5 text-xs font-semibold text-indigo-700 transition hover:bg-indigo-100"
+            className="inline-flex min-h-11 items-center gap-1.5 rounded-xl border border-teal-200 bg-teal-50 px-3 py-1.5 text-xs font-semibold text-primary-dark no-underline transition hover:bg-teal-100"
           >
-            Quản trị (Admin) 🛠️
+            <Icon name="shield" className="h-3.5 w-3.5" />
+            Quản trị nội dung
           </Link>
         )}
       </div>

@@ -87,6 +87,9 @@ export async function saveLearnerOnboardingProfile(
     ...currentPreferences,
     preferredStudyTime: data.preferredStudyTime || "21:00",
     targetMinutesDefault: data.targetMinutesDefault || 30,
+    onboardingSkipped: false,
+    onboardingCompletedAt: new Date().toISOString(),
+    tourCompleted: true,
   };
 
   const [updated] = await db

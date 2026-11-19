@@ -1,9 +1,6 @@
 "use client";
 
-/**
- * ProgressStatCards — 4 chỉ số đầu trang Tiến độ: số phiên 7 ngày, phút thực
- * học (activeSeconds), tỉ lệ độc lập/có hỗ trợ, từ đã thuộc (mastery x/5).
- */
+import { Icon, type IconName } from "@/components/ui";
 import type { ProgressSummaryContract } from "@/contracts/progress";
 
 export interface ProgressStatCardsProps {
@@ -11,29 +8,37 @@ export interface ProgressStatCardsProps {
 }
 
 function StatCard({
+  icon,
   label,
   value,
   hint,
-  valueClass = "text-slate-900",
+  accentClass = "text-text",
 }: {
+  icon: IconName;
   label: string;
   value: string;
   hint: string;
-  valueClass?: string;
+  accentClass?: string;
 }) {
   return (
-    <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-xs">
-      <span className="block text-[11px] font-bold tracking-wider text-slate-400 uppercase">
-        {label}
-      </span>
-      <div className={`mt-1 text-2xl font-black tabular-nums sm:text-3xl ${valueClass}`}>
+    <div className="rounded-2xl border border-border bg-surface p-4 shadow-card">
+      <div className="flex items-center justify-between gap-2">
+        <span className="text-[11px] font-bold uppercase tracking-wider text-text-muted">
+          {label}
+        </span>
+        <Icon name={icon} className="h-4 w-4 text-primary/80" />
+      </div>
+      <div
+        className={`mt-1.5 text-2xl font-extrabold tabular-nums sm:text-3xl ${accentClass}`}
+      >
         {value}
       </div>
-      <span className="text-[11px] text-slate-500">{hint}</span>
+      <span className="text-xs text-text-secondary">{hint}</span>
     </div>
   );
 }
 
+/** 4 thẻ chỉ số tiến độ đồng bộ bảng màu Medical Clean (Teal/Slate/Emerald). */
 export function ProgressStatCards({ summary }: ProgressStatCardsProps) {
   const totalSubs = summary.totalSubmissions || 0;
   const independentPct =
@@ -44,27 +49,30 @@ export function ProgressStatCards({ summary }: ProgressStatCardsProps) {
   return (
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
       <StatCard
+        icon="calendar"
         label="Phiên 7 ngày qua"
         value={String(summary.sessionsThisWeek)}
         hint="phiên học thực tế"
       />
       <StatCard
+        icon="clock"
         label="Phút thực học"
         value={`${summary.actualStudyMinutes}′`}
-        hint="tổng active time"
-        valueClass="text-blue-600"
+        hint="tổng thời gian tập trung"
+        accentClass="text-primary-dark"
       />
       <StatCard
-        label="Tự chủ / Độc lập"
+        icon="check-circle"
+        label="Tự làm độc lập"
         value={`${independentPct}%`}
-        hint={`${summary.independentCount} độc lập / ${summary.assistedCount} có hỗ trợ`}
-        valueClass="text-emerald-600"
+        hint={`${summary.independentCount} độc lập · ${summary.assistedCount} có hỗ trợ`}
+        accentClass="text-emerald-700"
       />
       <StatCard
+        icon="bookmark"
         label="Từ đã thuộc"
         value={String(summary.masteredVocabCount)}
         hint={`trên ${summary.totalVocabCount} từ trong sổ`}
-        valueClass="text-indigo-600"
       />
     </div>
   );

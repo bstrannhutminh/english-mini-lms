@@ -49,6 +49,8 @@ export const preferencesPatchSchema = z.object({
     .optional(),
   /** true = đã xem/bỏ qua hướng dẫn; false = xoá cờ để xem lại hướng dẫn. */
   tourCompleted: z.boolean().optional(),
+  /** true = người học chọn "Bỏ qua, vào học ngay" ở lần đầu Onboarding. */
+  onboardingSkipped: z.boolean().optional(),
 });
 export type PreferencesPatch = z.infer<typeof preferencesPatchSchema>;
 

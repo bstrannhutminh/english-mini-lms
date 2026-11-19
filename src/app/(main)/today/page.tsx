@@ -1,16 +1,23 @@
 import { getCurrentLearner } from "@/server/auth";
 import { redirect } from "next/navigation";
 import { RouteErrorScreen } from "@/app/_shared/route-error-screen";
+import {
+  needsFirstRunOnboarding,
+  resolveDefaultTargetMinutes,
+} from "@/features/onboarding/onboarding-presets";
 import TodayView from "@/features/today/today-view";
 
 export const dynamic = "force-dynamic";
 
-export default async function TodayPage() {
+interface TodayPageProps {
+  searchParams?: Promise<{ [key: string]: string | string[] | undefined }>;
+}
+
+export default async function TodayPage({ searchParams }: TodayPageProps) {
   let learner;
   try {
     learner = await getCurrentLearner();
   } catch (error) {
-    // Missing env / DB down — show a friendly retry instead of crashing.
     console.error("TodayPage: getCurrentLearner failed:", error);
     return (
       <RouteErrorScreen
@@ -25,9 +32,19 @@ export default async function TodayPage() {
     redirect("/login");
   }
 
+  const params = searchParams ? await searchParams : {};
+  const bypassOnboarding = params.skipOnboarding === "1";
+
+  // Lần đầu vào app (chưa hoàn tất và chưa chọn bỏ qua) → dẫn vào Onboarding 4 bước
+  if (!bypassOnboarding && needsFirstRunOnboarding(learner)) {
+    redirect("/onboarding");
+  }
+
+  const initialTargetMinutes = resolveDefaultTargetMinutes(learner.preferences);
+
   return (
     <TodayView
-      initialTargetMinutes={30}
+      initialTargetMinutes={initialTargetMinutes}
       displayName={learner.displayName || "Bác sĩ Minh"}
     />
   );

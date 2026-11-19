@@ -9,8 +9,8 @@ import { ApiClientError } from "@/lib/api-client";
 import type { FieldError } from "@/lib/content-constants";
 
 export const inputCls =
-  "w-full min-h-[44px] rounded-lg border border-slate-300 bg-white px-3 py-2 text-base text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:bg-slate-100 disabled:text-slate-500";
-export const textareaCls = `${inputCls} font-mono text-sm leading-relaxed`;
+  "w-full min-h-[44px] rounded-lg border border-slate-300 bg-white px-3 py-2 text-base text-slate-800 focus:outline-none focus:ring-2 focus:ring-primary disabled:bg-slate-100 disabled:text-slate-500";
+export const textareaCls = `${inputCls} font-mono leading-relaxed`;
 
 export function Field({
   label,

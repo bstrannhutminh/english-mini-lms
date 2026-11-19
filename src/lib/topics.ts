@@ -3,22 +3,46 @@
  * File thuần (không import DB) — dùng được ở cả server và client.
  * DB chỉ lưu key slug; tên + icon hiển thị nằm ở đây.
  */
+import type { IconName } from "@/components/ui/icon-paths";
 
 /** Key dành riêng cho nhóm "Chưa phân loại" (bài có topic = NULL). */
 export const UNCATEGORIZED_TOPIC = "uncategorized";
 
 export interface TopicMeta {
   key: string;
+  /** Biểu tượng ngắn (giữ tương thích ngược cho log/test cũ). */
   icon: string;
+  /** Tên SVG icon nội bộ chuẩn thiết kế (ưu tiên dùng trên UI). */
+  iconName: IconName;
   name: string;
 }
 
 /** Danh sách chủ đề đã chốt — thứ tự này cũng là thứ tự hiển thị. */
 export const KNOWN_TOPICS: readonly TopicMeta[] = [
-  { key: "giao-tiep-hoi-nghi", icon: "🎤", name: "Hội nghị & email học thuật" },
-  { key: "doc-sach-y-khoa", icon: "📚", name: "Đọc–dịch & kỹ thuật y khoa" },
-  { key: "giao-tiep-lam-sang", icon: "🩺", name: "Giao tiếp lâm sàng" },
-  { key: "luyen-ielts", icon: "📝", name: "Luyện IELTS" },
+  {
+    key: "giao-tiep-hoi-nghi",
+    icon: "🎤",
+    iconName: "mic",
+    name: "Hội nghị & email học thuật",
+  },
+  {
+    key: "doc-sach-y-khoa",
+    icon: "📚",
+    iconName: "book-open",
+    name: "Đọc–dịch & kỹ thuật y khoa",
+  },
+  {
+    key: "giao-tiep-lam-sang",
+    icon: "🩺",
+    iconName: "stethoscope",
+    name: "Giao tiếp lâm sàng",
+  },
+  {
+    key: "luyen-ielts",
+    icon: "📝",
+    iconName: "graduation-cap",
+    name: "Luyện IELTS",
+  },
 ];
 
 const TOPIC_KEY_PATTERN = /^[a-z0-9]+(-[a-z0-9]+)*$/;
@@ -35,14 +59,19 @@ export function isValidTopicKey(key: string): boolean {
  */
 export function getTopicMeta(key: string | null | undefined): TopicMeta {
   if (!key || key === UNCATEGORIZED_TOPIC) {
-    return { key: UNCATEGORIZED_TOPIC, icon: "🗂️", name: "Chưa phân loại" };
+    return {
+      key: UNCATEGORIZED_TOPIC,
+      icon: "🗂️",
+      iconName: "layers",
+      name: "Chưa phân loại",
+    };
   }
   const known = KNOWN_TOPICS.find((t) => t.key === key);
   if (known) return known;
 
   const words = key.split("-").filter(Boolean).join(" ");
   const name = words.charAt(0).toUpperCase() + words.slice(1);
-  return { key, icon: "📁", name: name || key };
+  return { key, icon: "📁", iconName: "layers", name: name || key };
 }
 
 /** Vị trí sắp xếp: chủ đề đã chốt theo thứ tự, chủ đề lạ ABC, chưa phân loại cuối. */

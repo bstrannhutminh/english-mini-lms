@@ -5,6 +5,7 @@
  * trợ (assisted do server tính từ session_events — chỉ đọc, không suy đoán).
  * Nhãn + icon lấy từ SKILL_INFO (lib/modes.ts — nguồn duy nhất).
  */
+import Link from "next/link";
 import { Icon } from "@/components/ui";
 import { SKILL_INFO } from "@/lib/modes";
 import type { ProgressSummaryContract } from "@/contracts/progress";
@@ -19,7 +20,7 @@ export function SkillBreakdownCard({ summary }: SkillBreakdownCardProps) {
       data-tour="progress-chart"
       className="space-y-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-xs"
     >
-      <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3">
         <h2 className="text-sm font-bold text-slate-900">
           Phân bổ bài tập theo kỹ năng
         </h2>
@@ -30,8 +31,14 @@ export function SkillBreakdownCard({ summary }: SkillBreakdownCardProps) {
           </span>
           <span className="flex items-center gap-1">
             <span className="inline-block h-2.5 w-2.5 rounded bg-amber-400" />
-            Có hỗ trợ (gợi ý)
+            Có hỗ trợ
           </span>
+          <Link
+            href="/library"
+            className="inline-flex min-h-11 items-center font-semibold text-primary-dark no-underline hover:underline"
+          >
+            Luyện thêm →
+          </Link>
         </div>
       </div>
 

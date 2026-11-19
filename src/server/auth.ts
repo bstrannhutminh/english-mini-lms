@@ -8,10 +8,26 @@ export interface CurrentLearner {
   userId: string;
   displayName: string | null;
   role: "learner" | "admin";
+  baselineStatus?: string | null;
   preferences?: Record<string, unknown> | null;
 }
 
 const DEV_USER_ID = "00000000-0000-0000-0000-000000000001";
+
+const LEARNER_COLUMNS = {
+  id: learners.id,
+  userId: learners.userId,
+  displayName: learners.displayName,
+  role: learners.role,
+  baselineStatus: learners.baselineStatus,
+  preferences: learners.preferences,
+};
+
+async function findLearnerByUserId(userId: string): Promise<CurrentLearner | null> {
+  const [learner] = await db.select(LEARNER_COLUMNS).from(learners)
+    .where(eq(learners.userId, userId)).limit(1);
+  return learner ? learner as CurrentLearner : null;
+}
 
 /**
  * Lấy thông tin learner hiện tại từ Supabase Auth session.
@@ -26,13 +42,7 @@ export async function getCurrentLearner(): Promise<CurrentLearner | null> {
 
   if (user) {
     const [existing] = await db
-      .select({
-        id: learners.id,
-        userId: learners.userId,
-        displayName: learners.displayName,
-        role: learners.role,
-        preferences: learners.preferences,
-      })
+      .select(LEARNER_COLUMNS)
       .from(learners)
       .where(eq(learners.userId, user.id))
       .limit(1);
@@ -41,11 +51,6 @@ export async function getCurrentLearner(): Promise<CurrentLearner | null> {
       return existing as CurrentLearner;
     }
 
-    // Bootstrap admin: chỉ learner ĐẦU TIÊN (khi chưa có admin nào) được cấp
-    // role=admin — để deploy mới vẫn có người quản trị. Mọi user sau đó mặc
-    // định là learner (fix review cũ: auto-grant admin cho mọi user mới).
-    // Race 2-user-login đồng thời lần đầu → có thể 2 admin; chấp nhận được
-    // cho app 1 người dùng, không rò quyền.
     const [existingAdmin] = await db
       .select({ id: learners.id })
       .from(learners)
@@ -63,15 +68,11 @@ export async function getCurrentLearner(): Promise<CurrentLearner | null> {
         role: bootstrapRole,
         preferences: { remindEnabled: false, remindTime: "20:00" },
       })
-      .returning({
-        id: learners.id,
-        userId: learners.userId,
-        displayName: learners.displayName,
-        role: learners.role,
-        preferences: learners.preferences,
-      });
+      .onConflictDoNothing({ target: learners.userId })
+      .returning(LEARNER_COLUMNS);
 
-    return created as CurrentLearner;
+    // Layout and page can bootstrap the same account concurrently.
+    return created ? created as CurrentLearner : await findLearnerByUserId(user.id);
   }
 
   // Chế độ phát triển dev bypass
@@ -80,13 +81,7 @@ export async function getCurrentLearner(): Promise<CurrentLearner | null> {
     process.env.DEV_BYPASS_AUTH === "true"
   ) {
     const [devLearner] = await db
-      .select({
-        id: learners.id,
-        userId: learners.userId,
-        displayName: learners.displayName,
-        role: learners.role,
-        preferences: learners.preferences,
-      })
+      .select(LEARNER_COLUMNS)
       .from(learners)
       .where(eq(learners.userId, DEV_USER_ID))
       .limit(1);
@@ -100,18 +95,13 @@ export async function getCurrentLearner(): Promise<CurrentLearner | null> {
       .values({
         userId: DEV_USER_ID,
         displayName: "BS. Minh (Dev)",
-        role: "admin", // Bác sĩ Minh là admin duy nhất
+        role: "admin",
         preferences: { remindEnabled: false, remindTime: "20:00" },
       })
-      .returning({
-        id: learners.id,
-        userId: learners.userId,
-        displayName: learners.displayName,
-        role: learners.role,
-        preferences: learners.preferences,
-      });
+      .onConflictDoNothing({ target: learners.userId })
+      .returning(LEARNER_COLUMNS);
 
-    return createdDev as CurrentLearner;
+    return createdDev ? createdDev as CurrentLearner : await findLearnerByUserId(DEV_USER_ID);
   }
 
   return null;

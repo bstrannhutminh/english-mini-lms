@@ -91,7 +91,7 @@ export function FeedbackPanel({
                   <span className="text-xs font-semibold text-text">{sc.dimension}</span>
                   <span
                     className={`text-lg font-extrabold ${
-                      sc.value >= 7 ? "text-emerald-600" : "text-blue-600"
+                      sc.value >= 7 ? "text-emerald-600" : "text-primary-dark"
                     }`}
                   >
                     {sc.value}/10
@@ -147,11 +147,11 @@ export function FeedbackPanel({
       ) : null}
 
       {feedback.next_action ? (
-        <Card className="mb-4 border-blue-200 bg-blue-50">
-          <p className="mb-1 text-sm font-bold text-blue-900">
+        <Card className="mb-4 border-teal-200 bg-teal-50/70">
+          <p className="mb-1 text-sm font-bold text-primary-dark">
             Hành động trọng tâm cho bản sửa
           </p>
-          <p className="m-0 text-sm leading-relaxed text-blue-800">
+          <p className="m-0 text-sm leading-relaxed text-teal-900">
             {feedback.next_action}
           </p>
         </Card>

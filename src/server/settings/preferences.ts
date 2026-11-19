@@ -52,6 +52,12 @@ export function mergePreferences(
     delete merged.tourCompleted;
   }
 
+  if (patch.onboardingSkipped === true) {
+    merged.onboardingSkipped = true;
+  } else if (patch.onboardingSkipped === false) {
+    delete merged.onboardingSkipped;
+  }
+
   return merged;
 }
 

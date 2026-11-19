@@ -1,12 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
-import { apiFetch } from "@/lib/api-client";
-import {
-  submissionListResponseSchema,
-  type SubmissionListItem,
-} from "@/contracts/submission";
+import type { SubmissionListItem } from "@/contracts/submission";
 import { modeSkill, SKILL_INFO, type Skill } from "@/lib/modes";
 import {
   Button,
@@ -17,6 +13,7 @@ import {
 } from "@/components/ui";
 import { getRevisionInfo } from "../revision-chain";
 import { SubmissionCard } from "./submission-card";
+import { useSubmissionList } from "./use-submission-list";
 
 type ModeFilter = "all" | Skill;
 type StatusFilter =
@@ -54,53 +51,9 @@ function matchesStatus(item: SubmissionListItem, filter: StatusFilter): boolean 
 
 /** /my-work — danh sách bài nộp: bản đầu – trạng thái – chuỗi bản sửa. */
 export function WorkListView() {
-  const [submissions, setSubmissions] = useState<SubmissionListItem[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { submissions, loading, error, handleRetry } = useSubmissionList();
   const [modeFilter, setModeFilter] = useState<ModeFilter>("all");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
-
-  const fetchList = useCallback(
-    () =>
-      apiFetch("/api/v1/submissions", undefined, submissionListResponseSchema),
-    []
-  );
-
-  // Fetch khi mount — setState chỉ trong callback promise (rule react-hooks).
-  useEffect(() => {
-    let cancelled = false;
-    fetchList()
-      .then((data) => {
-        if (!cancelled) {
-          setSubmissions(data.submissions);
-          setLoading(false);
-        }
-      })
-      .catch((err) => {
-        if (!cancelled) {
-          setError(err instanceof Error ? err.message : "Đã có lỗi xảy ra");
-          setLoading(false);
-        }
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [fetchList]);
-
-  // "Thử lại" — setState trong event handler được phép.
-  const handleRetry = () => {
-    setLoading(true);
-    setError(null);
-    fetchList()
-      .then((data) => {
-        setSubmissions(data.submissions);
-        setLoading(false);
-      })
-      .catch((err) => {
-        setError(err instanceof Error ? err.message : "Đã có lỗi xảy ra");
-        setLoading(false);
-      });
-  };
 
   const filtered = useMemo(
     () =>
@@ -142,7 +95,7 @@ export function WorkListView() {
           tabs={modeTabs}
           value={modeFilter}
           onValueChange={(v) => setModeFilter(v as ModeFilter)}
-          className="overflow-x-auto"
+          className="max-w-full overflow-x-auto"
         />
         <div className="flex flex-wrap items-center gap-2 border-t border-slate-100 pt-2 text-xs text-text-secondary">
           <span className="font-medium">Trạng thái chấm:</span>
@@ -151,7 +104,7 @@ export function WorkListView() {
               key={st.value}
               type="button"
               onClick={() => setStatusFilter(st.value)}
-              className={`min-h-9 cursor-pointer rounded-lg px-3 py-1 text-xs font-medium transition ${
+              className={`min-h-11 cursor-pointer rounded-lg px-3 py-1 text-xs font-medium transition ${
                 statusFilter === st.value
                   ? "bg-slate-900 text-white"
                   : "border border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100"
@@ -196,7 +149,7 @@ export function WorkListView() {
           }
           action={
             submissions.length === 0 ? (
-              <Link href="/library">
+              <Link href="/library" className="inline-flex min-h-11">
                 <Button>Khám phá Thư viện bài học</Button>
               </Link>
             ) : undefined

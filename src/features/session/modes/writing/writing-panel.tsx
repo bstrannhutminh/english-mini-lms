@@ -1,15 +1,17 @@
 "use client";
 
-import { MarkdownText } from "@/components/ui";
+import { Icon, MarkdownText } from "@/components/ui";
+import { cn } from "@/lib/utils";
 import type { ModePanelProps } from "../types";
 import { usePluginState } from "../types";
 import { SessionColumns } from "../../shell/session-columns";
 import { WritingParentReference } from "./parent-reference";
 import type { WritingModeState } from "./state";
+import { resolveWordTarget } from "./word-target";
 
 /**
- * Vùng làm bài của mode Viết (không chrome): cột trái = đề bài + đối chiếu
- * Bản 1, cột phải = khung soạn email. Timer/nút nộp/gợi ý/lưu do shell lo.
+ * Vùng làm bài của mode Viết: cột trái = đề bài + đối chiếu Bản 1,
+ * cột phải = khung viết thoáng mắt với thanh tiến độ số từ khuyến nghị.
  */
 export function WritingPanel(props: ModePanelProps) {
   const { data, busy, capture } = props;
@@ -20,8 +22,12 @@ export function WritingPanel(props: ModePanelProps) {
     ? state.text.trim().split(/\s+/).length
     : 0;
 
-  const setText = (text: string) =>
-    setState((prev) => ({ ...prev, text }));
+  const target = resolveWordTarget(activity.promptText);
+  const inRange = target && wordCount >= target.min && (target.max === null || wordCount <= target.max);
+  const aboveRange = target?.max != null && wordCount > target.max;
+  const progressPct = target ? Math.min(100, Math.round((wordCount / (target.max ?? target.min)) * 100)) : 0;
+
+  const setText = (text: string) => setState((prev) => ({ ...prev, text }));
   const toggleParentRef = () =>
     setState((prev) => ({ ...prev, showParentRef: !prev.showParentRef }));
 
@@ -29,28 +35,32 @@ export function WritingPanel(props: ModePanelProps) {
 
   const left = (
     <>
-      {/* Thông tin bài & đề bài */}
-      <div className="mb-4 rounded-2xl border border-slate-200 bg-white p-4">
-        <div className="mb-2 flex items-center justify-between">
-          <span className="rounded-md bg-indigo-50 px-2 py-0.5 text-xs font-bold text-indigo-700">
-            {activity.slot || activity.id} · Viết thực tế
+      <div className="mb-4 rounded-2xl border border-border bg-surface p-5 shadow-card">
+        <div className="mb-2.5 flex items-center gap-2">
+          <span className="inline-flex items-center gap-1 rounded-md border border-skill-writing-border bg-skill-writing-soft px-2 py-0.5 text-xs font-bold text-skill-writing">
+            <Icon name="pen-tool" className="h-3.5 w-3.5" />
+            Viết thực tế
           </span>
+          {activity.durationMinutes && (
+            <span className="text-xs tabular-nums text-text-muted">
+              Khuyến nghị {activity.durationMinutes} phút
+            </span>
+          )}
         </div>
 
-        <h2 className="mb-2.5 text-lg font-bold text-slate-900">
-          {activity.title}
-        </h2>
+        <h2 className="mb-2 text-lg font-bold text-text">{activity.title}</h2>
 
         {activity.objective && (
-          <p className="mb-2.5 text-sm leading-snug text-slate-600">
-            <strong>Mục tiêu:</strong> {activity.objective}
+          <p className="mb-3 text-sm leading-relaxed text-text-secondary">
+            <strong className="text-text">Mục tiêu:</strong>{" "}
+            {activity.objective}
           </p>
         )}
 
         {activity.promptText && (
           <div
             {...capture.selectHandlers(activity.promptText, sourceRef)}
-            className="whitespace-pre-line rounded-xl border border-slate-100 bg-slate-50 p-3 text-sm leading-relaxed text-slate-700"
+            className="rounded-xl border border-border-subtle bg-surface-muted p-4 text-sm leading-relaxed text-text-secondary"
           >
             <MarkdownText text={activity.promptText} />
           </div>
@@ -70,33 +80,54 @@ export function WritingPanel(props: ModePanelProps) {
   );
 
   const right = (
-    <div className="mb-4 rounded-2xl border border-slate-200 bg-white p-4">
-      <div className="mb-2 flex items-center justify-between">
+    <div className="mb-4 rounded-2xl border border-border bg-surface p-5 shadow-card">
+      <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
         <label
           htmlFor="essay-editor"
-          className="text-[15px] font-semibold text-slate-900"
+          className="text-base font-bold text-text"
         >
-          Bài viết của bạn:
+          Bài viết của bạn
         </label>
         <span
-          className={`text-[13px] font-semibold ${
-            wordCount >= 120 && wordCount <= 150
-              ? "text-green-600"
-              : "text-slate-500"
-          }`}
+          className={cn(
+            "rounded-full px-2.5 py-0.5 text-xs font-semibold tabular-nums",
+            inRange
+              ? "bg-emerald-50 text-emerald-700"
+              : aboveRange
+                ? "bg-amber-50 text-amber-800"
+                : "bg-slate-100 text-text-secondary"
+          )}
         >
-          {wordCount} từ (khuyến nghị: 120–150)
+          {wordCount} từ{target ? ` (theo đề: ${target.max === null ? `ít nhất ${target.min}` : `${target.min}–${target.max}`})` : ""}
         </span>
       </div>
+
+      {/* Thanh tiến độ số từ nhẹ nhàng */}
+      {target && <div
+        className="mb-3 h-1.5 w-full overflow-hidden rounded-full bg-slate-100"
+        aria-hidden="true"
+      >
+        <div
+          className={cn(
+            "h-full rounded-full transition-all duration-200",
+            inRange
+              ? "bg-emerald-500"
+              : aboveRange
+                ? "bg-amber-500"
+                : "bg-primary"
+          )}
+          style={{ width: `${progressPct}%` }}
+        />
+      </div>}
 
       <textarea
         id="essay-editor"
         value={state.text}
         onChange={(e) => setText(e.target.value)}
         disabled={busy}
-        placeholder="Viết email của bạn tại đây bằng tiếng Anh..."
-        rows={12}
-        className="box-border w-full resize-y rounded-xl border border-slate-300 p-3.5 text-base leading-relaxed text-slate-900 outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 disabled:opacity-60"
+        placeholder="Viết bài của bạn tại đây bằng tiếng Anh..."
+        rows={14}
+        className="box-border w-full resize-y rounded-xl border border-border bg-surface p-4 text-base leading-relaxed text-text outline-none transition placeholder:text-text-muted focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:opacity-60"
       />
     </div>
   );

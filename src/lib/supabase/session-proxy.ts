@@ -87,6 +87,7 @@ export async function updateSession(request: NextRequest) {
     "/api/v1/health",
     "/manifest.json",
     "/sw.js",
+    "/offline",
   ];
   const isPublicPath = publicPaths.some((path) =>
     request.nextUrl.pathname.startsWith(path)

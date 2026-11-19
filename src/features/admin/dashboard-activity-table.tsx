@@ -6,7 +6,7 @@
  */
 import Link from "next/link";
 import { useState } from "react";
-import { Badge, Card, CardHeader } from "@/components/ui";
+import { Badge, Card, CardHeader, Icon } from "@/components/ui";
 import type { AdminDashboardDataContract } from "@/contracts/admin-dashboard";
 import { modeMeta } from "@/lib/modes";
 import { getTopicMeta } from "@/lib/topics";
@@ -33,7 +33,7 @@ export function DashboardActivityTable({
         action={
           <select
             aria-label="Lọc theo trạng thái"
-            className={`${inputCls} !w-auto !min-h-9 text-xs`}
+            className={`${inputCls} !w-auto !min-h-11 !text-base`}
             value={stateFilter}
             onChange={(e) => setStateFilter(e.target.value)}
           >
@@ -71,7 +71,7 @@ export function DashboardActivityTable({
                 return (
                   <tr key={act.id} className="hover:bg-slate-50/50">
                     <td className="py-2.5 px-3 font-mono text-[11px] text-slate-500">
-                      <Link href={`/library/${act.id}`} className="hover:underline">
+                      <Link href={`/library/${act.id}`} className="inline-flex min-h-11 min-w-11 items-center hover:underline">
                         {act.id}
                       </Link>
                     </td>
@@ -87,7 +87,13 @@ export function DashboardActivityTable({
                       )}
                     </td>
                     <td className="py-2.5 px-3 whitespace-nowrap">
-                      {topic.icon} {topic.name}
+                      <span className="inline-flex items-center gap-1.5">
+                        <Icon
+                          name={topic.iconName}
+                          className="h-3.5 w-3.5 text-primary-dark"
+                        />
+                        {topic.name}
+                      </span>
                     </td>
                     <td className="py-2.5 px-3">
                       <StateBadge state={act.reviewState} />

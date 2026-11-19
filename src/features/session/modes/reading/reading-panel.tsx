@@ -1,21 +1,34 @@
 "use client";
 
+import { EmptyState, Icon } from "@/components/ui";
+import { cn } from "@/lib/utils";
 import type { ModePanelProps } from "../types";
 import { usePluginState } from "../types";
 import { SessionColumns } from "../../shell/session-columns";
-import { EmptyState } from "@/components/ui";
 import { PassageCard } from "./passage-card";
 import { ReadingParentReference } from "./parent-reference";
 import type { ReadingModeState } from "./state";
 
 const textareaClass =
-  "box-border w-full resize-y rounded-xl border border-slate-300 p-3.5 text-base leading-relaxed text-slate-900 outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 disabled:opacity-60";
+  "box-border w-full resize-y rounded-xl border border-border bg-surface p-3.5 text-base leading-relaxed text-text outline-none transition placeholder:text-text-muted focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:opacity-60";
+
+function StepNumber({ num, done }: { num: number; done: boolean }) {
+  return (
+    <span
+      className={cn(
+        "inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold",
+        done ? "bg-emerald-600 text-white" : "bg-slate-100 text-slate-600"
+      )}
+    >
+      {done ? <Icon name="check" className="h-3.5 w-3.5" /> : num}
+    </span>
+  );
+}
 
 /**
- * Vùng làm bài mode Đọc–dịch (không chrome): cột trái = đề bài + đoạn văn
- * gốc + đối chiếu Bản 1, cột phải = 3 ô bài làm. Timer/nút nộp/gợi ý/lưu
- * nháp do shell lo. Không bao giờ hiện đoạn văn giả — thiếu segment thì
- * hiện EmptyState hướng dẫn bằng tiếng Việt.
+ * Vùng làm bài mode Đọc–dịch y khoa:
+ * cột trái = mục tiêu + đoạn văn gốc (Markdown + cỡ chữ + Smart Capture),
+ * cột phải = 3 bước làm bài rõ ràng (Ý chính → Bản dịch bắt buộc → 3 thuật ngữ).
  */
 export function ReadingPanel(props: ModePanelProps) {
   const { data, busy, capture } = props;
@@ -37,27 +50,24 @@ export function ReadingPanel(props: ModePanelProps) {
 
   const left = (
     <>
-      {/* Thông tin bài & mục tiêu */}
-      <div className="mb-4 rounded-2xl border border-slate-200 bg-white p-4">
+      <div className="mb-4 rounded-2xl border border-border bg-surface p-4 shadow-card">
         <div className="mb-2 flex flex-wrap items-center gap-2">
-          <span className="rounded-md bg-skill-reading-soft px-2 py-0.5 text-xs font-bold text-skill-reading">
-            {activity.slot || activity.id} · Đọc–dịch y khoa
+          <span className="inline-flex items-center gap-1 rounded-md border border-skill-reading-border bg-skill-reading-soft px-2 py-0.5 text-xs font-bold text-skill-reading">
+            <Icon name="book-open" className="h-3.5 w-3.5" />
+            Đọc–dịch y khoa
           </span>
-          <span className="text-xs text-slate-500">
-            Mục tiêu: {activity.durationMinutes || 25} phút
+          <span className="text-xs tabular-nums text-text-muted">
+            Khuyến nghị {activity.durationMinutes || 25} phút
           </span>
         </div>
 
-        <h2 className="mb-1.5 text-lg font-bold text-slate-900">
-          {activity.title}
-        </h2>
-        <p className="text-sm leading-snug text-slate-600">
+        <h2 className="mb-1.5 text-lg font-bold text-text">{activity.title}</h2>
+        <p className="text-sm leading-relaxed text-text-secondary">
           {activity.objective ||
-            "Nêu ý chính, dịch sang tiếng Việt trung thành, giải thích 3 thuật ngữ."}
+            "Nêu ý chính, dịch sang tiếng Việt trung thành và tự giải thích 3 thuật ngữ y khoa."}
         </p>
       </div>
 
-      {/* Đoạn văn gốc thật, hoặc trạng thái trống — không có nội dung giả */}
       {segment?.textContent ? (
         <PassageCard
           segment={segment}
@@ -68,7 +78,7 @@ export function ReadingPanel(props: ModePanelProps) {
         <EmptyState
           icon="book-open"
           title="Chưa có đoạn văn gốc"
-          description="Bài đọc này chưa được gắn đoạn văn trong cơ sở dữ liệu. Bạn vẫn có thể làm bài ở cột bên, nhưng hãy báo quản trị gắn source segment để AI đối chiếu đúng đoạn gốc."
+          description="Bài đọc này chưa gắn đoạn văn trong cơ sở dữ liệu. Hãy báo quản trị bổ sung source segment để AI đối chiếu chính xác."
           className="mb-4"
         />
       )}
@@ -87,55 +97,61 @@ export function ReadingPanel(props: ModePanelProps) {
 
   const right = (
     <div className="flex flex-col gap-4">
-      {/* Ô 1: Ý chính */}
-      <div className="rounded-2xl border border-slate-200 bg-white p-4">
+      {/* Bước 1: Ý chính */}
+      <div className="rounded-2xl border border-border bg-surface p-4 shadow-card">
         <label
           htmlFor="main-idea-input"
-          className="mb-1.5 block text-sm font-bold text-slate-800"
+          className="mb-2 flex items-center gap-2 text-sm font-bold text-text"
         >
-          1. Ý chính của đoạn (Main Idea)
+          <StepNumber num={1} done={state.mainIdea.trim().length > 0} />
+          <span>Ý chính của đoạn (Main Idea)</span>
         </label>
         <textarea
           id="main-idea-input"
           value={state.mainIdea}
           onChange={(e) => set({ mainIdea: e.target.value })}
           disabled={busy}
-          placeholder="Tóm tắt ý chính của đoạn văn (1-2 câu tiếng Việt hoặc tiếng Anh)..."
+          placeholder="Tóm tắt ý chính trong 1–2 câu bằng tiếng Việt hoặc tiếng Anh..."
           rows={3}
           className={textareaClass}
         />
       </div>
 
-      {/* Ô 2: Bản dịch — bắt buộc */}
-      <div className="rounded-2xl border border-slate-200 bg-white p-4">
-        <div className="mb-1.5 flex items-center justify-between">
+      {/* Bước 2: Bản dịch — bắt buộc */}
+      <div className="rounded-2xl border border-border bg-surface p-4 shadow-card">
+        <div className="mb-2 flex items-center justify-between gap-2">
           <label
             htmlFor="translation-input"
-            className="text-sm font-bold text-slate-800"
+            className="flex items-center gap-2 text-sm font-bold text-text"
           >
-            2. Bản dịch tiếng Việt (Translation){" "}
-            <span className="text-red-600">*</span>
+            <StepNumber num={2} done={translationWords > 0} />
+            <span>
+              Bản dịch tiếng Việt <span className="text-red-600">*</span>
+            </span>
           </label>
-          <span className="text-xs text-slate-500">{translationWords} từ</span>
+          <span className="text-xs font-medium tabular-nums text-text-muted">
+            {translationWords} từ
+          </span>
         </div>
         <textarea
           id="translation-input"
           value={state.translation}
           onChange={(e) => set({ translation: e.target.value })}
           disabled={busy}
-          placeholder="Dịch toàn bộ đoạn văn sang tiếng Việt chuẩn văn phong y khoa..."
+          placeholder="Dịch đoạn văn sang tiếng Việt sát nghĩa, chuẩn văn phong y khoa..."
           rows={9}
           className={textareaClass}
         />
       </div>
 
-      {/* Ô 3: Thuật ngữ */}
-      <div className="rounded-2xl border border-slate-200 bg-white p-4">
+      {/* Bước 3: Thuật ngữ */}
+      <div className="rounded-2xl border border-border bg-surface p-4 shadow-card">
         <label
           htmlFor="key-terms-input"
-          className="mb-1.5 block text-sm font-bold text-slate-800"
+          className="mb-2 flex items-center gap-2 text-sm font-bold text-text"
         >
-          3. Ba thuật ngữ tự giải thích (Key Terms)
+          <StepNumber num={3} done={state.keyTerms.trim().length > 0} />
+          <span>Ba thuật ngữ tự giải thích (Key Terms)</span>
         </label>
         <textarea
           id="key-terms-input"
@@ -143,7 +159,7 @@ export function ReadingPanel(props: ModePanelProps) {
           onChange={(e) => set({ keyTerms: e.target.value })}
           disabled={busy}
           placeholder={
-            "Ví dụ:\n1. suprascapular nerve block: Phong bế thần kinh trên vai...\n2. superior transverse scapular ligament: Dây chằng ngang vai trên...\n3. fascial compartment: Khoang cân mạc..."
+            "Ví dụ:\n1. suprascapular nerve block: Phong bế thần kinh trên vai...\n2. fascial compartment: Khoang cân mạc..."
           }
           rows={4}
           className={textareaClass}

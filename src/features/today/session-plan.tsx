@@ -1,22 +1,13 @@
 "use client";
 
-/**
- * SessionPlan — khối 2 của hub Hôm nay (spec §3.3): kế hoạch phiên 30'/45'
- * gồm 4 bước Ôn từ → Bài chính → Sửa/vận dụng → Kết thúc (buildDailyPlan).
- * Mỗi bước là deep-link (bỏ qua được); bước "Bài chính" đang tới render nút
- * Bắt đầu gọi thẳng flow tạo phiên — giữ invariant "≤ 2 chạm vào bài".
- */
 import Link from "next/link";
-import { Badge, Button, Icon, type IconName } from "@/components/ui";
+import { Icon, type IconName } from "@/components/ui";
 import { cn } from "@/lib/utils";
 import type { PlanStep, PlanStepStatus } from "@/contracts/today";
 
 export interface SessionPlanProps {
   steps: PlanStep[];
   targetMinutes: 30 | 45;
-  /** Có bài gợi ý để bắt đầu trực tiếp → bước "main" hiện nút Bắt đầu. */
-  onStartMain?: () => void;
-  starting?: boolean;
 }
 
 const STEP_ICON: Record<PlanStep["key"], IconName> = {
@@ -26,129 +17,114 @@ const STEP_ICON: Record<PlanStep["key"], IconName> = {
   wrapup: "bar-chart",
 };
 
-const STATUS_META: Record<
+const STATUS_STYLE: Record<
   PlanStepStatus,
-  { chip: string; chipClass: string; rowClass: string }
+  { badge: string; card: string; circle: string; label: string }
 > = {
   done: {
-    chip: "Đã xong",
-    chipClass: "border-emerald-200 bg-emerald-50 text-emerald-700",
-    rowClass: "border-slate-100 bg-slate-50/50",
+    badge: "bg-emerald-50 text-emerald-700 border-emerald-200",
+    card: "border-border-subtle bg-surface-muted/60",
+    circle: "bg-emerald-600 text-white",
+    label: "Xong",
   },
   current: {
-    chip: "Tiếp theo",
-    chipClass: "border-teal-200 bg-teal-50 text-teal-700",
-    rowClass: "border-teal-200/80 bg-teal-50/40",
+    badge: "bg-teal-50 text-primary-dark border-teal-200",
+    card: "border-primary/40 bg-teal-50/40",
+    circle: "bg-primary text-white",
+    label: "Đang tới",
   },
   upcoming: {
-    chip: "Chờ",
-    chipClass: "border-slate-200 bg-slate-50 text-slate-500",
-    rowClass: "border-slate-100",
+    badge: "bg-slate-100 text-slate-500 border-slate-200",
+    card: "border-border bg-surface",
+    circle: "bg-slate-100 text-slate-500",
+    label: "Kế tiếp",
   },
 };
 
-export function SessionPlan({
-  steps,
-  targetMinutes,
-  onStartMain,
-  starting = false,
-}: SessionPlanProps) {
+/**
+ * Thanh chu trình học 4 bước gọn gàng (Ôn từ → Bài chính → Sửa bài → Tiến độ):
+ * hiển thị trực quan tiến trình trong ngày mà không trùng nút CTA với bài chính.
+ */
+export function SessionPlan({ steps, targetMinutes }: SessionPlanProps) {
+  const doneCount = steps.filter((s) => s.status === "done").length;
+
   return (
     <section
-      aria-label={`Kế hoạch phiên ${targetMinutes} phút`}
-      className="space-y-4 rounded-2xl border border-slate-200/80 bg-white p-5 shadow-xs"
+      aria-label={`Chu trình phiên ${targetMinutes} phút`}
+      className="rounded-2xl border border-border bg-surface p-4 shadow-card sm:p-5"
     >
-      <div className="flex items-center justify-between gap-2 border-b border-slate-100 pb-3">
-        <h2 className="flex items-center gap-2 text-sm font-bold text-slate-900">
-          <Icon name="compass" className="h-4 w-4 text-teal-600" />
-          Kế hoạch phiên {targetMinutes} phút
+      <div className="mb-3.5 flex flex-wrap items-center justify-between gap-2">
+        <h2 className="flex items-center gap-2 text-sm font-bold text-text">
+          <Icon name="compass" className="h-4 w-4 text-primary" />
+          Chu trình hôm nay ({targetMinutes} phút)
         </h2>
-        <span className="text-[11px] font-medium text-slate-400">
-          Bấm vào từng bước để đi thẳng tới
+        <span className="text-xs font-medium tabular-nums text-text-muted">
+          Hoàn thành {doneCount}/{steps.length} bước
         </span>
       </div>
 
-      <ol className="space-y-2">
+      <ol className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-4">
         {steps.map((step, idx) => {
-          const meta = STATUS_META[step.status];
-          const isMainCurrent = step.key === "main" && step.status === "current";
-
-          return (
-            <li
-              key={step.key}
+          const st = STATUS_STYLE[step.status];
+          const inner = (
+            <div
               className={cn(
-                "flex items-center gap-3 rounded-xl border p-3 transition",
-                meta.rowClass
+                "flex h-full min-h-14 flex-col justify-between gap-2 rounded-xl border p-3 transition",
+                st.card,
+                step.href && "hover:border-primary/60 hover:shadow-xs"
               )}
             >
-              {/* Chỉ báo thứ tự / trạng thái */}
-              <span
-                className={cn(
-                  "flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold",
-                  step.status === "done"
-                    ? "bg-emerald-100 text-emerald-700"
-                    : step.status === "current"
-                      ? "bg-teal-600 text-white"
-                      : "bg-slate-100 text-slate-400"
-                )}
-                aria-hidden="true"
-              >
-                {step.status === "done" ? (
-                  <Icon name="check" className="h-4 w-4" />
-                ) : (
-                  idx + 1
-                )}
-              </span>
+              <div className="flex items-center justify-between gap-2">
+                <span
+                  className={cn(
+                    "inline-flex h-6 w-6 items-center justify-center rounded-full text-xs font-bold",
+                    st.circle
+                  )}
+                >
+                  {step.status === "done" ? (
+                    <Icon name="check" className="h-3.5 w-3.5" />
+                  ) : (
+                    idx + 1
+                  )}
+                </span>
+                <span
+                  className={cn(
+                    "rounded-full border px-2 py-0.5 text-[11px] font-semibold",
+                    st.badge
+                  )}
+                >
+                  {st.label}
+                </span>
+              </div>
 
-              <div className="min-w-0 flex-1 space-y-0.5">
-                <div className="flex flex-wrap items-center gap-2">
-                  <Icon
-                    name={STEP_ICON[step.key]}
-                    className="h-3.5 w-3.5 text-slate-400"
-                  />
-                  <span className="text-sm font-semibold text-slate-900">
+              <div>
+                <div className="flex items-center justify-between gap-1">
+                  <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-text">
+                    <Icon
+                      name={STEP_ICON[step.key]}
+                      className="h-3.5 w-3.5 text-text-muted"
+                    />
                     {step.title}
                   </span>
-                  <span className="text-[11px] tabular-nums text-slate-400">
-                    ~{step.estimatedMinutes}&prime;
-                  </span>
-                  <span
-                    className={cn(
-                      "rounded-full border px-2 py-0.5 text-[10px] font-semibold",
-                      meta.chipClass
-                    )}
-                  >
-                    {meta.chip}
+                  <span className="text-xs tabular-nums text-text-muted">
+                    ~{step.estimatedMinutes}&apos;
                   </span>
                 </div>
-                <p className="text-xs leading-relaxed text-slate-500">
+                <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-text-secondary">
                   {step.description}
                 </p>
               </div>
+            </div>
+          );
 
-              {/* Hành động của bước: deep-link; riêng "Bài chính" có thể start trực tiếp */}
-              {isMainCurrent && onStartMain ? (
-                <Button
-                  size="md"
-                  onClick={onStartMain}
-                  loading={starting}
-                  className="shrink-0"
-                  data-tour="today-start"
-                >
-                  Bắt đầu
-                </Button>
-              ) : step.href ? (
-                <Link
-                  href={step.href}
-                  aria-label={`Mở bước ${step.title}`}
-                  className="flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-xl text-slate-400 transition hover:bg-slate-100 hover:text-teal-700"
-                >
-                  <Icon name="chevron-right" className="h-5 w-5" />
+          return (
+            <li key={step.key}>
+              {step.href ? (
+                <Link href={step.href} className="block h-full no-underline">
+                  {inner}
                 </Link>
               ) : (
-                <Badge tone="neutral" className="shrink-0">
-                  Chưa mở
-                </Badge>
+                inner
               )}
             </li>
           );

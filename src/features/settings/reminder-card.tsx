@@ -29,7 +29,7 @@ export function ReminderCard({ enabled, time, saving, onSave }: ReminderCardProp
         title="Nhắc nhở học hàng ngày"
         description="Thông báo nhắc nhở 30–45 phút học mỗi ngày (mặc định tắt)"
         action={
-          <label className="relative inline-flex cursor-pointer items-center">
+          <label className="relative inline-flex min-h-11 min-w-11 cursor-pointer items-center">
             <input
               type="checkbox"
               className="peer sr-only"
@@ -38,7 +38,7 @@ export function ReminderCard({ enabled, time, saving, onSave }: ReminderCardProp
               aria-label="Bật nhắc nhở học hàng ngày"
               onChange={(e) => void save(e.target.checked, time)}
             />
-            <div className="h-6 w-11 rounded-full bg-slate-200 peer-checked:bg-blue-600 peer-focus:outline-none after:absolute after:top-[2px] after:left-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-slate-300 after:bg-white after:transition-all after:content-[''] peer-checked:after:translate-x-full peer-checked:after:border-white"></div>
+            <div className="relative h-6 w-11 rounded-full bg-slate-200 peer-checked:bg-primary peer-focus-visible:outline-2 peer-focus-visible:outline-primary after:absolute after:top-[2px] after:left-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-slate-300 after:bg-white after:transition-all after:content-[''] peer-checked:after:translate-x-full peer-checked:after:border-white"></div>
           </label>
         }
       />
@@ -52,7 +52,7 @@ export function ReminderCard({ enabled, time, saving, onSave }: ReminderCardProp
             disabled={saving}
             aria-label="Giờ nhắc học"
             onChange={(e) => void save(enabled, e.target.value)}
-            className="rounded-lg border border-slate-300 px-2.5 py-1 text-sm focus:ring-1 focus:ring-blue-500"
+            className="min-h-11 rounded-lg border border-border px-2.5 py-1 text-base focus:ring-1 focus:ring-primary"
           />
         </div>
       )}

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { isFocusRoute } from "@/components/layout/focus-routes";
 import { GuidedTour } from "./guided-tour";
 import { TOUR_STEPS } from "./tour-steps";
 
@@ -143,7 +144,7 @@ export function TourHost({ tourCompleted }: { tourCompleted: boolean }) {
     return () => clearTimeout(timer);
   }, [pathname, stepIndex, finish]);
 
-  if (stepIndex === null) return null;
+  if (stepIndex === null || isFocusRoute(pathname)) return null;
   const step = TOUR_STEPS[stepIndex];
   // Chờ điều hướng xong rồi mới hiển thị bước
   if (pathname !== step.route) return null;

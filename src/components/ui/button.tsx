@@ -25,11 +25,10 @@ const VARIANT_CLASSES: Record<ButtonVariant, string> = {
 };
 
 /**
- * "sm" chỉ dành cho toolbar desktop chật — mọi điểm chạm chính phải ≥44px
- * (md/lg/icon). Xem rule a11y trong kien-truc-tai-cau-truc-2026-10-19.md §4.7.
+ * Các cỡ nút đều giữ điểm chạm ≥44px; "sm" chỉ giảm padding và cỡ chữ.
  */
 const SIZE_CLASSES: Record<ButtonSize, string> = {
-  sm: "min-h-9 px-3 text-sm rounded-lg",
+  sm: "min-h-11 px-3 text-sm rounded-lg",
   md: "min-h-11 px-4 text-sm rounded-xl",
   lg: "min-h-12 px-5 text-base rounded-xl",
   icon: "h-11 w-11 p-0 rounded-xl",

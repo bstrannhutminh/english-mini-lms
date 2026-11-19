@@ -38,7 +38,7 @@ export function ActivityDetail({
         className="mb-4 inline-flex min-h-11 items-center gap-1.5 text-sm font-medium text-text-muted hover:text-text"
       >
         <Icon name="arrow-left" className="h-4 w-4" />
-        Quay lại {topicMeta.icon} {topicMeta.name}
+        Quay lại {topicMeta.name}
       </Link>
 
       <Card padded className="p-5">
@@ -51,9 +51,10 @@ export function ActivityDetail({
           {meta.isIelts ? <Badge tone="neutral">IELTS</Badge> : null}
           <Link
             href={topicHref}
-            className="inline-flex min-h-11 items-center rounded-full border border-border bg-surface-subtle px-2.5 py-0.5 text-xs font-medium text-slate-700 no-underline"
+            className="inline-flex min-h-11 items-center gap-1.5 rounded-full border border-border bg-surface-subtle px-3 py-0.5 text-xs font-medium text-slate-700 no-underline hover:border-primary/40"
           >
-            {topicMeta.icon} {topicMeta.name}
+            <Icon name={topicMeta.iconName} className="h-3.5 w-3.5 text-primary-dark" />
+            {topicMeta.name}
           </Link>
           {activity.durationMinutes ? (
             <Badge tone="neutral">

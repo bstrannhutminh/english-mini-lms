@@ -1,16 +1,16 @@
 // Service Worker tối thiểu cho English Mini LMS
-// BẢO MẬT: Chỉ cache App Shell, TUYỆT ĐỐI KHÔNG cache audio, bài nộp cá nhân, hay API endpoints.
+// BẢO MẬT: Chỉ cache App Shell & trang /offline, TUYỆT ĐỐI KHÔNG cache audio, bài nộp cá nhân, hay API endpoints.
 
-// v2: bản v1 không bao giờ cài được vì cache.addAll() fail khi thiếu
-// public/icons/* (đã vá bằng SVG thật) — bump để chắc chắn cài lại sạch.
-const CACHE_NAME = "english-lms-shell-v2";
+const CACHE_NAME = "english-lms-shell-v4";
 const APP_SHELL_ASSETS = [
   "/manifest.json",
-  "/icons/icon-192.svg",
-  "/icons/icon-512.svg",
+  "/offline",
+  "/icons/icon-192.png",
+  "/icons/icon-512.png",
+  "/icons/apple-touch-icon.png",
 ];
 
-// Install: Cache các tài nguyên app shell tĩnh
+// Install: Cache các tài nguyên app shell tĩnh + trang /offline
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
@@ -51,11 +51,10 @@ self.addEventListener("fetch", (event) => {
     event.request.method !== "GET";
 
   if (isExcluded) {
-    // Trực tiếp gọi mạng, không lưu bất kỳ dữ liệu nhạy cảm nào vào cache trình duyệt
     return;
   }
 
-  // 2. Với các tài nguyên tĩnh (CSS, JS, Fonts, App Shell Icons)
+  // 2. Tài nguyên tĩnh (CSS, JS, Fonts, App Shell Icons)
   if (
     url.pathname.startsWith("/_next/static/") ||
     url.pathname.startsWith("/icons/") ||
@@ -79,10 +78,18 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // 3. Với các trang HTML khác: Network first
+  // 3. Trang HTML điều hướng: Network-first, mất mạng trả trang /offline thân thiện
+  if (event.request.mode === "navigate") {
+    event.respondWith(
+      fetch(event.request).catch(() => {
+        return caches.match("/offline");
+      })
+    );
+    return;
+  }
+
+  // 4. Các request GET khác: Network-first
   event.respondWith(
-    fetch(event.request).catch(() => {
-      return caches.match(event.request);
-    })
+    fetch(event.request).catch(() => caches.match(event.request))
   );
 });

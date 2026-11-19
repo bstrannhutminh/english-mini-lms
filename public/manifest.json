@@ -1,31 +1,45 @@
 {
   "name": "English Mini LMS - Bác sĩ Minh",
   "short_name": "English LMS",
-  "description": "Ứng dụng luyện tiếng Anh y khoa cá nhân dành cho BS. Minh (giao tiếp, đọc dịch sách y, nghe nói, hướng tới IELTS 7.5-8.0)",
+  "description": "Ứng dụng luyện tiếng Anh y khoa cá nhân — giao tiếp, đọc dịch sách y, nghe nói, hướng tới IELTS 7.5–8.0.",
   "start_url": "/today",
   "scope": "/",
   "display": "standalone",
-  "background_color": "#0f172a",
-  "theme_color": "#2563eb",
+  "background_color": "#f8fafc",
+  "theme_color": "#0d9488",
   "orientation": "portrait-primary",
   "icons": [
     {
-      "src": "/icons/icon-192.svg",
+      "src": "/icons/icon-192.png",
       "sizes": "192x192",
-      "type": "image/svg+xml",
+      "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/icons/icon-512.svg",
+      "src": "/icons/icon-512.png",
       "sizes": "512x512",
-      "type": "image/svg+xml",
+      "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/icons/icon-512.svg",
+      "src": "/icons/icon-512-maskable.png",
       "sizes": "512x512",
-      "type": "image/svg+xml",
+      "type": "image/png",
       "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Học hôm nay",
+      "short_name": "Hôm nay",
+      "url": "/today",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
+    },
+    {
+      "name": "Ôn từ đến hạn",
+      "short_name": "Ôn từ",
+      "url": "/vocab/flashcards",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" }]
     }
   ]
 }

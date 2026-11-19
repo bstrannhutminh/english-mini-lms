@@ -17,7 +17,7 @@ export function MobileTopBar({ user }: MobileTopBarProps) {
       <Link
         href="/today"
         aria-label="English Mini LMS — về Hôm nay"
-        className="flex items-center gap-2 no-underline"
+        className="flex min-h-11 items-center gap-2 no-underline"
       >
         <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-teal-600 text-[10px] font-bold tracking-wider text-white">
           MD

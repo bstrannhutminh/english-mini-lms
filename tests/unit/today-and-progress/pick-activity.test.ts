@@ -58,11 +58,12 @@ describe("pickRecommendedActivity (shared by /today and /library)", () => {
     expect(rec?.parentId).toBe("sub-1");
   });
 
-  it("rule (c): otherwise picks the least-practiced skill", () => {
+  it("rule (c): otherwise picks the least-practiced skill without technical jargon", () => {
     const rec = pickRecommendedActivity(acts, ctx(), 30);
     expect(rec?.id).toBe("L1");
     expect(rec?.actionType).toBe("new_session");
     expect(rec?.reason).toContain("chưa được luyện bài nào");
+    expect(rec?.reason).not.toMatch(/Quy tắc \(/i);
   });
 
   it("picks ielts-* activities matching leastPracticedMode", () => {
@@ -107,5 +108,24 @@ describe("pickRecommendedActivity (shared by /today and /library)", () => {
     expect(rec?.durationMinutes).toBe(15);
 
     expect(pickRecommendedActivity([], ctx(), 30)).toBeNull();
+  });
+
+  it("applies saved goals and self-assessment only to ties in recent counts", () => {
+    const rec = pickRecommendedActivity(acts, ctx({
+      skillCounts: { writing: 0, reading: 0, speaking: 1, listening: 0 },
+      leastPracticedMode: "writing",
+      learningProfile: { selfAssessment: { writing: 4, reading: 2, speaking: 1, listening: 3 } },
+    }), 30);
+    expect(rec?.id).toBe("R1");
+  });
+
+  it("matches the onboarding preview when profile priorities still tie", () => {
+    const rec = pickRecommendedActivity(acts, ctx({
+      skillCounts: { writing: 0, reading: 0, speaking: 0, listening: 0 },
+      leastPracticedMode: "writing",
+      learningProfile: { priorities: ["Giao tiếp hội nghị y khoa & thuyết trình"],
+        selfAssessment: { writing: 3, reading: 4, speaking: 3, listening: 3 } },
+    }), 30);
+    expect(rec?.id).toBe("S1");
   });
 });

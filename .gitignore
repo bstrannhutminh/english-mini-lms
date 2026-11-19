@@ -36,3 +36,6 @@ backups/*.sql
 !supabase/migrations/**/*.sql
 .vercel
 .env*
+
+# Local verification logs, screenshots and temporary source snapshots
+plans/reports/*-artifacts/

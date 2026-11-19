@@ -3,7 +3,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentLearner } from "@/server/auth";
 import { getLearnerVocabulary } from "@/server/vocabulary/service";
-import { AppNav } from "@/components/layout";
+import { MainShell } from "@/components/layout";
 import { ToastProvider } from "@/components/ui";
 import { TourHost } from "@/components/tour-host";
 
@@ -27,11 +27,12 @@ export default async function MainLayout({
 
   // Cờ đã xem hướng dẫn nhanh — nếu không đọc được learner thì coi như đã xem để không làm phiền
   const learner = await getCurrentLearner().catch(() => null);
-  const tourCompleted = learner ? Boolean(learner.preferences?.tourCompleted) : true;
+  const tourCompleted = learner
+    ? Boolean(learner.preferences?.tourCompleted) ||
+      learner.baselineStatus === "completed"
+    : true;
 
-  // Badge "Sổ từ": số từ đến hạn — đếm từ dữ liệu vocab hiện có (service
-  // getLearnerVocabulary filter "due" = due_at <= now). Lỗi DB → ẩn badge,
-  // không để shell hỏng.
+  // Badge "Sổ từ": số từ đến hạn — lỗi DB → ẩn badge, không để shell hỏng.
   const vocabDueCount = learner
     ? await getLearnerVocabulary(learner.id, "due")
         .then((items) => items.length)
@@ -40,26 +41,20 @@ export default async function MainLayout({
 
   return (
     <ToastProvider>
-      <div className="flex min-h-dvh flex-col bg-surface-muted">
-        {/* Điều hướng: sidebar (≥lg) + thanh trên & tab dưới (<lg) */}
-        <AppNav
-          vocabDueCount={vocabDueCount}
-          user={{
-            displayName: learner?.displayName ?? null,
-            isAdmin: learner?.role === "admin",
-          }}
-        />
+      <MainShell
+        vocabDueCount={vocabDueCount}
+        user={{
+          displayName: learner?.displayName ?? null,
+          isAdmin: learner?.role === "admin",
+        }}
+      >
+        {children}
+      </MainShell>
 
-        {/* Nội dung — chừa chỗ cho top bar + bottom tab (mobile), sidebar (desktop) */}
-        <main className="flex-1 pb-(--nav-height) pt-(--topbar-height) lg:pb-0 lg:pl-(--sidebar-width) lg:pt-0">
-          {children}
-        </main>
-
-        {/* Hướng dẫn nhanh (guided tour) — useSearchParams cần Suspense */}
-        <Suspense fallback={null}>
-          <TourHost tourCompleted={tourCompleted} />
-        </Suspense>
-      </div>
+      {/* Hướng dẫn nhanh (guided tour) — tự ẩn trên Focus Routes */}
+      <Suspense fallback={null}>
+        <TourHost tourCompleted={tourCompleted} />
+      </Suspense>
     </ToastProvider>
   );
 }

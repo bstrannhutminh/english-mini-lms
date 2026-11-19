@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { Icon } from "@/components/ui";
 import { SessionColumns } from "../../shell/session-columns";
 import {
   YouTubePlayer,
@@ -14,16 +15,14 @@ import { useListeningHotkeys } from "./use-listening-hotkeys";
 import { ListeningQuestionsCard } from "./listening-questions-card";
 import { ListeningTranscriptCard } from "./listening-transcript-card";
 import { ListeningAfterSubmit } from "./listening-after-submit";
+import { ListeningLessonHeader } from "./listening-lesson-header";
 
-/** Video minh hoạ khi bài chưa gắn nguồn thật (giữ hành vi view cũ). */
 const DEMO_VIDEO_URL = "https://www.youtube.com/watch?v=uVSiFJ85EtM";
 
 /**
- * Vùng làm bài mode Nghe (không chrome): trái = đề + player + transcript khoá,
- * phải = câu hỏi; sau nộp = đáp án + chế độ con Shadowing.
- * Invariant transcript: chỉ render segments server trả — reveal ghi
- * session_events trước (fail → lỗi Việt + retry, không mở), nộp xong
- * router.refresh() để nhận transcript đã mở khoá.
+ * Vùng làm bài mode Nghe & Shadowing với tiến trình 3 chặng rõ ràng:
+ * 1. Nghe & Trả lời → 2. Đối chiếu đáp án & Transcript → 3. Shadowing từng câu.
+ * Invariant transcript: chỉ render segments server trả sau reveal/nộp bài.
  */
 export function ListeningPanel(props: ModePanelProps) {
   const { data, busy, postEvent, capture, submission } = props;
@@ -38,12 +37,9 @@ export function ListeningPanel(props: ModePanelProps) {
   const submitted = Boolean(submission);
   const revealed =
     state.revealed || Boolean(listening?.isTranscriptRevealed) || submitted;
-  // Đang chờ server trả segments sau khi đã ghi event reveal / đã nộp
-  // (isTranscriptRevealed chỉ lật true khi getSessionDetails chạy lại).
   const transcriptPending =
     !Boolean(listening?.isTranscriptRevealed) && (state.revealed || submitted);
 
-  // Nộp xong → khoá nộp lại trong state + làm mới data để nhận transcript mở khoá
   useEffect(() => {
     if (submission && !state.submittedId) {
       setState((prev) => ({
@@ -55,7 +51,6 @@ export function ListeningPanel(props: ModePanelProps) {
     }
   }, [submission, state.submittedId, setState, router]);
 
-  // Đã ghi event reveal → làm mới để server trả transcriptSegments
   useEffect(() => {
     if (
       state.revealed &&
@@ -69,16 +64,23 @@ export function ListeningPanel(props: ModePanelProps) {
 
   if (!listening) {
     return (
-      <div className="rounded-2xl border border-amber-300 bg-amber-50 p-5 text-sm text-amber-900">
-        ⚠️ <strong>Chưa thể mở bài nghe.</strong> Bài này chưa có dữ liệu đoạn
-        nghe (source segment hoặc câu hỏi). Vui lòng báo quản trị để kiểm tra.
+      <div className="flex items-start gap-2.5 rounded-2xl border border-amber-200 bg-amber-50 p-5 text-sm text-amber-900">
+        <Icon name="alert-triangle" className="mt-0.5 h-5 w-5 shrink-0" />
+        <span>
+          <strong>Chưa thể mở bài nghe.</strong> Bài này chưa có dữ liệu đoạn
+          nghe (source segment hoặc câu hỏi). Vui lòng báo quản trị để kiểm tra.
+        </span>
       </div>
     );
   }
 
   const sourceRef = `Bài nghe: ${data.activity.slot || data.activity.id}`;
+  const currentStage = !submitted
+    ? 1
+    : state.activeTab === "shadowing"
+      ? 3
+      : 2;
 
-  /** Mở transcript trước nộp → ghi event reveal (server sẽ tính assisted). */
   async function handleReveal() {
     if (revealed || state.isRevealing) return;
     setState((prev) => ({ ...prev, isRevealing: true, revealError: null }));
@@ -96,7 +98,6 @@ export function ListeningPanel(props: ModePanelProps) {
   }
 
   function handleSeek(seconds: number) {
-    // seekTo cùng giá trị 2 lần liên tiếp vẫn phải seek lại → về null rồi set.
     setSeekTo(null);
     setTimeout(() => setSeekTo(seconds), 0);
   }
@@ -111,48 +112,21 @@ export function ListeningPanel(props: ModePanelProps) {
 
   const left = (
     <>
-      {/* Thông tin bài */}
-      <div className="mb-4 rounded-2xl border border-slate-200 bg-white p-4">
-        <div className="mb-2 flex items-center gap-2">
-          <span className="rounded-md bg-skill-listening-soft px-2 py-0.5 text-xs font-bold text-skill-listening">
-            🎧 {data.activity.slot || data.activity.id} · Nghe & Shadowing
-          </span>
-          {submitted && (
-            <span
-              className={`rounded-md px-2 py-0.5 text-xs font-bold ${
-                submission?.assisted
-                  ? "bg-amber-100 text-amber-700"
-                  : "bg-green-100 text-green-700"
-              }`}
-            >
-              {submission?.assisted ? "💡 Có trợ giúp" : "⭐ Tự làm độc lập"}
-            </span>
-          )}
-        </div>
-        <h2 className="mb-1.5 text-lg font-bold leading-snug text-slate-900">
-          {data.activity.title}
-        </h2>
-        {data.activity.objective && (
-          <p className="m-0 text-sm leading-snug text-slate-600">
-            🎯 <strong>Mục tiêu:</strong> {data.activity.objective}
-          </p>
-        )}
-      </div>
+      <ListeningLessonHeader
+        activity={data.activity}
+        submission={submission}
+        currentStage={currentStage}
+      />
 
-      {/* Cảnh báo thiếu video thật */}
       {!listening.videoUrl && (
-        <div className="mb-3 flex items-center gap-2 rounded-lg border border-yellow-300 bg-yellow-50 px-3.5 py-2.5 text-[13px] text-yellow-800">
-          <span>⚠️</span>
+        <div className="mb-3 flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3.5 py-2.5 text-xs text-amber-900">
+          <Icon name="alert-triangle" className="mt-0.5 h-4 w-4 shrink-0" />
           <span>
-            <strong>
-              Bài này thiếu đoạn trích/video thật — nội dung demo tạm
-            </strong>{" "}
-            (đang phát video minh hoạ mặc định).
+            <strong>Thiếu video gốc — đang phát video minh hoạ tạm.</strong>
           </span>
         </div>
       )}
 
-      {/* Trình phát YouTube: start/end giây, 0.75x, fallback link khi chặn nhúng */}
       <YouTubePlayer
         videoUrl={listening.videoUrl || DEMO_VIDEO_URL}
         startSeconds={listening.startSeconds}
@@ -161,18 +135,21 @@ export function ListeningPanel(props: ModePanelProps) {
         controlRef={playerControlRef}
       />
 
-      <p className="mb-4 hidden text-xs text-slate-500 lg:block">
-        ⌨️ Phím tắt:{" "}
-        <kbd className="rounded border border-slate-300 bg-white px-1.5">
+      <p className="mb-4 hidden text-xs text-text-muted lg:block">
+        Phím tắt:{" "}
+        <kbd className="rounded border border-border bg-surface px-1.5 py-0.5">
           Space
         </kbd>{" "}
         phát/dừng ·{" "}
-        <kbd className="rounded border border-slate-300 bg-white px-1.5">←</kbd>{" "}
-        <kbd className="rounded border border-slate-300 bg-white px-1.5">→</kbd>{" "}
+        <kbd className="rounded border border-border bg-surface px-1.5 py-0.5">
+          ←
+        </kbd>{" "}
+        <kbd className="rounded border border-border bg-surface px-1.5 py-0.5">
+          →
+        </kbd>{" "}
         tua 5 giây (bấm ra ngoài khung video trước khi dùng).
       </p>
 
-      {/* Transcript bị khoá cho đến khi nộp (mở sớm = có trợ giúp) */}
       {!submitted && (
         <ListeningTranscriptCard
           revealed={revealed}

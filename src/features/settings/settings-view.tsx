@@ -12,11 +12,13 @@ import {
 import {
   Button,
   ConfirmDialog,
+  Icon,
   Skeleton,
   useToast,
 } from "@/components/ui";
 import { useSettingsData } from "./use-settings-data";
 import { AccountCard } from "./account-card";
+import { LearningPlanCard } from "./learning-plan-card";
 import { PasswordCard } from "./password-card";
 import { ReminderCard } from "./reminder-card";
 import { GuideCard } from "./guide-card";
@@ -126,6 +128,7 @@ export function SettingsView() {
         </div>
       )}
 
+      <LearningPlanCard profile={profile} />
       <AccountCard profile={profile} />
       <PasswordCard />
       <ReminderCard
@@ -145,7 +148,8 @@ export function SettingsView() {
           onClick={() => setSignOutOpen(true)}
           className="border-red-200 text-red-600 hover:bg-red-50"
         >
-          🚪 Đăng xuất khỏi hệ thống
+          <Icon name="log-out" className="h-4 w-4" />
+          Đăng xuất khỏi hệ thống
         </Button>
       </div>
 

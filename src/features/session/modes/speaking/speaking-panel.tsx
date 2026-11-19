@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef } from "react";
-import { MarkdownText } from "@/components/ui";
+import { Icon, MarkdownText } from "@/components/ui";
 import type { ModePanelProps } from "../types";
 import { usePluginState } from "../types";
 import { useRecorder } from "../../hooks/use-recorder";
@@ -13,12 +13,9 @@ import { SpeakingParentReference } from "./parent-reference";
 import type { SpeakingModeState } from "./state";
 
 /**
- * Vùng làm bài mode Nói (không chrome): cột trái = đối chiếu bản trước +
- * tình huống nói, cột phải = ghi âm + ghi chú (đường nộp text-only).
- *
- * Media flow: ghi xong → panel tự upload POST /api/v1/media ngay → mediaId
- * nằm sẵn trong state để buildSubmission đồng bộ gửi kèm (submission cần
- * mediaId khi có audio thật; text-only → chỉ body → not_assessable).
+ * Vùng làm bài mode Nói: cột trái = đối chiếu bản trước + tình huống nói,
+ * cột phải = phòng thu audio (upload → mediaId) + khung ghi chú ý chính
+ * (cũng hỗ trợ nộp text-only với invariant pronunciation: not_assessable).
  */
 export function SpeakingPanel(props: ModePanelProps) {
   const { data, busy, capture } = props;
@@ -26,7 +23,6 @@ export function SpeakingPanel(props: ModePanelProps) {
   const { activity, parentData, sessionId } = data;
   const recorder = useRecorder(300);
 
-  // Chống race: xoá/thu lại trong lúc upload đang bay → bỏ qua kết quả cũ
   const uploadSeqRef = useRef(0);
 
   const uploadAudio = useCallback(
@@ -38,7 +34,7 @@ export function SpeakingPanel(props: ModePanelProps) {
         const file = new File(
           [blob],
           `speaking-${sessionId}-${Date.now()}.${fileExt}`,
-          { type: blob.type },
+          { type: blob.type }
         );
         const formData = new FormData();
         formData.append("file", file);
@@ -49,9 +45,9 @@ export function SpeakingPanel(props: ModePanelProps) {
         const res = await apiFetch(
           "/api/v1/media",
           { method: "POST", body: formData },
-          uploadMediaResponseSchema,
+          uploadMediaResponseSchema
         );
-        if (seq !== uploadSeqRef.current) return; // stale — người học đã xoá/thu lại
+        if (seq !== uploadSeqRef.current) return;
         setState((prev) => ({
           ...prev,
           mediaStatus: "ready",
@@ -68,22 +64,20 @@ export function SpeakingPanel(props: ModePanelProps) {
         setState((prev) => ({ ...prev, mediaStatus: "error", mediaError: message }));
       }
     },
-    [sessionId, setState],
+    [sessionId, setState]
   );
 
-  // Upload ngay khi một bản ghi hoàn tất (blob xuất hiện, còn idle)
   useEffect(() => {
     if (recorder.blob && state.mediaStatus === "idle") {
       void uploadAudio(recorder.blob, recorder.durationSeconds);
     }
   }, [recorder.blob, recorder.durationSeconds, state.mediaStatus, uploadAudio]);
 
-  // Đồng bộ cờ đang ghi vào ModeState để canSubmit chặn nộp giữa chừng
   useEffect(() => {
     setState((prev) =>
       prev.isRecording === recorder.isRecording
         ? prev
-        : { ...prev, isRecording: recorder.isRecording },
+        : { ...prev, isRecording: recorder.isRecording }
     );
   }, [recorder.isRecording, setState]);
 
@@ -94,7 +88,7 @@ export function SpeakingPanel(props: ModePanelProps) {
   }, [recorder.blob, recorder.durationSeconds, uploadAudio]);
 
   const handleClearTake = useCallback(() => {
-    uploadSeqRef.current += 1; // vô hiệu mọi upload đang bay
+    uploadSeqRef.current += 1;
     recorder.clear();
     setState((prev) => ({
       ...prev,
@@ -120,22 +114,29 @@ export function SpeakingPanel(props: ModePanelProps) {
         />
       )}
 
-      {/* Đề bài / tình huống giao tiếp — bôi đen được để Smart Capture */}
-      <div className="mb-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
-        <div className="mb-2 text-[15px] font-bold text-slate-800">
-          🗣️ Tình huống nói:
+      <div className="mb-4 rounded-2xl border border-border bg-surface p-5 shadow-card">
+        <div className="mb-2.5 flex items-center gap-2">
+          <span className="inline-flex items-center gap-1 rounded-md border border-skill-speaking-border bg-skill-speaking-soft px-2 py-0.5 text-xs font-bold text-skill-speaking">
+            <Icon name="mic" className="h-3.5 w-3.5" />
+            Tình huống nói
+          </span>
         </div>
+
+        <h2 className="mb-2 text-lg font-bold text-text">{activity.title}</h2>
+
+        {activity.objective && (
+          <p className="mb-3 text-sm leading-relaxed text-text-secondary">
+            <strong className="text-text">Mục tiêu:</strong>{" "}
+            {activity.objective}
+          </p>
+        )}
+
         <div
           {...capture.selectHandlers(promptText, sourceRef)}
-          className="whitespace-pre-wrap rounded-xl border border-slate-200 bg-slate-50 px-4 py-3.5 text-[15px] leading-relaxed text-slate-700"
+          className="rounded-xl border border-border-subtle bg-surface-muted px-4 py-3.5 text-sm leading-relaxed text-text-secondary"
         >
           <MarkdownText text={promptText} />
         </div>
-        {activity.objective && (
-          <p className="mt-2.5 text-sm leading-snug text-slate-600">
-            🎯 <strong>Mục tiêu:</strong> {activity.objective}
-          </p>
-        )}
       </div>
     </>
   );
@@ -151,13 +152,13 @@ export function SpeakingPanel(props: ModePanelProps) {
         onClearTake={handleClearTake}
       />
 
-      {/* Ô ghi chú — đồng thời là đường nộp text-only khi micro không khả dụng */}
-      <div className="mt-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      <div className="mt-4 rounded-2xl border border-border bg-surface p-5 shadow-card">
         <label
           htmlFor="speaking-notes"
-          className="mb-1.5 block text-[13px] font-semibold text-slate-500"
+          className="mb-2 flex items-center gap-1.5 text-sm font-semibold text-text"
         >
-          📝 Ghi chú hoặc bản thảo nháp của bạn (tuỳ chọn):
+          <Icon name="pen" className="h-4 w-4 text-text-muted" />
+          <span>Ghi chú dàn ý nói (tuỳ chọn)</span>
         </label>
         <textarea
           id="speaking-notes"
@@ -166,14 +167,15 @@ export function SpeakingPanel(props: ModePanelProps) {
             setState((prev) => ({ ...prev, notes: e.target.value }))
           }
           disabled={busy}
-          placeholder="Bạn có thể gõ các ý chính hoặc nội dung dự kiến nói ở đây nếu muốn..."
+          placeholder="Ghi nhanh vài từ khoá dự kiến nói..."
           rows={3}
-          className="box-border w-full resize-y rounded-lg border border-slate-300 p-3 text-sm leading-relaxed text-slate-900 outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100 disabled:opacity-60"
+          className="box-border w-full resize-y rounded-xl border border-border bg-surface p-3.5 text-base leading-relaxed text-text outline-none transition placeholder:text-text-muted focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:opacity-60"
         />
         {!recorder.blob && !recorder.isRecording && (
-          <p className="mt-1.5 text-xs leading-snug text-slate-500">
-            Không ghi âm được? Nộp chỉ văn bản vẫn được chấm nội dung — nhưng AI
-            sẽ không đánh giá được phát âm.
+          <p className="mt-2 text-xs leading-relaxed text-text-muted">
+            Khi không tiện ghi âm, bạn vẫn có thể nộp nội dung gõ tay — AI sẽ
+            góp ý từ vựng & cấu trúc và ghi nhận phát âm là &ldquo;chưa đánh giá
+            được&rdquo;.
           </p>
         )}
       </div>

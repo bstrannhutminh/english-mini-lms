@@ -33,13 +33,13 @@ export function PasswordInput({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        className="w-full pl-3.5 pr-11 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-600 transition"
+        className="min-h-11 w-full pl-3.5 pr-14 py-2.5 text-base bg-slate-50 border border-slate-200 rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-600 transition"
       />
       <button
         type="button"
         onClick={() => setShow((v) => !v)}
         aria-label={show ? "Ẩn mật khẩu" : "Hiện mật khẩu"}
-        className="absolute right-2 top-1/2 -translate-y-1/2 flex h-8 w-8 items-center justify-center text-slate-400 hover:text-slate-600 transition"
+        className="absolute right-2 top-1/2 -translate-y-1/2 flex h-11 w-11 items-center justify-center text-slate-400 hover:text-slate-600 transition"
       >
         <Icon name={show ? "eye-off" : "eye"} className="h-5 w-5" />
       </button>

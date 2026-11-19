@@ -53,7 +53,7 @@ export function TourTooltip({
         opacity: positioned ? 1 : 0,
       }}
     >
-      <p className="text-[11px] font-semibold uppercase tracking-wider text-blue-600">
+      <p className="text-[11px] font-semibold uppercase tracking-wider text-primary-dark">
         Bước {index + 1}/{total}
       </p>
       <h2
@@ -91,7 +91,7 @@ export function TourTooltip({
             ref={nextRef}
             type="button"
             onClick={onNext}
-            className="min-h-[44px] rounded-lg bg-blue-600 px-4 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
+            className="min-h-[44px] rounded-xl bg-primary px-4 text-sm font-semibold text-white shadow-xs transition hover:bg-primary-dark focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
           >
             {isLast ? "Hoàn tất" : "Tiếp"}
           </button>

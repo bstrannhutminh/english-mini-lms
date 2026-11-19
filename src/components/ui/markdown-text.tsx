@@ -29,9 +29,10 @@ export function MarkdownText({ text }: { text: string }) {
         const heading = block.match(/^(#{1,3})\s+([^\n]+)/);
         if (heading) {
           return (
-            <p key={i} className="font-bold">
-              {inline(heading[2])}
-            </p>
+            <Fragment key={i}>
+              <p className="font-bold">{inline(heading[2])}</p>
+              {lines.length > 1 && <MarkdownText text={lines.slice(1).join("\n")} />}
+            </Fragment>
           );
         }
         return (

@@ -75,7 +75,7 @@ export function MagicLinkForm({
           value={email}
           onChange={(e) => onEmailChange(e.target.value)}
           placeholder="bacsi.minh@email.com"
-          className="w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-sm transition focus:border-teal-600 focus:bg-white focus:outline-none focus:ring-2 focus:ring-teal-500/20"
+          className="min-h-11 w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-base transition focus:border-teal-600 focus:bg-white focus:outline-none focus:ring-2 focus:ring-teal-500/20"
         />
       </div>
 
@@ -101,7 +101,7 @@ export function MagicLinkForm({
             onError(null);
             onSwitchMode();
           }}
-          className="text-xs font-medium text-slate-500 transition hover:text-teal-700"
+          className="inline-flex min-h-11 items-center text-xs font-medium text-slate-500 transition hover:text-teal-700"
         >
           ← Quay lại đăng nhập bằng Mật khẩu
         </button>

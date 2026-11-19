@@ -27,8 +27,8 @@ interface MenuEntry {
 }
 
 const MENU_ENTRIES: MenuEntry[] = [
+  { href: "/onboarding", label: "Thiết lập lộ trình", icon: "compass" },
   { href: "/settings", label: "Cài đặt", icon: "settings" },
-  { href: "/onboarding", label: "Hồ sơ", icon: "user" },
 ];
 
 function initials(name: string | null): string {
