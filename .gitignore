@@ -16,6 +16,8 @@ coverage/
 # OS
 .DS_Store
 Icon?
+# public/icons holds app icons (SVG); on case-insensitive FS, macOS "Icon?" pattern above would ignore it
+!public/icons/
 Thumbs.db
 
 # nguồn học có bản quyền / media (chỉ giữ metadata + trích đoạn ngắn trong repo)

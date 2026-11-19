@@ -1,51 +1,22 @@
-import { NextRequest, NextResponse } from "next/server";
-import { z } from "zod";
-import { getCurrentLearner } from "@/server/auth";
-import { createSession, ConflictError } from "@/server/learning/service";
+import { NextResponse } from "next/server";
+import { withLearner, parseJson } from "@/server/http";
+import { createSessionRequestSchema } from "@/contracts/session";
+import { createSession } from "@/server/learning/service";
 
-const CreateSessionSchema = z.object({
-  activityId: z.string().min(1, "Thiếu activityId"),
-  targetMinutes: z.union([z.literal(30), z.literal(45)]).default(30),
+/**
+ * POST /api/v1/sessions — tạo phiên học mới.
+ * learner_id luôn lấy từ session Supabase (withLearner), 409 trả kèm
+ * sessionId của phiên đang mở qua ConflictError → mapServiceError.
+ */
+export const POST = withLearner(async ({ req, learner }) => {
+  const body = await parseJson(req, createSessionRequestSchema);
+
+  const session = await createSession(
+    learner.id,
+    body.activityId,
+    body.targetMinutes,
+    { checkConflict: true }
+  );
+
+  return NextResponse.json({ sessionId: session.id }, { status: 201 });
 });
-
-export async function POST(req: NextRequest) {
-  try {
-    const learner = await getCurrentLearner();
-    if (!learner) {
-      return NextResponse.json({ error: "Chưa đăng nhập" }, { status: 401 });
-    }
-
-    const body = await req.json();
-    const parsed = CreateSessionSchema.safeParse(body);
-    if (!parsed.success) {
-      return NextResponse.json(
-        { error: "Dữ liệu không hợp lệ", details: parsed.error.format() },
-        { status: 422 }
-      );
-    }
-
-    const session = await createSession(
-      learner.id,
-      parsed.data.activityId,
-      parsed.data.targetMinutes,
-      { checkConflict: true }
-    );
-
-    return NextResponse.json({ sessionId: session.id }, { status: 201 });
-  } catch (error) {
-    if (error instanceof ConflictError) {
-      return NextResponse.json(
-        {
-          error: error.message,
-          sessionId: error.existingSessionId,
-        },
-        { status: 409 }
-      );
-    }
-    console.error("Lỗi POST /api/v1/sessions:", error);
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Internal Server Error" },
-      { status: 500 }
-    );
-  }
-}

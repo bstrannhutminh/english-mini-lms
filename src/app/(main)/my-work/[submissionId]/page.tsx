@@ -1,7 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import { getCurrentLearner } from "@/server/auth";
 import { getSubmissionWithFeedback } from "@/server/learning/service";
-import { MyWorkView } from "./my-work-view";
+import { FeedbackDetailView } from "@/features/my-work";
 
 export const dynamic = "force-dynamic";
 
@@ -23,7 +23,7 @@ export default async function MyWorkSubmissionPage({ params }: PageProps) {
   }
 
   return (
-    <MyWorkView
+    <FeedbackDetailView
       submission={data.submission}
       activity={data.activity}
       assessment={data.assessment}

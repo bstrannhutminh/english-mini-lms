@@ -1,51 +1,27 @@
-import { NextRequest, NextResponse } from "next/server";
-import { z } from "zod";
-import { getCurrentLearner } from "@/server/auth";
-import { quickCapture, ValidationError } from "@/server/vocabulary/service";
-
-const QuickCaptureRequestSchema = z.object({
-  selected_text: z.string().min(1, "selected_text is required"),
-  surrounding_sentence: z.string().optional().default(""),
-  source_ref: z.string().optional(),
-});
+import { NextResponse } from "next/server";
+import { withLearner, parseJson } from "@/server/http";
+import { quickCapture } from "@/server/vocabulary/service";
+import { quickCaptureRequestSchema } from "@/contracts/vocabulary";
 
 export const maxDuration = 60;
 
-export async function POST(req: NextRequest) {
-  try {
-    const learner = await getCurrentLearner();
-    if (!learner) {
-      return NextResponse.json({ error: "Chưa đăng nhập" }, { status: 401 });
-    }
+/**
+ * POST /api/v1/vocabulary/quick-capture — tra cứu chuyên ngành qua Gemini
+ * cho đoạn văn bản được bôi đen. Trả về {phrase, ipa, context_meaning,
+ * example_sentence} (snake_case, khớp contract cũ).
+ */
+export const POST = withLearner(async ({ req, learner }) => {
+  const body = await parseJson(req, quickCaptureRequestSchema);
 
-    const body = await req.json();
-    const parsed = QuickCaptureRequestSchema.safeParse(body);
-    if (!parsed.success) {
-      return NextResponse.json(
-        { error: "Dữ liệu không hợp lệ", details: parsed.error.format() },
-        { status: 400 }
-      );
-    }
+  const effectiveSentence =
+    body.surrounding_sentence.trim() || body.selected_text.trim();
 
-    const effectiveSentence =
-      parsed.data.surrounding_sentence.trim() || parsed.data.selected_text.trim();
+  const result = await quickCapture(
+    body.selected_text.trim(),
+    effectiveSentence,
+    body.source_ref,
+    learner.id
+  );
 
-    const result = await quickCapture(
-      parsed.data.selected_text.trim(),
-      effectiveSentence,
-      parsed.data.source_ref,
-      learner.id
-    );
-
-    return NextResponse.json(result);
-  } catch (error) {
-    if (error instanceof ValidationError) {
-      return NextResponse.json({ error: error.message }, { status: error.statusCode });
-    }
-    console.error("Lỗi POST /api/v1/vocabulary/quick-capture:", error);
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Internal Server Error" },
-      { status: 500 }
-    );
-  }
-}
+  return NextResponse.json(result);
+});

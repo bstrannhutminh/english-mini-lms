@@ -1,20 +1,18 @@
-import { z } from "zod";
+import { eq } from "drizzle-orm";
+import { db } from "@/db";
+import { learners } from "@/db/schema";
+import {
+  preferencesPatchSchema,
+  type PreferencesPatch,
+} from "@/contracts/settings";
 
 /**
  * Các khoá cài đặt người học được phép PATCH qua /api/v1/settings/preferences.
- * Chỉ khoá nào được gửi lên mới bị thay đổi (các khoá khác giữ nguyên).
+ * Schema sống ở src/contracts/settings.ts (dùng chung route ⇄ client);
+ * re-export ở đây để giữ import cũ (tests, callers).
  */
-export const preferencesPatchSchema = z.object({
-  remindEnabled: z.boolean().optional(),
-  remindTime: z
-    .string()
-    .regex(/^([01]\d|2[0-3]):[0-5]\d$/, "Giờ nhắc phải có dạng HH:mm")
-    .optional(),
-  /** true = đã xem/bỏ qua hướng dẫn; false = xoá cờ để xem lại hướng dẫn. */
-  tourCompleted: z.boolean().optional(),
-});
-
-export type PreferencesPatch = z.infer<typeof preferencesPatchSchema>;
+export { preferencesPatchSchema };
+export type { PreferencesPatch };
 
 const DEFAULT_REMIND_TIME = "20:00";
 
@@ -55,4 +53,31 @@ export function mergePreferences(
   }
 
   return merged;
+}
+
+/**
+ * Đọc preferences hiện tại → merge patch → ghi lại vào learners.
+ * Trả về preferences sau khi cập nhật.
+ */
+export async function updateLearnerPreferences(
+  learnerId: string,
+  patch: PreferencesPatch,
+): Promise<Record<string, unknown>> {
+  const [current] = await db
+    .select({ preferences: learners.preferences })
+    .from(learners)
+    .where(eq(learners.id, learnerId))
+    .limit(1);
+
+  const updated = mergePreferences(
+    current?.preferences as Record<string, unknown> | null,
+    patch,
+  );
+
+  await db
+    .update(learners)
+    .set({ preferences: updated })
+    .where(eq(learners.id, learnerId));
+
+  return updated;
 }

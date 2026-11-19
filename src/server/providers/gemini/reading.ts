@@ -1,5 +1,10 @@
 import { WritingFeedbackSchema, EvaluateWritingResult } from "./types";
 import { getGeminiClient } from "./client";
+import {
+  GeminiResponseError,
+  callGeminiWithRetry,
+  geminiAbortSignal,
+} from "./call-gemini";
 import { geminiResponseSchema } from "./writing";
 
 export const READING_SYSTEM_INSTRUCTION = `Bạn là Trợ lý Đánh giá Đọc–Dịch Y khoa dành cho Bác sĩ Minh (chuyên khoa Cơ xương khớp, can thiệp giảm đau siêu âm).
@@ -56,6 +61,7 @@ Hãy đối chiếu bản dịch với đoạn gốc và trả về JSON nhận 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         responseSchema: geminiResponseSchema as any,
         temperature: 0.2,
+        abortSignal: geminiAbortSignal(),
       },
     });
 
@@ -67,12 +73,14 @@ Hãy đối chiếu bản dịch với đoạn gốc và trả về JSON nhận 
     try {
       parsedJson = JSON.parse(responseText);
     } catch (parseError) {
-      throw new Error(`Gemini không trả về JSON hợp lệ: ${parseError instanceof Error ? parseError.message : String(parseError)}`);
+      throw new GeminiResponseError(
+        `Gemini không trả về JSON hợp lệ: ${parseError instanceof Error ? parseError.message : String(parseError)}`
+      );
     }
 
     const validated = WritingFeedbackSchema.safeParse(parsedJson);
     if (!validated.success) {
-      throw new Error(`JSON không đúng schema: ${validated.error.message}`);
+      throw new GeminiResponseError(`JSON không đúng schema: ${validated.error.message}`);
     }
 
     // Đảm bảo limitations có cảnh báo y khoa
@@ -88,15 +96,6 @@ Hãy đối chiếu bản dịch với đoạn gốc và trả về JSON nhận 
     };
   }
 
-  try {
-    return await callGeminiOnce();
-  } catch (firstError) {
-    console.warn("⚠️ Gemini evaluateReading lần 1 thất bại, thử lại lần 2...", firstError);
-    try {
-      return await callGeminiOnce();
-    } catch (secondError) {
-      console.error("❌ Gemini evaluateReading lần 2 tiếp tục thất bại:", secondError);
-      throw new Error(`Đánh giá bài đọc–dịch thất bại sau 2 lần thử: ${secondError instanceof Error ? secondError.message : String(secondError)}`);
-    }
-  }
+  // Chính sách retry chung: chỉ retry lỗi JSON/schema.
+  return callGeminiWithRetry(callGeminiOnce, "evaluateReading");
 }

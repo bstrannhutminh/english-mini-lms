@@ -1,26 +1,19 @@
-import { NextRequest, NextResponse } from "next/server";
-import { getCurrentLearner } from "@/server/auth";
+import { NextResponse } from "next/server";
+import { withLearner } from "@/server/http";
 import { getTodayRecommendation } from "@/server/today/service";
 
-export async function GET(req: NextRequest) {
-  try {
-    const learner = await getCurrentLearner();
-    if (!learner) {
-      return NextResponse.json({ error: "Chưa đăng nhập" }, { status: 401 });
-    }
+export const dynamic = "force-dynamic";
 
-    const { searchParams } = new URL(req.url);
-    const targetMinParam = searchParams.get("target_minutes");
-    const targetMinutes = targetMinParam === "45" ? 45 : 30;
+/**
+ * GET /api/v1/today?target_minutes=30|45 — recommendation + daily plan.
+ * Wire shape: contracts/today.ts (todayRecommendationSchema). learner_id
+ * comes from the session via withLearner; errors map via mapServiceError.
+ */
+export const GET = withLearner(async ({ req, learner }) => {
+  const { searchParams } = new URL(req.url);
+  const targetMinParam = searchParams.get("target_minutes");
+  const targetMinutes = targetMinParam === "45" ? 45 : 30;
 
-    const recommendation = await getTodayRecommendation(learner.id, targetMinutes);
-
-    return NextResponse.json(recommendation);
-  } catch (error) {
-    console.error("Lỗi GET /api/v1/today:", error);
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Internal Server Error" },
-      { status: 500 }
-    );
-  }
-}
+  const recommendation = await getTodayRecommendation(learner.id, targetMinutes);
+  return NextResponse.json(recommendation);
+});

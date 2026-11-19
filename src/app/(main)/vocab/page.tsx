@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 import { getCurrentLearner } from "@/server/auth";
 import { getLearnerVocabulary } from "@/server/vocabulary/service";
-import { VocabListView } from "./vocab-list-view";
+import { VocabListView } from "@/features/vocab/vocab-list";
 
 export const dynamic = "force-dynamic";
 

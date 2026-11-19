@@ -1,63 +1,16 @@
-import { NextRequest, NextResponse } from "next/server";
-import { eq } from "drizzle-orm";
-import { getCurrentLearner } from "@/server/auth";
-import { db } from "@/db";
-import { learners } from "@/db/schema";
-import {
-  mergePreferences,
-  preferencesPatchSchema,
-} from "@/server/settings/preferences";
+import { NextResponse } from "next/server";
+import { parseJson, withLearner } from "@/server/http";
+import { preferencesPatchSchema } from "@/contracts/settings";
+import { updateLearnerPreferences } from "@/server/settings/preferences";
 
 export const dynamic = "force-dynamic";
 
-export async function PATCH(req: NextRequest) {
-  try {
-    const learner = await getCurrentLearner();
-    if (!learner) {
-      return NextResponse.json(
-        { error: "Unauthorized — Vui lòng đăng nhập" },
-        { status: 401 }
-      );
-    }
-
-    const body = await req.json().catch(() => null);
-    const parsed = preferencesPatchSchema.safeParse(body);
-    if (!parsed.success) {
-      return NextResponse.json(
-        { error: "Dữ liệu cài đặt không hợp lệ" },
-        { status: 400 }
-      );
-    }
-
-    // Lấy preferences hiện tại
-    const [current] = await db
-      .select({ preferences: learners.preferences })
-      .from(learners)
-      .where(eq(learners.id, learner.id))
-      .limit(1);
-
-    const updatedPreferences = mergePreferences(
-      current?.preferences as Record<string, unknown> | null,
-      parsed.data
-    );
-
-    await db
-      .update(learners)
-      .set({
-        preferences: updatedPreferences,
-      })
-      .where(eq(learners.id, learner.id));
-
-    return NextResponse.json({
-      success: true,
-      preferences: updatedPreferences,
-    });
-  } catch (error: unknown) {
-    const errorMsg = error instanceof Error ? error.message : String(error);
-    console.error("Update preferences error:", errorMsg);
-    return NextResponse.json(
-      { error: "Lỗi cập nhật cài đặt: " + errorMsg },
-      { status: 500 }
-    );
-  }
-}
+/**
+ * PATCH /api/v1/settings/preferences — merge khoá được gửi vào learners.preferences.
+ * Body parse qua contract (422 + fields khi sai); learner_id từ session.
+ */
+export const PATCH = withLearner(async ({ req, learner }) => {
+  const patch = await parseJson(req, preferencesPatchSchema);
+  const updated = await updateLearnerPreferences(learner.id, patch);
+  return NextResponse.json({ success: true, preferences: updated });
+});

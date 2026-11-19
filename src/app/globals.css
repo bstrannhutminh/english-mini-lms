@@ -1,29 +1,97 @@
 @import "tailwindcss";
 
-:root {
-  --font-sans: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-
-  /* Color tokens — UI/UX Pro Max Medical Clinical & Calming palette */
+/*
+ * Design tokens — nguồn duy nhất cho màu sắc/bóng/animation dùng qua Tailwind.
+ * Quyết định D-6: giữ palette teal "Medical Clinical & Calming" + font hệ thống
+ * (Inter qua next/font), KHÔNG dùng style trẻ em từ design-system/MASTER.md.
+ *
+ * Mọi biến --color-* nằm trong @theme nên vừa tạo utility Tailwind
+ * (bg-primary, text-text-secondary, border-border, bg-skill-writing-soft…)
+ * vừa vẫn truy cập được qua var(--color-*) như trước.
+ */
+@theme {
+  /* Brand — teal */
   --color-primary: #0d9488;
   --color-primary-light: #14b8a6;
   --color-primary-dark: #0f766e;
   --color-accent: #d97706;
+
+  /* Surfaces */
   --color-surface: #ffffff;
   --color-surface-elevated: #ffffff;
   --color-surface-muted: #f8fafc;
   --color-surface-subtle: #f1f5f9;
+
+  /* Text */
   --color-text: #0f172a;
   --color-text-secondary: #475569;
   --color-text-muted: #64748b;
+
+  /* Borders */
   --color-border: #e2e8f0;
   --color-border-subtle: #f1f5f9;
+
+  /* Status */
   --color-success: #059669;
   --color-warning: #d97706;
   --color-error: #dc2626;
+  --color-info: #0284c7;
 
-  /* Spacing for mobile touch targets (WCAG 2.2 AA compliant) */
-  --touch-target: 44px;
-  --nav-height: 64px;
+  /*
+   * Accent theo kỹ năng — dùng bởi MODE_META (src/lib/modes.ts) và Badge tone.
+   * Bộ 3: <skill> = chữ/icon đậm, <skill>-soft = nền nhạt, <skill>-border = viền.
+   */
+  --color-skill-writing: #4338ca;
+  --color-skill-writing-soft: #eef2ff;
+  --color-skill-writing-border: #c7d2fe;
+  --color-skill-reading: #047857;
+  --color-skill-reading-soft: #ecfdf5;
+  --color-skill-reading-border: #a7f3d0;
+  --color-skill-speaking: #b45309;
+  --color-skill-speaking-soft: #fffbeb;
+  --color-skill-speaking-border: #fde68a;
+  --color-skill-listening: #0369a1;
+  --color-skill-listening-soft: #f0f9ff;
+  --color-skill-listening-border: #bae6fd;
+
+  /* Shadows */
+  --shadow-card: 0 1px 2px rgb(15 23 42 / 0.04), 0 1px 3px rgb(15 23 42 / 0.06);
+  --shadow-pop: 0 8px 24px rgb(15 23 42 / 0.12), 0 2px 6px rgb(15 23 42 / 0.08);
+
+  /* Motion — lớp phủ/toast/modal. prefers-reduced-motion tắt bên dưới. */
+  --animate-fade-in: fade-in 160ms ease-out;
+  --animate-zoom-in: zoom-in 160ms ease-out;
+  --animate-slide-up: slide-up 200ms ease-out;
+
+  @keyframes fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  @keyframes zoom-in {
+    from { opacity: 0; transform: scale(0.96); }
+    to { opacity: 1; transform: scale(1); }
+  }
+  @keyframes slide-up {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+}
+
+:root {
+  /* Fallback font stack — next/font ghi đè --font-sans thật trên <html>. */
+  --font-sans: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+
+  /* Layout chrome — KHÔNG đưa vào @theme (không phải scale utility). */
+  --nav-height: 64px;              /* thanh tab dưới mobile */
+  --topbar-height: 56px;           /* thanh trên mobile (brand + avatar) */
+  --sidebar-width: 240px;          /* sidebar desktop (w-60) */
+  --touch-target: 44px;            /* WCAG 2.2 AA */
+
+  /* Z-index scale — tour overlay ở 9998+ vẫn cao nhất. */
+  --z-nav: 50;
+  --z-dropdown: 60;
+  --z-modal: 70;
+  --z-toast: 80;
 }
 
 * {
@@ -38,7 +106,7 @@ html {
 body {
   font-family: var(--font-sans);
   color: var(--color-text);
-  background-color: #f8fafc;
+  background-color: var(--color-surface-muted);
   margin: 0;
   padding: 0;
   min-height: 100dvh;

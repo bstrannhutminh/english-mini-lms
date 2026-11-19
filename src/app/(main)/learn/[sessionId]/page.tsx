@@ -1,10 +1,11 @@
 import { notFound, redirect } from "next/navigation";
 import { getCurrentLearner } from "@/server/auth";
-import { getSessionDetails, getSubmissionWithFeedback } from "@/server/learning/service";
-import { WritingSessionView } from "./writing-session-view";
-import { ReadingSessionView } from "./reading-session-view";
-import { SpeakingSessionView } from "./speaking-session-view";
-import { ListeningSessionView } from "./listening-session-view";
+import {
+  getSessionDetails,
+  getSubmissionWithFeedback,
+} from "@/server/learning/service";
+import { resolvePlugin } from "@/features/session/modes/registry";
+import { SessionRoot } from "@/features/session/shell/session-root";
 
 export const dynamic = "force-dynamic";
 
@@ -15,43 +16,45 @@ interface PageProps {
 
 export default async function LearnSessionPage({ params, searchParams }: PageProps) {
   const learner = await getCurrentLearner();
-  if (!learner) {
-    redirect("/login");
-  }
+  if (!learner) redirect("/login");
 
   const { sessionId } = await params;
   const { parentId } = await searchParams;
 
   const data = await getSessionDetails(sessionId, learner.id);
-  if (!data) {
-    notFound();
-  }
+  if (!data || !data.activity) notFound();
 
   let parentData = null;
   if (parentId) {
-    const parentRes = await getSubmissionWithFeedback(parentId, learner.id);
-    if (parentRes) {
+    const res = await getSubmissionWithFeedback(parentId, learner.id);
+    if (res) {
       parentData = {
         submission: {
-          id: parentRes.submission.id,
-          revision: parentRes.submission.revision,
-          body: parentRes.submission.body,
-          assisted: parentRes.submission.assisted,
-          submittedAt: parentRes.submission.submittedAt,
-          audioUrl: parentRes.submission.audioUrl,
+          id: res.submission.id,
+          revision: res.submission.revision,
+          body: res.submission.body,
+          assisted: res.submission.assisted,
+          submittedAt: res.submission.submittedAt,
+          audioUrl: res.submission.audioUrl,
         },
-        feedback: parentRes.feedback,
+        feedback: res.feedback,
       };
     }
   }
 
-  // Chế độ Đọc - Dịch y khoa (Reading Mode)
-  if (data.activity.mode === "reading") {
-    return (
-      <ReadingSessionView
-        sessionId={sessionId}
-        targetMinutes={data.session.targetMinutes}
-        activity={{
+  // Định tuyến theo SKILL (modeSkill): ielts-* → cùng plugin skill + badge
+  // IELTS. Mọi skill đều có plugin; mode lạ → 404.
+  const resolved = resolvePlugin(data.activity.mode);
+  if (!resolved?.plugin) notFound();
+
+  return (
+    <SessionRoot
+      skill={resolved.skill}
+      isIelts={resolved.isIelts}
+      data={{
+        sessionId,
+        targetMinutes: data.session.targetMinutes,
+        activity: {
           id: data.activity.id,
           slot: data.activity.slot,
           title: data.activity.title,
@@ -60,74 +63,13 @@ export default async function LearnSessionPage({ params, searchParams }: PagePro
           promptText: data.activity.promptText,
           feedbackGuide: data.activity.feedbackGuide,
           durationMinutes: data.activity.durationMinutes,
-        }}
-        segment={data.segment}
-        initialDraft={data.draft?.content || ""}
-        parentId={parentId}
-      />
-    );
-  }
-
-  // Chế độ Nghe & Shadowing (Listening Mode)
-  if (data.activity.mode === "listening" && data.listening) {
-    return (
-      <ListeningSessionView
-        sessionId={sessionId}
-        targetMinutes={data.session.targetMinutes}
-        activity={{
-          id: data.activity.id,
-          slot: data.activity.slot,
-          title: data.activity.title,
-          mode: data.activity.mode,
-          objective: data.activity.objective,
-          promptText: data.activity.promptText,
-          feedbackGuide: data.activity.feedbackGuide,
-          durationMinutes: data.activity.durationMinutes || 15,
-        }}
-        listening={data.listening}
-        parentId={parentId}
-      />
-    );
-  }
-
-  // Chế độ Luyện Nói (Speaking Mode)
-  if (data.activity.mode === "speaking") {
-    return (
-      <SpeakingSessionView
-        sessionId={sessionId}
-        targetMinutes={data.session.targetMinutes}
-        activity={{
-          id: data.activity.id,
-          slot: data.activity.slot,
-          title: data.activity.title,
-          mode: data.activity.mode,
-          objective: data.activity.objective,
-          promptText: data.activity.promptText,
-          feedbackGuide: data.activity.feedbackGuide,
-          durationMinutes: data.activity.durationMinutes || 15,
-        }}
-        parentId={parentId}
-        parentData={parentData}
-      />
-    );
-  }
-
-  return (
-    <WritingSessionView
-      sessionId={sessionId}
-      targetMinutes={data.session.targetMinutes}
-      activity={{
-        id: data.activity.id,
-        slot: data.activity.slot,
-        title: data.activity.title,
-        mode: data.activity.mode,
-        objective: data.activity.objective,
-        promptText: data.activity.promptText,
-        feedbackGuide: data.activity.feedbackGuide,
+        },
+        initialDraft: data.draft?.content || "",
+        segment: data.segment,
+        listening: data.listening,
+        parentId,
+        parentData,
       }}
-      initialDraft={data.draft?.content || ""}
-      parentId={parentId}
-      parentData={parentData}
     />
   );
 }

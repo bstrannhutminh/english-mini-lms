@@ -1,4 +1,4 @@
-import { eq, desc, and, isNull, gte } from "drizzle-orm";
+import { eq, desc, and, isNull } from "drizzle-orm";
 import { db } from "@/db";
 import {
   activities,
@@ -6,9 +6,14 @@ import {
   submissions,
   learningSessions,
   learners,
-  usageEvents,
   feedbackVersions,
 } from "@/db/schema";
+import {
+  getMonthlyUsageSummary,
+  type MonthlyUsageSummary,
+} from "./usage-summary";
+
+export type { MonthlyUsageSummary } from "./usage-summary";
 
 export interface AdminActivityItem {
   id: string;
@@ -45,21 +50,6 @@ export interface AdminFlaggedFeedbackItem {
   createdAt: Date;
   observations: unknown;
   submissionBodySnippet: string | null;
-}
-
-export interface MonthlyUsageSummary {
-  month: string;
-  totalRequests: number;
-  totalInputTokens: number;
-  totalOutputTokens: number;
-  totalEstimatedCostUsd: number;
-  actionBreakdown: Array<{
-    action: string;
-    count: number;
-    inputTokens: number;
-    outputTokens: number;
-    estimatedCostUsd: number;
-  }>;
 }
 
 export interface AdminDashboardData {
@@ -156,70 +146,13 @@ export async function getAdminDashboardData(): Promise<AdminDashboardData> {
       : null,
   }));
 
-  // 4. Tổng token tháng từ usage_events
-  const startOfMonth = new Date();
-  startOfMonth.setDate(1);
-  startOfMonth.setHours(0, 0, 0, 0);
-
-  const usageRecords = await db
-    .select()
-    .from(usageEvents)
-    .where(gte(usageEvents.createdAt, startOfMonth));
-
-  const totalRequests = usageRecords.length;
-  let totalInputTokens = 0;
-  let totalOutputTokens = 0;
-  let totalEstimatedCostUsd = 0;
-
-  const actionMap = new Map<
-    string,
-    { count: number; inputTokens: number; outputTokens: number; cost: number }
-  >();
-
-  for (const record of usageRecords) {
-    const input = record.tokenInput || 0;
-    const output = record.tokenOutput || 0;
-    const cost = record.costEstimate || 0;
-
-    totalInputTokens += input;
-    totalOutputTokens += output;
-    totalEstimatedCostUsd += cost;
-
-    const action = record.action || "other";
-    const existing = actionMap.get(action) || {
-      count: 0,
-      inputTokens: 0,
-      outputTokens: 0,
-      cost: 0,
-    };
-    existing.count += 1;
-    existing.inputTokens += input;
-    existing.outputTokens += output;
-    existing.cost += cost;
-    actionMap.set(action, existing);
-  }
-
-  const actionBreakdown = Array.from(actionMap.entries()).map(([action, data]) => ({
-    action,
-    count: data.count,
-    inputTokens: data.inputTokens,
-    outputTokens: data.outputTokens,
-    estimatedCostUsd: Number(data.cost.toFixed(4)),
-  }));
-
-  const currentMonthStr = `${startOfMonth.getFullYear()}-${String(startOfMonth.getMonth() + 1).padStart(2, "0")}`;
+  // 4. Tổng token tháng từ usage_events (xem usage-summary.ts)
+  const usage = await getMonthlyUsageSummary();
 
   return {
     activities: allActivities,
     failedAssessments: formattedFailed,
     flaggedFeedback: formattedFlagged,
-    usage: {
-      month: currentMonthStr,
-      totalRequests,
-      totalInputTokens,
-      totalOutputTokens,
-      totalEstimatedCostUsd: Number(totalEstimatedCostUsd.toFixed(4)),
-      actionBreakdown,
-    },
+    usage,
   };
 }

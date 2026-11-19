@@ -1,0 +1,8 @@
+[
+  { "url": "/login", "name": "login", "viewport": [390, 844] },
+  { "url": "/login", "name": "login", "viewport": [1280, 800] },
+  { "url": "/ui-preview", "name": "ui-preview", "viewport": [390, 844] },
+  { "url": "/ui-preview", "name": "ui-preview", "viewport": [1280, 800] },
+  { "url": "/today", "name": "today-noenv-unauth", "viewport": [390, 844] },
+  { "url": "/learn/any-id", "name": "learn-any-id", "viewport": [390, 844] }
+]

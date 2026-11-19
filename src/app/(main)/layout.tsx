@@ -2,7 +2,9 @@ import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentLearner } from "@/server/auth";
-import { BottomNav, SideNav } from "@/components/bottom-nav";
+import { getLearnerVocabulary } from "@/server/vocabulary/service";
+import { AppNav } from "@/components/layout";
+import { ToastProvider } from "@/components/ui";
 import { TourHost } from "@/components/tour-host";
 
 export default async function MainLayout({
@@ -27,23 +29,37 @@ export default async function MainLayout({
   const learner = await getCurrentLearner().catch(() => null);
   const tourCompleted = learner ? Boolean(learner.preferences?.tourCompleted) : true;
 
+  // Badge "Sổ từ": số từ đến hạn — đếm từ dữ liệu vocab hiện có (service
+  // getLearnerVocabulary filter "due" = due_at <= now). Lỗi DB → ẩn badge,
+  // không để shell hỏng.
+  const vocabDueCount = learner
+    ? await getLearnerVocabulary(learner.id, "due")
+        .then((items) => items.length)
+        .catch(() => 0)
+    : 0;
+
   return (
-    <div className="flex min-h-dvh flex-col bg-slate-50">
-      {/* Sidebar (≥1024px) */}
-      <SideNav />
+    <ToastProvider>
+      <div className="flex min-h-dvh flex-col bg-surface-muted">
+        {/* Điều hướng: sidebar (≥lg) + thanh trên & tab dưới (<lg) */}
+        <AppNav
+          vocabDueCount={vocabDueCount}
+          user={{
+            displayName: learner?.displayName ?? null,
+            isAdmin: learner?.role === "admin",
+          }}
+        />
 
-      {/* Main content area — chừa chỗ cho bottom nav (mobile) hoặc sidebar (desktop) */}
-      <main className="flex-1 pb-[var(--nav-height)] lg:pb-0 lg:pl-60">
-        {children}
-      </main>
+        {/* Nội dung — chừa chỗ cho top bar + bottom tab (mobile), sidebar (desktop) */}
+        <main className="flex-1 pb-(--nav-height) pt-(--topbar-height) lg:pb-0 lg:pl-(--sidebar-width) lg:pt-0">
+          {children}
+        </main>
 
-      {/* Bottom navigation (<1024px) — fixed */}
-      <BottomNav />
-
-      {/* Hướng dẫn nhanh (guided tour) — useSearchParams cần Suspense */}
-      <Suspense fallback={null}>
-        <TourHost tourCompleted={tourCompleted} />
-      </Suspense>
-    </div>
+        {/* Hướng dẫn nhanh (guided tour) — useSearchParams cần Suspense */}
+        <Suspense fallback={null}>
+          <TourHost tourCompleted={tourCompleted} />
+        </Suspense>
+      </div>
+    </ToastProvider>
   );
 }

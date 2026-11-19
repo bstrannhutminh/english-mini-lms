@@ -1,21 +1,17 @@
 import { NextResponse } from "next/server";
-import { getCurrentLearner } from "@/server/auth";
+import { withLearner } from "@/server/http";
 import { getProgressSummary } from "@/server/progress/service";
+import type { ProgressSummaryContract } from "@/contracts/progress";
 
-export async function GET() {
-  try {
-    const learner = await getCurrentLearner();
-    if (!learner) {
-      return NextResponse.json({ error: "Chưa đăng nhập" }, { status: 401 });
-    }
+export const dynamic = "force-dynamic";
 
-    const summary = await getProgressSummary(learner.id);
-    return NextResponse.json(summary);
-  } catch (error) {
-    console.error("Lỗi GET /api/v1/progress:", error);
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Internal Server Error" },
-      { status: 500 }
-    );
-  }
-}
+/**
+ * GET /api/v1/progress — exemplar wiring of the shared http helpers:
+ * withLearner derives learner_id from the session; errors map through
+ * mapServiceError (503 on missing env/DB, 500 otherwise).
+ * The ProgressSummaryContract annotation locks the wire shape at compile time.
+ */
+export const GET = withLearner(async ({ learner }) => {
+  const summary: ProgressSummaryContract = await getProgressSummary(learner.id);
+  return NextResponse.json(summary);
+});

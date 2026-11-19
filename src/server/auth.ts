@@ -41,13 +41,26 @@ export async function getCurrentLearner(): Promise<CurrentLearner | null> {
       return existing as CurrentLearner;
     }
 
-    // Tự động tạo bản ghi learner đầu tiên cho user
+    // Bootstrap admin: chỉ learner ĐẦU TIÊN (khi chưa có admin nào) được cấp
+    // role=admin — để deploy mới vẫn có người quản trị. Mọi user sau đó mặc
+    // định là learner (fix review cũ: auto-grant admin cho mọi user mới).
+    // Race 2-user-login đồng thời lần đầu → có thể 2 admin; chấp nhận được
+    // cho app 1 người dùng, không rò quyền.
+    const [existingAdmin] = await db
+      .select({ id: learners.id })
+      .from(learners)
+      .where(eq(learners.role, "admin"))
+      .limit(1);
+    const bootstrapRole: "learner" | "admin" = existingAdmin
+      ? "learner"
+      : "admin";
+
     const [created] = await db
       .insert(learners)
       .values({
         userId: user.id,
         displayName: user.email ? user.email.split("@")[0] : "BS. Minh",
-        role: "learner", // Role mặc định là learner; muốn admin phải set tay trong DB
+        role: bootstrapRole,
         preferences: { remindEnabled: false, remindTime: "20:00" },
       })
       .returning({

@@ -1,5 +1,10 @@
 import { WritingFeedbackSchema, EvaluateWritingResult } from "./types";
 import { getGeminiClient } from "./client";
+import {
+  GeminiResponseError,
+  callGeminiWithRetry,
+  geminiAbortSignal,
+} from "./call-gemini";
 
 export const geminiResponseSchema = {
   type: "object",
@@ -93,6 +98,7 @@ Hãy đánh giá bài viết và trả về kết quả JSON theo đúng schema 
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         responseSchema: geminiResponseSchema as any,
         temperature: 0.2,
+        abortSignal: geminiAbortSignal(),
       },
     });
 
@@ -104,12 +110,14 @@ Hãy đánh giá bài viết và trả về kết quả JSON theo đúng schema 
     try {
       parsedJson = JSON.parse(responseText);
     } catch (parseError) {
-      throw new Error(`Gemini không trả về JSON hợp lệ: ${parseError instanceof Error ? parseError.message : String(parseError)}`);
+      throw new GeminiResponseError(
+        `Gemini không trả về JSON hợp lệ: ${parseError instanceof Error ? parseError.message : String(parseError)}`
+      );
     }
 
     const validated = WritingFeedbackSchema.safeParse(parsedJson);
     if (!validated.success) {
-      throw new Error(`JSON không đúng schema: ${validated.error.message}`);
+      throw new GeminiResponseError(`JSON không đúng schema: ${validated.error.message}`);
     }
 
     return {
@@ -120,15 +128,7 @@ Hãy đánh giá bài viết và trả về kết quả JSON theo đúng schema 
     };
   }
 
-  try {
-    return await callGeminiOnce();
-  } catch (firstError) {
-    console.warn("⚠️ Gemini evaluateWriting lần 1 thất bại, thử lại lần 2...", firstError);
-    try {
-      return await callGeminiOnce();
-    } catch (secondError) {
-      console.error("❌ Gemini evaluateWriting lần 2 tiếp tục thất bại:", secondError);
-      throw new Error(`Đánh giá bài viết thất bại sau 2 lần thử: ${secondError instanceof Error ? secondError.message : String(secondError)}`);
-    }
-  }
+  // Chính sách retry: CHỈ thử lại khi JSON/schema sai — lỗi mạng, 429,
+  // timeout fail-fast để assessment chuyển failed thay vì treo.
+  return callGeminiWithRetry(callGeminiOnce, "evaluateWriting");
 }
