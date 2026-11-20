@@ -13,23 +13,23 @@ export type ButtonSize = "sm" | "md" | "lg" | "icon";
 
 const VARIANT_CLASSES: Record<ButtonVariant, string> = {
   primary:
-    "bg-teal-600 text-white shadow-xs hover:bg-teal-700 active:bg-teal-800 disabled:bg-slate-300",
+    "bg-primary text-white hover:bg-primary-dark active:bg-teal-800 disabled:bg-surface-subtle disabled:text-text-muted",
   secondary:
-    "bg-slate-900 text-white shadow-xs hover:bg-slate-800 active:bg-black disabled:bg-slate-300",
+    "bg-text text-white hover:bg-slate-800 active:bg-slate-950 disabled:bg-surface-subtle disabled:text-text-muted",
   outline:
-    "border border-slate-200 bg-white text-slate-700 shadow-xs hover:bg-slate-50 hover:text-slate-900 disabled:bg-slate-50",
+    "border border-border-strong bg-surface text-text-secondary hover:bg-surface-subtle hover:text-text disabled:bg-surface-subtle disabled:text-text-muted",
   ghost:
-    "text-slate-600 hover:bg-slate-100 hover:text-slate-900 disabled:text-slate-400",
+    "text-text-secondary hover:bg-surface-subtle hover:text-text disabled:text-text-muted",
   danger:
-    "bg-red-600 text-white shadow-xs hover:bg-red-700 active:bg-red-800 disabled:bg-slate-300",
+    "bg-red-700 text-white hover:bg-red-800 active:bg-red-900 disabled:bg-surface-subtle disabled:text-text-muted",
 };
 
 /**
- * Các cỡ nút đều giữ điểm chạm ≥44px; "sm" chỉ giảm padding và cỡ chữ.
+ * Các cỡ nút đều giữ chữ 16px và điểm chạm ≥44px; "sm" giảm padding.
  */
 const SIZE_CLASSES: Record<ButtonSize, string> = {
-  sm: "min-h-11 px-3 text-sm rounded-lg",
-  md: "min-h-11 px-4 text-sm rounded-xl",
+  sm: "min-h-11 px-3 text-base rounded-lg",
+  md: "min-h-11 px-4 text-base rounded-lg",
   lg: "min-h-12 px-5 text-base rounded-xl",
   icon: "h-11 w-11 p-0 rounded-xl",
 };
@@ -64,7 +64,7 @@ export function Button({
       aria-busy={loading || undefined}
       className={cn(
         "inline-flex cursor-pointer items-center justify-center gap-2 font-medium transition-colors select-none",
-        "disabled:cursor-not-allowed disabled:opacity-70",
+        "disabled:cursor-not-allowed",
         VARIANT_CLASSES[variant],
         SIZE_CLASSES[size],
         fullWidth && "w-full",

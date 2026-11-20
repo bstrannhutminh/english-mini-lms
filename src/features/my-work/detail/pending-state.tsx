@@ -19,17 +19,17 @@ export function PendingState({ status }: PendingStateProps) {
       <div className="flex items-center gap-3">
         <Spinner size="md" label="Đang chờ chấm" className="text-emerald-700" />
         <div>
-          <p className="text-sm font-bold text-emerald-900">
+          <p className="text-base font-bold text-emerald-900">
             Đang chờ chấm điểm từ AI…
           </p>
-          <p className="mt-0.5 text-xs text-emerald-800">
+          <p className="mt-0.5 text-base text-emerald-800">
             {status === "queued"
               ? "Bài nộp đã vào hàng đợi xử lý của hệ thống."
               : "Gemini đang phân tích bài làm và chấm điểm theo rubric."}
             {polling ? " Trang sẽ tự cập nhật vài giây một lần." : ""}
           </p>
           {timedOut ? (
-            <p className="mt-1 text-xs font-medium text-amber-800">
+            <p className="mt-1 text-base font-medium text-amber-800">
               Việc chấm đang lâu hơn bình thường — bạn có thể làm mới tay hoặc
               quay lại sau.
             </p>

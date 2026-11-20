@@ -1,8 +1,9 @@
 "use client";
 
-import type { RefObject } from "react";
+import { useEffect, type RefObject } from "react";
 import type { TooltipPosition } from "@/lib/tour-position";
 import type { TourStep } from "./tour-steps";
+import { containDialogFocus } from "./ui/dialog-focus";
 
 interface TourTooltipProps {
   step: TourStep;
@@ -15,7 +16,7 @@ interface TourTooltipProps {
   /** false → opacity 0 trong lúc chờ đo xong. */
   positioned: boolean;
   /** Ref để auto-focus nút Tiếp (a11y). */
-  tooltipRef: RefObject<HTMLDivElement | null>;
+  tooltipRef: RefObject<HTMLDialogElement | null>;
   nextRef: RefObject<HTMLButtonElement | null>;
   onNext: () => void;
   onBack: () => void;
@@ -38,14 +39,35 @@ export function TourTooltip({
 }: TourTooltipProps) {
   const isLast = index === total - 1;
 
+  useEffect(() => {
+    const dialog = tooltipRef.current;
+    if (!dialog) return;
+    const trigger = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    dialog.showModal();
+    return () => {
+      dialog.close();
+      document.body.style.overflow = previousOverflow;
+      if (trigger?.isConnected) trigger.focus({ preventScroll: true });
+    };
+  }, [tooltipRef]);
+
   return (
-    <div
+    <dialog
       ref={tooltipRef}
       role="dialog"
       aria-modal="true"
       aria-labelledby={`tour-title-${step.id}`}
       aria-describedby={`tour-body-${step.id}`}
-      className="fixed z-[10000] rounded-2xl border border-slate-200 bg-white p-4 shadow-2xl transition-[top,left,opacity] duration-200 motion-reduce:transition-none"
+      onCancel={(event) => { event.preventDefault(); onSkip(); }}
+      onKeyDown={containDialogFocus}
+      onClick={(event) => {
+        if (event.target !== event.currentTarget) return;
+        const bounds = event.currentTarget.getBoundingClientRect();
+        if (event.clientX < bounds.left || event.clientX > bounds.right || event.clientY < bounds.top || event.clientY > bounds.bottom) onSkip();
+      }}
+      className="lms-tour-dialog fixed z-[10000] m-0 max-h-[calc(100dvh-1.5rem)] max-w-none overflow-y-auto rounded-xl border border-border bg-surface p-5 shadow-pop transition-[top,left,opacity] duration-200 motion-reduce:transition-none"
       style={{
         top: position.top,
         left: position.left,
@@ -58,13 +80,13 @@ export function TourTooltip({
       </p>
       <h2
         id={`tour-title-${step.id}`}
-        className="mt-1 text-base font-bold text-slate-900"
+        className="mt-2 text-lg font-semibold text-text"
       >
         {step.title}
       </h2>
       <p
         id={`tour-body-${step.id}`}
-        className="mt-1.5 text-sm leading-relaxed text-slate-600"
+        className="mt-2 text-base leading-relaxed text-text-secondary"
       >
         {step.body}
       </p>
@@ -73,7 +95,7 @@ export function TourTooltip({
         <button
           type="button"
           onClick={onSkip}
-          className="min-h-[44px] px-1 text-xs font-medium text-slate-500 hover:text-slate-700 hover:underline"
+          className="min-h-11 min-w-11 cursor-pointer px-1 text-base font-medium text-text-muted hover:text-text hover:underline"
         >
           Bỏ qua
         </button>
@@ -82,7 +104,7 @@ export function TourTooltip({
             <button
               type="button"
               onClick={onBack}
-              className="min-h-[44px] rounded-lg border border-slate-200 px-3.5 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+              className="min-h-11 cursor-pointer rounded-lg border border-border-strong px-3 text-base font-medium text-text-secondary hover:bg-surface-muted"
             >
               Lui
             </button>
@@ -91,12 +113,12 @@ export function TourTooltip({
             ref={nextRef}
             type="button"
             onClick={onNext}
-            className="min-h-[44px] rounded-xl bg-primary px-4 text-sm font-semibold text-white shadow-xs transition hover:bg-primary-dark focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+            className="min-h-11 cursor-pointer rounded-lg bg-primary px-4 text-base font-medium text-white transition-colors hover:bg-primary-dark"
           >
             {isLast ? "Hoàn tất" : "Tiếp"}
           </button>
         </div>
       </div>
-    </div>
+    </dialog>
   );
 }

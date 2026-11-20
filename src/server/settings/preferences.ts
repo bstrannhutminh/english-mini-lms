@@ -58,6 +58,10 @@ export function mergePreferences(
     delete merged.onboardingSkipped;
   }
 
+  if (patch.targetMinutesDefault !== undefined) {
+    merged.targetMinutesDefault = patch.targetMinutesDefault;
+  }
+
   return merged;
 }
 

@@ -21,9 +21,9 @@ function StatCard({
   accentClass?: string;
 }) {
   return (
-    <div className="rounded-2xl border border-border bg-surface p-4 shadow-card">
+    <div className="rounded-xl border border-border bg-surface p-4 ">
       <div className="flex items-center justify-between gap-2">
-        <span className="text-[11px] font-bold uppercase tracking-wider text-text-muted">
+        <span className="text-base font-semibold uppercase tracking-wider text-text-muted">
           {label}
         </span>
         <Icon name={icon} className="h-4 w-4 text-primary/80" />
@@ -33,7 +33,7 @@ function StatCard({
       >
         {value}
       </div>
-      <span className="text-xs text-text-secondary">{hint}</span>
+      <span className="text-base text-text-secondary">{hint}</span>
     </div>
   );
 }

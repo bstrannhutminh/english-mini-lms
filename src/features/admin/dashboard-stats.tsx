@@ -51,14 +51,14 @@ function StatCard({
   alert?: boolean;
 }) {
   return (
-    <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-1">
-      <p className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider leading-tight">
+    <div className="bg-white p-4 rounded-xl border border-slate-200  space-y-1">
+      <p className="text-base font-semibold text-slate-400 uppercase tracking-wider leading-tight">
         {label}
       </p>
-      <p className={`text-2xl font-bold ${alert ? "text-red-600" : "text-slate-800"}`}>
+      <p className={`text-2xl font-semibold ${alert ? "text-red-600" : "text-slate-800"}`}>
         {value}
       </p>
-      {sub && <p className="text-xs text-slate-500">{sub}</p>}
+      {sub && <p className="text-base text-slate-500">{sub}</p>}
     </div>
   );
 }

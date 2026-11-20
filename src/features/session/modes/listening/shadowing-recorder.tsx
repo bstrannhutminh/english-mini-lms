@@ -19,11 +19,13 @@ function formatTime(secs: number): string {
 export function ShadowingRecorder({
   maxSeconds = 60,
   busy,
+  failed = false,
   onComplete,
 }: {
   maxSeconds?: number;
   /** Đang upload/chấm — khoá nút ghi lại. */
   busy: boolean;
+  failed?: boolean;
   onComplete: (blob: Blob) => void;
 }) {
   const recorder = useRecorder(maxSeconds);
@@ -39,7 +41,7 @@ export function ShadowingRecorder({
     <div>
       {/* Cảnh báo trình duyệt in-app (Zalo/FB) */}
       {recorder.isInAppBrowser && (
-        <div className="mb-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs leading-snug text-amber-800">
+        <div className="mb-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-base leading-snug text-amber-800">
           💡 Nếu ghi âm không chạy trong Zalo, hãy chạm menu (⋯) và chọn
           &ldquo;Mở bằng Safari&rdquo; (iPhone) hoặc &ldquo;Mở bằng
           Chrome&rdquo; (Android).
@@ -48,7 +50,7 @@ export function ShadowingRecorder({
 
       {/* Lỗi quyền micro */}
       {recorder.error && (
-        <div role="alert" className="mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
+        <div role="alert" className="mb-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-base text-red-700">
           ⚠️ {recorder.error}
         </div>
       )}
@@ -72,9 +74,9 @@ export function ShadowingRecorder({
           >
             {formatTime(recorder.durationSeconds)}
           </span>
-          <span className="text-sm text-slate-500">/ {formatTime(maxSeconds)}</span>
+          <span className="text-base text-slate-500">/ {formatTime(maxSeconds)}</span>
         </div>
-        <div className="mt-1 text-xs text-slate-500">
+        <div className="mt-1 text-base text-slate-500">
           {recorder.isRecording
             ? "Đang thu âm giọng nói của bạn... Nhấn Dừng khi hoàn thành."
             : recorder.blob
@@ -94,7 +96,7 @@ export function ShadowingRecorder({
 
       <div className="flex flex-wrap gap-2.5">
         {!recorder.isRecording && !recorder.blob && (
-          <Button variant="danger" fullWidth onClick={() => void recorder.start()}>
+          <Button fullWidth disabled={busy} onClick={() => void recorder.start()}>
             🎙️ Bắt đầu ghi âm
           </Button>
         )}
@@ -108,6 +110,7 @@ export function ShadowingRecorder({
             🗑️ Thu lại từ đầu
           </Button>
         )}
+        {recorder.blob && failed && !recorder.isRecording && <Button disabled={busy} onClick={() => { if (recorder.blob) onComplete(recorder.blob); }}>Thử chấm bản ghi lại</Button>}
       </div>
     </div>
   );

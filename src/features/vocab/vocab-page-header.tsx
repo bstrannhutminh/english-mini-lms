@@ -10,11 +10,11 @@ export function VocabPageHeader() {
           <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-teal-200/80 bg-teal-50 text-primary-dark">
             <Icon name="bookmark" className="h-4.5 w-4.5" />
           </span>
-          <h1 className="text-xl font-bold tracking-tight text-text sm:text-2xl">
-            Sổ từ vựng Y khoa
+          <h1 className="text-xl font-semibold tracking-tight text-text sm:text-2xl">
+            Sổ từ
           </h1>
         </div>
-        <p className="mt-1 pl-11.5 text-sm text-text-secondary">
+        <p className="mt-1 pl-11.5 text-base text-text-secondary">
           Lưu theo ngữ cảnh thực tế · Ôn ngắt quãng 1–3–7–14–30 ngày
         </p>
       </div>
@@ -23,7 +23,7 @@ export function VocabPageHeader() {
         <Link
           href="/vocab/flashcards"
           data-tour="vocab-flashcards"
-          className="inline-flex min-h-11 cursor-pointer items-center gap-1.5 rounded-xl bg-primary px-4 text-sm font-semibold text-white no-underline shadow-xs transition hover:bg-primary-dark"
+          className="inline-flex min-h-11 cursor-pointer items-center gap-1.5 rounded-xl border border-border bg-surface px-4 text-base font-medium text-text no-underline  transition hover:bg-surface-muted"
         >
           <Icon name="cards" className="h-4 w-4" />
           <span>Ôn Flashcard</span>
@@ -31,7 +31,7 @@ export function VocabPageHeader() {
         <Link
           href="/vocab/review"
           data-tour="vocab-review"
-          className="inline-flex min-h-11 cursor-pointer items-center gap-1.5 rounded-xl border border-primary/40 bg-teal-50/70 px-4 text-sm font-semibold text-primary-dark no-underline transition hover:bg-teal-100/70"
+          className="inline-flex min-h-11 cursor-pointer items-center gap-1.5 rounded-xl border border-primary/40 bg-teal-50/70 px-4 text-base font-semibold text-primary-dark no-underline transition hover:bg-teal-100/70"
         >
           <Icon name="sparkles" className="h-4 w-4" />
           <span>Thử thách đặt câu</span>

@@ -1,180 +1,61 @@
 "use client";
-
-import { Icon } from "@/components/ui";
 import { cn } from "@/lib/utils";
-import {
-  BOOK_PRESETS,
-  STUDY_TIME_PRESETS,
-  type OnboardingDraft,
-} from "./onboarding-presets";
+import { BOOK_PRESETS, STUDY_TIME_PRESETS, type OnboardingDraft } from "./onboarding-presets";
 import { OnboardingIeltsOptions } from "./onboarding-ielts-options";
-
 interface StepScheduleProps {
   draft: OnboardingDraft;
   onChange: (patch: Partial<OnboardingDraft>) => void;
 }
-
-/** Bước 2 Onboarding: Nhịp học 30'/45', khung giờ quen thuộc, sách y và IELTS. */
 export function StepSchedule({ draft, onChange }: StepScheduleProps) {
-  return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-xl font-bold tracking-tight text-text sm:text-2xl">
-          Thiết lập nhịp học hằng ngày
-        </h2>
-        <p className="mt-1.5 text-base leading-relaxed text-text-secondary">
-          Chọn quỹ thời gian vừa sức để duy trì đều đặn. Hệ thống sẽ tự chia
-          phiên học hợp lý và nhắc tạm dừng khi hết giờ.
-        </p>
-      </div>
+  return (<div className="space-y-6">
 
-      {/* Thời lượng mục tiêu */}
-      <div className="space-y-2.5">
-        <span className="block text-sm font-semibold text-text">
-          Thời lượng mỗi phiên học
-        </span>
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          {(
-            [
-              {
-                mins: 30 as const,
-                badge: "Khuyên dùng",
-                title: "30 phút / ngày",
-                desc: "5' ôn từ · 15' bài chính · 8' sửa bài · 2' tổng kết",
-              },
-              {
-                mins: 45 as const,
-                badge: "Chuyên sâu",
-                title: "45 phút / ngày",
-                desc: "5' ôn từ · 22' bài chính · 15' sửa sâu · 3' tổng kết",
-              },
-            ] as const
-          ).map((opt) => {
-            const active = draft.targetMinutesDefault === opt.mins;
-            return (
-              <button
-                key={opt.mins}
-                type="button"
-                onClick={() => onChange({ targetMinutesDefault: opt.mins })}
-                aria-pressed={active}
-                className={cn(
-                  "flex min-h-24 cursor-pointer flex-col justify-between rounded-2xl border p-4 text-left transition",
-                  active
-                    ? "border-primary bg-teal-50/70 shadow-xs"
-                    : "border-border bg-surface hover:border-slate-300"
-                )}
-              >
-                <div className="flex items-center justify-between gap-2">
-                  <span className="inline-flex items-center gap-2 text-base font-bold text-text">
-                    <Icon
-                      name="clock"
-                      className={cn(
-                        "h-4.5 w-4.5",
-                        active ? "text-primary" : "text-slate-400"
-                      )}
-                    />
-                    {opt.title}
-                  </span>
-                  <span
-                    className={cn(
-                      "rounded-full px-2.5 py-0.5 text-xs font-semibold",
-                      active
-                        ? "bg-primary text-white"
-                        : "bg-slate-100 text-slate-600"
-                    )}
-                  >
-                    {opt.badge}
-                  </span>
-                </div>
-                <p className="mt-2 text-xs leading-relaxed text-text-secondary">
-                  {opt.desc}
-                </p>
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Khung giờ học quen thuộc */}
-      <div className="space-y-2.5">
-        <label
-          htmlFor="onboarding-study-time"
-          className="block text-sm font-semibold text-text"
-        >
-          Khung giờ thuận tiện nhất
-        </label>
-        <div className="grid grid-cols-3 gap-2">
-          {STUDY_TIME_PRESETS.map((preset) => {
-            const active = draft.preferredStudyTime === preset.time;
-            return (
-              <button
-                key={preset.time}
-                type="button"
-                onClick={() => onChange({ preferredStudyTime: preset.time })}
-                className={cn(
-                  "flex min-h-14 cursor-pointer flex-col items-center justify-center rounded-xl border px-2 py-2.5 text-center transition",
-                  active
-                    ? "border-primary bg-teal-50 font-semibold text-primary-dark"
-                    : "border-border bg-surface text-text-secondary hover:bg-slate-50"
-                )}
-              >
-                <span className="text-sm font-semibold">{preset.label}</span>
-                <span className="text-xs opacity-80">{preset.time}</span>
-              </button>
-            );
-          })}
-        </div>
-        <div className="flex items-center gap-3">
-          <span className="text-sm text-text-muted">Hoặc chọn giờ cụ thể:</span>
-          <input
-            id="onboarding-study-time"
-            type="time"
-            value={draft.preferredStudyTime}
-            onChange={(e) => onChange({ preferredStudyTime: e.target.value })}
-            className="min-h-11 rounded-xl border border-border bg-surface px-3 py-2 text-base font-medium text-text focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
-          />
-        </div>
-      </div>
-
-      {/* Sách / tài liệu đang đọc */}
-      <div className="space-y-2">
-        <label
-          htmlFor="onboarding-current-book"
-          className="block text-sm font-semibold text-text"
-        >
-          Sách hoặc tài liệu y khoa đang đọc (tuỳ chọn)
-        </label>
-        <div className="flex flex-wrap gap-2">
-          {BOOK_PRESETS.map((book) => (
-            <button
-              key={book}
-              type="button"
-              onClick={() => onChange({ currentBook: book })}
-              className={cn(
-                "min-h-11 cursor-pointer rounded-full border px-3.5 py-2 text-xs font-medium transition",
-                draft.currentBook === book
-                  ? "border-primary bg-teal-50 text-primary-dark"
-                  : "border-border bg-surface-muted text-text-secondary hover:border-primary/40"
-              )}
-            >
-              {book}
-            </button>
-          ))}
-        </div>
-        <input
-          id="onboarding-current-book"
-          type="text"
-          value={draft.currentBook}
-          onChange={(e) => onChange({ currentBook: e.target.value })}
-          placeholder="Nhập tên sách hoặc để trống nếu chưa chọn..."
-          className="min-h-12 w-full rounded-xl border border-border bg-surface px-4 py-3 text-base text-text placeholder:text-text-muted focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
-        />
-      </div>
-
-      <OnboardingIeltsOptions
-        value={draft.ieltsVariant}
-        onChange={(ieltsVariant) => onChange({ ieltsVariant })}
-      />
+    <div>
+      <h2 className="text-2xl font-semibold tracking-tight text-text">Dành bao nhiêu thời gian cho một buổi?</h2>
+      <p className="mt-2 text-base leading-relaxed text-text-secondary">30 phút là lựa chọn khởi đầu. Chọn 45 phút nếu muốn dành thêm thời gian làm và sửa bài.</p>
     </div>
-  );
+
+    <fieldset>
+      <legend className="mb-3 text-base font-medium text-text">Thời lượng mặc định</legend>
+      <div className="grid grid-cols-2 gap-3">
+        {([30, 45] as const).map((minutes) => <button key={minutes} type="button" aria-pressed={draft.targetMinutesDefault === minutes} onClick={() => onChange({ targetMinutesDefault: minutes })} className={cn("flex min-h-24 cursor-pointer flex-col justify-center gap-1 rounded-xl border p-4 text-left", draft.targetMinutesDefault === minutes ? "border-primary bg-surface-muted" : "border-border bg-surface hover:border-primary")}>
+          <span className="text-2xl font-semibold text-text">{minutes} phút</span>
+          <span className="text-base text-text-secondary">
+            {minutes === 30 ? "Buổi học gọn" : "Thêm thời gian sửa"}
+          </span>
+        </button>)}
+      </div>
+    </fieldset>
+
+    <div className="space-y-3">
+      <label htmlFor="onboarding-study-time" className="block text-base font-medium text-text">Giờ thường học · tùy chọn</label>
+      <div role="group" aria-label="Gợi ý giờ học" className="grid grid-cols-3 gap-2">
+        {STUDY_TIME_PRESETS.map((preset) => <button key={preset.time} type="button" aria-pressed={draft.preferredStudyTime === preset.time} onClick={() => onChange({ preferredStudyTime: preset.time })} className={cn("flex min-h-14 cursor-pointer flex-col items-center justify-center rounded-lg border px-1 py-3 text-base", draft.preferredStudyTime === preset.time ? "border-primary bg-surface-muted text-primary-dark" : "border-border bg-surface text-text-secondary hover:border-primary")}>
+          <span>
+            {preset.label}
+          </span>
+          <span>
+            {preset.time}
+          </span>
+        </button>)}
+      </div>
+      <input id="onboarding-study-time" type="time" value={draft.preferredStudyTime} onChange={(event) => onChange({ preferredStudyTime: event.target.value })} className="min-h-12 w-full rounded-xl border border-border-strong bg-surface px-4 py-3 text-base text-text focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20" />
+      <p className="text-base text-text-secondary">Đây là giờ ưu tiên cho hồ sơ; cài đặt nhắc học riêng ở Cài đặt.</p>
+    </div>
+
+    <OnboardingIeltsOptions value={draft.ieltsVariant} onChange={(ieltsVariant) => onChange({ ieltsVariant })} />
+
+    <details className="border-t border-border">
+      <summary className="min-h-11 cursor-pointer py-4 text-base font-medium text-text">Sách hoặc tài liệu đang đọc · tùy chọn</summary>
+      <div className="space-y-3 pb-2">
+        <label htmlFor="onboarding-current-book" className="block text-base text-text-secondary">Tên tài liệu của bạn</label>
+        <input id="onboarding-current-book" value={draft.currentBook} onChange={(event) => onChange({ currentBook: event.target.value })} placeholder="Để trống nếu chưa chọn…" className="min-h-12 w-full rounded-xl border border-border-strong bg-surface px-4 py-3 text-base text-text focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20" />
+        <div className="flex flex-wrap gap-2">
+          {BOOK_PRESETS.map((book) => <button key={book} type="button" aria-pressed={draft.currentBook === book} onClick={() => onChange({ currentBook: book })} className="min-h-11 cursor-pointer rounded-lg border border-border px-3 py-2 text-left text-base text-text-secondary hover:border-primary">
+            {book}
+          </button>)}
+        </div>
+      </div>
+    </details>
+
+  </div>);
 }

@@ -121,7 +121,7 @@ export default function ContentTab() {
       {error && (
         <div
           role="alert"
-          className="p-3 bg-red-50 text-red-800 text-sm rounded-lg border border-red-200 flex items-center justify-between gap-2"
+          className="p-3 bg-red-50 text-red-800 text-base rounded-lg border border-red-200 flex items-center justify-between gap-2"
         >
           <span>{error}</span>
           <Button variant="outline" size="sm" onClick={load}>
@@ -130,13 +130,13 @@ export default function ContentTab() {
         </div>
       )}
 
-      <section className="bg-white rounded-xl border border-slate-200 shadow-sm p-4 sm:p-5 space-y-4">
+      <section className="bg-white rounded-xl border border-slate-200  p-4 sm:p-5 space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <h2 className="text-base font-semibold text-slate-800">
               Bài học ({activities.length})
             </h2>
-            <p className="text-xs text-slate-500">
+            <p className="text-base text-slate-500">
               Tạo bài nghe YouTube end-to-end bằng wizard 4 bước.
             </p>
           </div>
@@ -160,7 +160,7 @@ export default function ContentTab() {
           </div>
         </div>
         {loading ? (
-          <p className="flex items-center gap-2 text-sm text-slate-500">
+          <p className="flex items-center gap-2 text-base text-slate-500">
             <Spinner size="sm" /> Đang tải…
           </p>
         ) : (
@@ -171,7 +171,7 @@ export default function ContentTab() {
         )}
       </section>
 
-      <section className="bg-white rounded-xl border border-slate-200 shadow-sm p-4 sm:p-5 space-y-4">
+      <section className="bg-white rounded-xl border border-slate-200  p-4 sm:p-5 space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h2 className="text-base font-semibold text-slate-800">
             Nguồn ({sources.length})
@@ -189,7 +189,7 @@ export default function ContentTab() {
         />
       </section>
 
-      <section className="bg-white rounded-xl border border-slate-200 shadow-sm p-4 sm:p-5 space-y-4">
+      <section className="bg-white rounded-xl border border-slate-200  p-4 sm:p-5 space-y-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h2 className="text-base font-semibold text-slate-800">
             Segment ({segments.length})

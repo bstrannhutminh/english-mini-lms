@@ -26,24 +26,24 @@ export function ReviewCard({
   onSubmit,
 }: ReviewCardProps) {
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-sm space-y-5">
+    <div className="bg-white rounded-xl border border-slate-200 p-6  space-y-5">
       <div className="border-b pb-4 space-y-1.5">
         <div className="flex items-center justify-between">
-          <span className="text-xs uppercase font-bold tracking-wider text-slate-400">
+          <span className="text-base uppercase font-semibold tracking-wider text-slate-400">
             Thử thách Micro-challenge
           </span>
-          <span className="text-[11px] bg-slate-100 text-slate-600 px-2 py-0.5 rounded font-medium">
+          <span className="text-base bg-slate-100 text-slate-600 px-2 py-0.5 rounded font-medium">
             Mức nhớ {formatMastery(item.masteryLevel)}
           </span>
         </div>
         <div className="flex items-baseline gap-2">
-          <h2 className="text-2xl font-black text-slate-900">{item.phrase}</h2>
+          <h2 className="text-2xl font-semibold text-slate-900">{item.phrase}</h2>
           {item.ipa && (
-            <span className="text-xs text-slate-500 font-mono">{item.ipa}</span>
+            <span className="text-base text-slate-500 font-mono">{item.ipa}</span>
           )}
         </div>
         {item.contextMeaning && (
-          <p className="text-xs text-indigo-700 font-medium">
+          <p className="text-base text-indigo-700 font-medium">
             Nghĩa ngữ cảnh: {item.contextMeaning}
           </p>
         )}
@@ -51,19 +51,19 @@ export function ReviewCard({
 
       {/* Ngữ cảnh gốc */}
       {item.originalSentence && (
-        <div className="bg-slate-50 border border-slate-200/60 rounded-xl p-3 text-xs text-slate-600">
+        <div className="bg-slate-50 border border-slate-200/60 rounded-xl p-3 text-base text-slate-600">
           <span className="font-semibold text-slate-700 block mb-1">
             Câu gốc đã lưu:
           </span>
-          <p className="italic font-serif text-slate-700">
+          <p className="italic font-sans text-slate-700">
             &quot;{item.originalSentence}&quot;
           </p>
         </div>
       )}
 
       {/* Đề bài thử thách */}
-      <div className="bg-blue-50 border border-blue-100 rounded-xl p-3.5 text-xs text-blue-900 space-y-1">
-        <div className="font-bold flex items-center gap-1 text-blue-800">
+      <div className="bg-blue-50 border border-blue-100 rounded-xl p-3.5 text-base text-blue-900 space-y-1">
+        <div className="font-semibold flex items-center gap-1 text-blue-800">
           <span>🎯</span> Yêu cầu thử thách:
         </div>
         <p className="leading-relaxed">
@@ -75,15 +75,16 @@ export function ReviewCard({
 
       {/* Form nhập câu trả lời */}
       <div className="space-y-3">
-        <div className="flex items-center justify-between text-xs">
+        <div className="flex items-center justify-between text-base">
           <span className="font-semibold text-slate-700">Câu trả lời của bạn:</span>
           <div className="flex items-center gap-1 bg-slate-100 p-0.5 rounded-lg">
             <button
               type="button"
+              disabled={submitting}
               onClick={() => onModeChange("text")}
-              className={`px-2.5 py-1 rounded text-[11px] font-semibold transition min-h-[32px] ${
+              className={`px-2.5 py-1 rounded text-base font-semibold transition min-h-11 ${
                 responseMode === "text"
-                  ? "bg-white text-slate-800 shadow-xs"
+                  ? "bg-white text-slate-800 "
                   : "text-slate-500 hover:text-slate-700"
               }`}
             >
@@ -91,28 +92,32 @@ export function ReviewCard({
             </button>
             <button
               type="button"
+              disabled={submitting}
               onClick={() => onModeChange("voice")}
-              className={`px-2.5 py-1 rounded text-[11px] font-semibold transition min-h-[32px] ${
+              className={`px-2.5 py-1 rounded text-base font-semibold transition min-h-11 ${
                 responseMode === "voice"
-                  ? "bg-white text-slate-800 shadow-xs"
+                  ? "bg-white text-slate-800 "
                   : "text-slate-500 hover:text-slate-700"
               }`}
             >
-              Giọng nói 🎙️
+              Đọc chính tả
             </button>
           </div>
         </div>
 
         <textarea
+          id={`review-response-${item.id}`}
+          aria-label="Câu trả lời của bạn"
+          disabled={submitting}
           value={userText}
           onChange={(e) => onTextChange(e.target.value)}
           placeholder={`Ví dụ: The patient presented with ${item.phrase} following acute trauma...`}
           rows={3}
-          className="w-full text-xs sm:text-sm p-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 leading-relaxed font-sans"
+          className="w-full text-base p-3 border border-border-strong rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 leading-relaxed font-sans"
         />
 
         {responseMode === "voice" && (
-          <p className="text-[11px] text-slate-500 italic">
+          <p className="text-base text-slate-500 italic">
             💡 Mẹo: Bạn có thể dùng tính năng đọc chính tả (Dictation / Mic)
             tích hợp sẵn trên bàn phím điện thoại để nói trực tiếp vào ô văn
             bản trên.
@@ -122,7 +127,7 @@ export function ReviewCard({
         <button
           onClick={onSubmit}
           disabled={submitting || !userText.trim()}
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-xl text-xs sm:text-sm transition shadow-sm hover:shadow disabled:opacity-50 flex items-center justify-center gap-2"
+          className="w-full bg-primary hover:bg-primary-dark text-white font-semibold py-3 px-4 rounded-xl text-base transition   disabled:opacity-50 flex items-center justify-center gap-2"
         >
           {submitting ? (
             <>

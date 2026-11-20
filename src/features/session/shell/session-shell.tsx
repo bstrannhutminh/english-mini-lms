@@ -1,6 +1,7 @@
 "use client";
 
 import { ConfirmDialog } from "@/components/ui";
+import { useState } from "react";
 import type {
   ModePlugin,
   SessionData,
@@ -26,6 +27,7 @@ export function SessionShell({
   isIelts: boolean;
   data: SessionData;
 }) {
+  const [actionSpace, setActionSpace] = useState(160);
   const {
     state,
     setState,
@@ -36,6 +38,7 @@ export function SessionShell({
     exiting,
     hintShown,
     hintLoading,
+    hintError,
     toast,
     timer,
     postEvent,
@@ -63,9 +66,8 @@ export function SessionShell({
 
   return (
     <div
-      className={`mx-auto w-full max-w-[768px] px-4 pt-0 lg:max-w-[1200px] ${
-        hideActionBar ? "pb-10" : "pb-36 sm:pb-32"
-      }`}
+      className="mx-auto w-full max-w-[1200px] px-4 pt-0 sm:px-6"
+      style={{ paddingBottom: hideActionBar ? 40 : actionSpace + 24 }}
     >
       <ShellOverlays
         isSubmitting={isSubmitting}
@@ -75,9 +77,9 @@ export function SessionShell({
         captureSelection={capture.selection}
         onCaptureClose={capture.close}
         onCaptureSaved={showCaptureSavedToast}
-        wrapUpOpen={showWrapUp}
+        wrapUpOpen={showWrapUp && !isSubmitting}
         targetMinutes={data.targetMinutes}
-        canSubmit={submitCheck.ok}
+        canSubmit={submitCheck.ok && !hintLoading}
         isSaving={autosave.isSaving}
         onSaveAndExit={handleSaveAndExit}
         onSubmit={handleSubmit}
@@ -120,6 +122,7 @@ export function SessionShell({
           label={plugin.hintLabel ?? "Xin gợi ý"}
           shown={hintShown}
           loading={hintLoading}
+          error={hintError}
           onRequest={handleRequestHint}
         >
           <HintContent data={data} />
@@ -138,14 +141,15 @@ export function SessionShell({
 
       {!hideActionBar && (
         <ActionBar
-          canSubmit={submitCheck.ok}
-          submitDisabledReason={submitCheck.reason}
+          canSubmit={submitCheck.ok && !hintLoading}
+          submitDisabledReason={hintLoading ? "Đang ghi nhận yêu cầu gợi ý — hãy chờ trước khi nộp." : submitCheck.reason}
           isSubmitting={isSubmitting}
           isSaving={autosave.isSaving}
           submitError={submitError}
           onSaveDraft={handleSaveDraft}
           onSubmit={handleSubmit}
           submitLabel={plugin.submitLabel}
+          onHeightChange={setActionSpace}
         />
       )}
     </div>

@@ -11,6 +11,7 @@ export const HOTKEY_SEEK_SECONDS = 5;
  * hoặc khi bấm tổ hợp có Ctrl/Alt/Meta (để không đè phím tắt của trình duyệt).
  */
 export function shouldIgnoreHotkey(event: KeyboardEvent): boolean {
+  if (event.defaultPrevented || (typeof document !== "undefined" && document.querySelector('[role="dialog"][aria-modal="true"], dialog[open]'))) return true;
   if (event.ctrlKey || event.metaKey || event.altKey) return true;
   const target = event.target;
   if (!(target instanceof HTMLElement)) return false;
@@ -19,7 +20,8 @@ export function shouldIgnoreHotkey(event: KeyboardEvent): boolean {
     tag === "INPUT" ||
     tag === "TEXTAREA" ||
     tag === "SELECT" ||
-    target.isContentEditable
+    target.isContentEditable ||
+    Boolean(target.closest('[role="tablist"], [role="radiogroup"], [role="menu"]'))
   );
 }
 

@@ -34,17 +34,17 @@ export function PassageCard({
     FONT_SCALE_OPTIONS[0];
 
   return (
-    <div className="mb-4 overflow-hidden rounded-2xl border border-border bg-surface shadow-card">
+    <div className="mb-4 overflow-hidden rounded-xl border border-border bg-surface ">
       {/* Header: nguồn + trang + nút cỡ chữ */}
       <div className="border-b border-border bg-surface-muted px-4 py-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-center gap-2">
             <Icon name="book-open" className="h-4 w-4 text-skill-reading" />
-            <span className="text-xs font-bold tracking-wider text-text uppercase">
+            <span className="text-base font-bold tracking-wider text-text uppercase">
               Đoạn văn bản gốc
             </span>
             {segment.page != null && (
-              <span className="rounded-md border border-skill-reading-border bg-skill-reading-soft px-2 py-0.5 text-xs font-semibold text-skill-reading">
+              <span className="rounded-md border border-skill-reading-border bg-skill-reading-soft px-2 py-0.5 text-base font-semibold text-skill-reading">
                 Trang {segment.page}
               </span>
             )}
@@ -62,7 +62,7 @@ export function PassageCard({
                 onClick={() => setFontScale(opt.key)}
                 aria-pressed={fontScale === opt.key}
                 className={cn(
-                  "min-h-11 min-w-11 cursor-pointer rounded-md px-2 text-xs font-semibold transition",
+                  "min-h-11 min-w-11 cursor-pointer rounded-md px-2 text-base font-semibold transition",
                   fontScale === opt.key
                     ? "bg-primary text-white"
                     : "text-text-secondary hover:text-text"
@@ -75,14 +75,14 @@ export function PassageCard({
         </div>
 
         {segment.sourceTitle && (
-          <div className="mt-1 text-xs italic text-text-muted">
+          <div className="mt-1 text-base italic text-text-muted">
             {segment.sourceTitle}
           </div>
         )}
       </div>
 
       {/* Gợi ý 1-Click Smart Capture */}
-      <div className="flex items-start gap-2 border-b border-emerald-100 bg-emerald-50/70 px-4 py-2.5 text-xs leading-snug text-emerald-900">
+      <div className="flex items-start gap-2 border-b border-emerald-100 bg-emerald-50/70 px-4 py-2.5 text-base leading-snug text-emerald-900">
         <Icon name="lightbulb" className="mt-0.5 h-4 w-4 shrink-0 text-emerald-700" />
         <span>
           <strong>Sổ từ vựng:</strong> bôi đen từ hoặc cụm thuật ngữ bất kỳ để
@@ -92,8 +92,8 @@ export function PassageCard({
 
       {/* Nội dung đoạn văn — render Markdown sạch & gắn capture handlers */}
       <div
-        {...capture.selectHandlers(segment.textContent ?? "", sourceRef)}
-        className={cn("px-5 py-5 text-text", activeScale.cls)}
+        {...capture.selectHandlers(segment.textContent ?? "", sourceRef, "book")}
+        className={cn("max-w-prose px-5 py-6 text-text", activeScale.cls)}
       >
         <MarkdownText text={segment.textContent ?? ""} />
       </div>

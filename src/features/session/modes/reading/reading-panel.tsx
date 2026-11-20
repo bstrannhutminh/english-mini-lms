@@ -16,7 +16,7 @@ function StepNumber({ num, done }: { num: number; done: boolean }) {
   return (
     <span
       className={cn(
-        "inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-xs font-bold",
+        "inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-base font-bold",
         done ? "bg-emerald-600 text-white" : "bg-slate-100 text-slate-600"
       )}
     >
@@ -50,19 +50,19 @@ export function ReadingPanel(props: ModePanelProps) {
 
   const left = (
     <>
-      <div className="mb-4 rounded-2xl border border-border bg-surface p-4 shadow-card">
+      <div className="mb-4 rounded-xl border border-border bg-surface p-4 ">
         <div className="mb-2 flex flex-wrap items-center gap-2">
-          <span className="inline-flex items-center gap-1 rounded-md border border-skill-reading-border bg-skill-reading-soft px-2 py-0.5 text-xs font-bold text-skill-reading">
+          <span className="inline-flex items-center gap-1 rounded-md border border-skill-reading-border bg-skill-reading-soft px-2 py-0.5 text-base font-bold text-skill-reading">
             <Icon name="book-open" className="h-3.5 w-3.5" />
             Đọc–dịch y khoa
           </span>
-          <span className="text-xs tabular-nums text-text-muted">
+          <span className="text-base tabular-nums text-text-muted">
             Khuyến nghị {activity.durationMinutes || 25} phút
           </span>
         </div>
 
         <h2 className="mb-1.5 text-lg font-bold text-text">{activity.title}</h2>
-        <p className="text-sm leading-relaxed text-text-secondary">
+        <p className="text-base leading-relaxed text-text-secondary">
           {activity.objective ||
             "Nêu ý chính, dịch sang tiếng Việt trung thành và tự giải thích 3 thuật ngữ y khoa."}
         </p>
@@ -98,10 +98,10 @@ export function ReadingPanel(props: ModePanelProps) {
   const right = (
     <div className="flex flex-col gap-4">
       {/* Bước 1: Ý chính */}
-      <div className="rounded-2xl border border-border bg-surface p-4 shadow-card">
+      <div className="rounded-xl border border-border bg-surface p-4 ">
         <label
           htmlFor="main-idea-input"
-          className="mb-2 flex items-center gap-2 text-sm font-bold text-text"
+          className="mb-2 flex items-center gap-2 text-base font-bold text-text"
         >
           <StepNumber num={1} done={state.mainIdea.trim().length > 0} />
           <span>Ý chính của đoạn (Main Idea)</span>
@@ -118,18 +118,18 @@ export function ReadingPanel(props: ModePanelProps) {
       </div>
 
       {/* Bước 2: Bản dịch — bắt buộc */}
-      <div className="rounded-2xl border border-border bg-surface p-4 shadow-card">
+      <div className="rounded-xl border border-border bg-surface p-4 ">
         <div className="mb-2 flex items-center justify-between gap-2">
           <label
             htmlFor="translation-input"
-            className="flex items-center gap-2 text-sm font-bold text-text"
+            className="flex items-center gap-2 text-base font-bold text-text"
           >
             <StepNumber num={2} done={translationWords > 0} />
             <span>
               Bản dịch tiếng Việt <span className="text-red-600">*</span>
             </span>
           </label>
-          <span className="text-xs font-medium tabular-nums text-text-muted">
+          <span className="text-base font-medium tabular-nums text-text-muted">
             {translationWords} từ
           </span>
         </div>
@@ -145,10 +145,10 @@ export function ReadingPanel(props: ModePanelProps) {
       </div>
 
       {/* Bước 3: Thuật ngữ */}
-      <div className="rounded-2xl border border-border bg-surface p-4 shadow-card">
+      <div className="rounded-xl border border-border bg-surface p-4 ">
         <label
           htmlFor="key-terms-input"
-          className="mb-2 flex items-center gap-2 text-sm font-bold text-text"
+          className="mb-2 flex items-center gap-2 text-base font-bold text-text"
         >
           <StepNumber num={3} done={state.keyTerms.trim().length > 0} />
           <span>Ba thuật ngữ tự giải thích (Key Terms)</span>
@@ -168,5 +168,5 @@ export function ReadingPanel(props: ModePanelProps) {
     </div>
   );
 
-  return <SessionColumns left={left} right={right} />;
+  return <SessionColumns left={left} right={right} collapsible sourceLabel="Đọc đoạn gốc và yêu cầu" />;
 }

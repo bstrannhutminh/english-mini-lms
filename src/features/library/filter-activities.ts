@@ -1,6 +1,6 @@
 import type { ActivityListItemContract, LearningStatus } from "@/contracts/library";
 import { isIeltsMode, modeSkill, type Skill } from "@/lib/modes";
-import { UNCATEGORIZED_TOPIC } from "@/lib/topics";
+import { getTopicMeta, UNCATEGORIZED_TOPIC } from "@/lib/topics";
 
 export type LibrarySkillFilter = "all" | Skill | "ielts";
 export type LibraryStatusFilter = "all" | LearningStatus;
@@ -56,7 +56,7 @@ export function filterLibraryActivities(
     // 4. Tìm kiếm không phân biệt dấu trên tiêu đề, mục tiêu, slot
     if (q) {
       const haystack = normalizeVietnamese(
-        [act.title, act.objective ?? "", act.slot ?? "", act.id].join(" ")
+        [act.title, act.objective ?? "", act.slot ?? "", act.id, act.topic ?? "", getTopicMeta(act.topic).name].join(" ")
       );
       if (!haystack.includes(q)) return false;
     }

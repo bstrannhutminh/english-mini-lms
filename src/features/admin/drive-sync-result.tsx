@@ -49,12 +49,12 @@ export function ResultCard({
 
         {result.conflicts.length > 0 && (
           <div className="space-y-2">
-            <p className="text-sm font-semibold text-amber-800">
+            <p className="text-base font-semibold text-amber-800">
               Xung đột — giữ nguyên bản admin ({result.conflicts.length})
             </p>
             <div className="divide-y divide-amber-100 border border-amber-200 rounded-lg overflow-hidden">
               {result.conflicts.map((c) => (
-                <div key={c.id} className="px-3 py-2 bg-amber-50 text-xs text-amber-900">
+                <div key={c.id} className="px-3 py-2 bg-amber-50 text-base text-amber-900">
                   <span className="font-mono font-medium">{c.id}</span>{" "}
                   <span className="text-amber-600">({c.kind})</span> — {c.reason}
                 </div>
@@ -65,7 +65,7 @@ export function ResultCard({
 
         {(errors.length > 0 || warnings.length > 0) && (
           <div className="space-y-2">
-            <p className="text-sm font-semibold text-red-800">
+            <p className="text-base font-semibold text-red-800">
               Lỗi ({errors.length})
               {warnings.length > 0 && ` + ${warnings.length} cảnh báo`}
             </p>
@@ -75,7 +75,7 @@ export function ResultCard({
                 return (
                   <div
                     key={i}
-                    className={`px-3 py-2 text-xs ${warn ? "bg-amber-50 text-amber-800" : "bg-red-50 text-red-900"}`}
+                    className={`px-3 py-2 text-base ${warn ? "bg-amber-50 text-amber-800" : "bg-red-50 text-red-900"}`}
                   >
                     {e.id && <span className="font-mono font-medium mr-1">[{e.id}]</span>}
                     {e.file && <span className="font-mono text-slate-500 mr-1">{e.file}:</span>}
@@ -88,7 +88,7 @@ export function ResultCard({
         )}
 
         {quiet && (
-          <p className="text-sm text-slate-500 italic">
+          <p className="text-base text-slate-500 italic">
             Không có thay đổi nào — Drive và DB đang đồng bộ.
           </p>
         )}
@@ -115,8 +115,8 @@ function StatChip({
   }[tone];
   return (
     <div className={`rounded-lg border p-3 text-center space-y-1 ${cls}`}>
-      <p className="text-2xl font-bold">{value}</p>
-      <p className="text-[11px] font-medium leading-tight">{label}</p>
+      <p className="text-2xl font-semibold">{value}</p>
+      <p className="text-base font-medium leading-tight">{label}</p>
     </div>
   );
 }
@@ -125,12 +125,12 @@ function IdList({ title, ids, cls }: { title: string; ids: string[]; cls: string
   if (ids.length === 0) return null;
   return (
     <div className="space-y-1.5">
-      <p className="text-xs font-semibold text-slate-700">
+      <p className="text-base font-semibold text-slate-700">
         {title} ({ids.length})
       </p>
       <div className="flex flex-wrap gap-1.5">
         {ids.map((id) => (
-          <span key={id} className={`text-[11px] font-mono px-2 py-0.5 rounded border ${cls}`}>
+          <span key={id} className={`text-base font-mono px-2 py-0.5 rounded border ${cls}`}>
             {id}
           </span>
         ))}

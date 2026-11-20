@@ -39,3 +39,6 @@ backups/*.sql
 
 # Local verification logs, screenshots and temporary source snapshots
 plans/reports/*-artifacts/
+
+# Local developer workspace state
+.1devtool/

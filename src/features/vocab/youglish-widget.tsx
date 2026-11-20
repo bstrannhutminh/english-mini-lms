@@ -99,7 +99,7 @@ export function YouGlishWidget({ query }: YouGlishWidgetProps) {
 
   if (!cleanQuery) {
     return (
-      <p className="text-sm text-slate-500">Chưa có từ/cụm từ để tra phát âm.</p>
+      <p className="text-base text-slate-500">Chưa có từ/cụm từ để tra phát âm.</p>
     );
   }
 
@@ -109,7 +109,7 @@ export function YouGlishWidget({ query }: YouGlishWidgetProps) {
     <div className="space-y-3">
       {status === "loading" && (
         <div
-          className="flex items-center gap-2 text-sm text-slate-500"
+          className="flex items-center gap-2 text-base text-slate-500"
           role="status"
           aria-live="polite"
         >
@@ -123,7 +123,7 @@ export function YouGlishWidget({ query }: YouGlishWidgetProps) {
 
       {(status === "error" || status === "empty") && (
         <div
-          className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900"
+          className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-base text-amber-900"
           role="alert"
         >
           {status === "empty"
@@ -144,7 +144,7 @@ export function YouGlishWidget({ query }: YouGlishWidgetProps) {
       <div ref={hostRef} hidden={!showWidget} className="w-full overflow-hidden rounded-xl" />
 
       {status === "ready" && (
-        <p className="text-xs text-slate-500">
+        <p className="text-base text-slate-500">
           Dùng nút ◀ ▶ trong widget để xem thêm ví dụ.{" "}
           <a
             href={fallbackUrl}

@@ -33,20 +33,20 @@ export function ObservationCard({
 
   return (
     <div
-      className={`rounded-2xl border bg-surface shadow-xs ${
+      className={`rounded-xl border bg-surface  ${
         isFlagged ? "border-amber-300" : "border-border"
       } ${compact ? "p-3.5" : "p-4"}`}
     >
       {/* Vị trí + category + hành động (flag / lưu cụm từ) */}
       <div className="mb-2 flex flex-wrap items-center justify-between gap-1.5">
         <div className="flex flex-wrap items-center gap-1.5">
-          <span className="inline-flex items-center gap-1 rounded-md bg-amber-100 px-2 py-0.5 text-xs font-bold text-amber-900">
+          <span className="inline-flex items-center gap-1 rounded-md bg-amber-100 px-2 py-0.5 text-base font-bold text-amber-900">
             <Icon name="search" className="h-3 w-3" />
             {obs.location}
           </span>
           {obs.category ? <Badge tone="info">{obs.category}</Badge> : null}
         </div>
-        <div className="flex items-center gap-1.5">
+        <div className="flex flex-wrap items-center gap-1.5">
           <FlagButton
             feedbackId={feedbackId}
             observationIndex={index}
@@ -54,30 +54,30 @@ export function ObservationCard({
             onFlagged={onFlagged}
           />
           {obs.example ? (
-            <SavePhraseButton text={obs.example} sentence={obs.example} sourceRef={sourceRef} />
+            <SavePhraseButton text={obs.example} sentence={obs.example} sourceRef={`${sourceRef || "Góp ý"} · ${obs.location} · câu mẫu đề xuất`} sourceType="feedback" />
           ) : null}
         </div>
       </div>
 
-      <div className="mb-2.5 rounded-md border-l-2 border-rose-400 bg-rose-50 px-3 py-2 text-sm italic text-rose-900">
+      <div className="mb-2.5 rounded-md border-l-2 border-rose-400 bg-rose-50 px-3 py-2 text-base italic text-rose-900">
         &quot;{obs.original}&quot;
       </div>
 
-      <p className="mb-1.5 text-sm text-text">
+      <p className="mb-1.5 text-base text-text">
         <strong>Vấn đề:</strong> {obs.issue}
       </p>
-      <p className="mb-2.5 text-sm text-emerald-800">
+      <p className="mb-2.5 text-base text-emerald-800">
         <strong>Cách sửa:</strong> {obs.suggestion}
       </p>
 
       {obs.example ? (
-        <div className="mb-2.5 rounded-md border-l-2 border-emerald-500 bg-emerald-50 px-3 py-2 text-sm text-emerald-900">
+        <div className="mb-2.5 rounded-md border-l-2 border-emerald-500 bg-emerald-50 px-3 py-2 text-base text-emerald-900">
           <strong>Câu mẫu đề xuất:</strong> &quot;{obs.example}&quot;
         </div>
       ) : null}
 
       {obs.retry_prompt ? (
-        <div className="rounded-md border border-dashed border-slate-300 bg-surface-muted px-3 py-2 text-xs text-text-secondary">
+        <div className="rounded-md border border-dashed border-slate-300 bg-surface-muted px-3 py-2 text-base text-text-secondary">
           <strong>Thử thách bản sửa:</strong> {obs.retry_prompt}
         </div>
       ) : null}

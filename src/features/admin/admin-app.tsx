@@ -5,6 +5,7 @@
  * Nội dung tab nằm ở các file riêng để file này gọn.
  */
 import { useState } from "react";
+import { PageContainer } from "@/components/layout";
 import { Tabs } from "@/components/ui";
 import ContentTab from "./content/content-tab";
 import DashboardTab from "./dashboard-tab";
@@ -20,10 +21,10 @@ export default function AdminApp() {
   const [tab, setTab] = useState("overview");
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-6 space-y-6 pb-24">
+    <PageContainer size="wide" className="space-y-6">
       <header className="border-b pb-4">
-        <h1 className="text-2xl font-bold text-slate-800">Quản trị hệ thống</h1>
-        <p className="text-sm text-slate-500 mt-0.5">
+        <h1 className="page-title">Quản trị hệ thống</h1>
+        <p className="text-base text-slate-500 mt-0.5">
           Duyệt nội dung, đồng bộ Drive và xử lý lỗi chấm bài
         </p>
       </header>
@@ -38,6 +39,6 @@ export default function AdminApp() {
       {tab === "overview" && <DashboardTab />}
       {tab === "content" && <ContentTab />}
       {tab === "sync" && <DriveSyncTab />}
-    </div>
+    </PageContainer>
   );
 }

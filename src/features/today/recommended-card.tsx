@@ -1,16 +1,9 @@
 "use client";
-
-/**
- * RecommendedCard — bài chính được gợi ý hôm nay: luôn kèm LÝ DO rule-based
- * (invariant), chip kỹ năng từ MODE_META, mục tiêu học, CTA Bắt đầu/Tiếp tục
- * (1 chạm vào bài) + link "Xem đề bài" + "Đổi bài khác".
- */
 import Link from "next/link";
 import { Badge, Button, Icon } from "@/components/ui";
 import { modeMeta } from "@/lib/modes";
 import type { RecommendedActivity } from "@/contracts/today";
 import type { StartableActivity } from "./use-start-session";
-
 export interface RecommendedCardProps {
   activity: RecommendedActivity;
   reason: string;
@@ -21,103 +14,64 @@ export interface RecommendedCardProps {
   swapping: boolean;
   onSwap: () => void;
 }
-
-export function RecommendedCard({
-  activity,
-  reason,
-  targetMinutes,
-  starting,
-  onStart,
-  alternateCount,
-  swapping,
-  onSwap,
-}: RecommendedCardProps) {
+export function RecommendedCard({ activity, reason, targetMinutes, starting, onStart, alternateCount, swapping, onSwap }: RecommendedCardProps) {
   const meta = modeMeta(activity.mode);
   const isContinuing = activity.actionType === "continue_draft";
+  const isRevision = activity.actionType === "start_revision";
+  return (<section aria-labelledby="today-mission-title" className="rounded-xl border border-border bg-surface p-5 sm:p-7">
 
-  return (
-    <section className="space-y-5 rounded-2xl border border-slate-200/80 bg-white p-6 shadow-xs sm:p-7">
-      {/* Header: nhãn + lý do gợi ý (rule-based, giải thích được) */}
-      <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3.5">
-        <div className="flex flex-wrap items-center gap-2">
-          <span className="inline-flex items-center gap-1.5 rounded-md border border-teal-200/70 bg-teal-50 px-2.5 py-1 text-xs font-bold tracking-wider text-teal-700 uppercase">
-            <Icon name="compass" className="h-3.5 w-3.5 text-teal-600" />
-            <span>Gợi ý hôm nay</span>
-          </span>
-          <span className="text-xs font-medium text-slate-600">{reason}</span>
-        </div>
+    <div className="mb-4 flex flex-wrap items-center gap-2 text-base text-text-secondary">
 
-        {alternateCount > 0 && (
-          <button
-            type="button"
-            onClick={onSwap}
-            className="flex min-h-11 cursor-pointer items-center gap-1.5 rounded-lg px-2 text-xs font-medium text-slate-500 transition hover:bg-slate-50 hover:text-teal-700"
-          >
-            <Icon name="refresh" className="h-3.5 w-3.5" />
-            <span>{swapping ? "Đóng danh sách" : "Đổi bài khác"}</span>
-          </button>
-        )}
-      </div>
+      <Badge tone={meta.tone}>
+        <Icon name={meta.icon} className="h-4 w-4" />
+        {meta.label}
+      </Badge>
 
-      {/* Chi tiết hoạt động */}
-      <div className="space-y-3">
-        <div className="flex flex-wrap items-center gap-2">
-          <Badge tone={meta.tone} className="font-semibold">
-            <Icon name={meta.icon} className="h-3.5 w-3.5" />
-            <span>{meta.label}</span>
-          </Badge>
-          {meta.isIelts && <Badge tone="neutral">IELTS</Badge>}
-          {activity.durationMinutes ? (
-            <span className="text-xs tabular-nums text-slate-500">
-              • Chuẩn {activity.durationMinutes} phút
-            </span>
-          ) : null}
-        </div>
+      {meta.isIelts && <Badge tone="neutral">IELTS</Badge>}
 
-        <h2 className="text-lg leading-snug font-bold tracking-tight text-slate-900 sm:text-xl">
-          {activity.title}
-        </h2>
+      <span>{activity.slot ? `${activity.slot} · ` : ""}{activity.durationMinutes} phút</span>
 
-        {activity.objective && (
-          <div className="rounded-xl border border-slate-100 bg-slate-50/80 p-3.5 text-xs leading-relaxed text-slate-600 sm:text-sm">
-            <span className="font-semibold text-slate-800">Mục tiêu học: </span>
-            {activity.objective}
-          </div>
-        )}
-      </div>
+    </div>
 
-      {/* Hành động chính — 1 chạm vào bài */}
-      <div className="flex flex-col gap-3 pt-2 sm:flex-row">
-        <Button
-          size="lg"
-          onClick={() => onStart(activity)}
-          loading={starting}
-          fullWidth
-          className="flex-1"
-          data-tour="today-start"
-        >
-          {!starting && (
-            <Icon
-              name={isContinuing ? "pen-tool" : "play"}
-              className="h-4 w-4"
-            />
-          )}
-          <span>
-            {starting
-              ? "Đang khởi tạo phiên..."
-              : isContinuing
-                ? `Tiếp tục bài đang dở (${targetMinutes} phút)`
-                : `Bắt đầu luyện tập (${targetMinutes} phút)`}
-          </span>
-        </Button>
+    <p className="mb-2 text-base font-medium text-primary-dark">
+      {isContinuing ? "Bài đang dở" : isRevision ? "Thử lại từ góp ý" : "Bài tiếp theo"}
+    </p>
 
-        <Link
-          href={`/library/${activity.id}`}
-          className="flex min-h-12 cursor-pointer items-center justify-center rounded-xl border border-slate-200/90 px-5 py-3.5 text-center text-sm font-semibold text-slate-700 transition hover:bg-slate-50 active:bg-slate-100"
-        >
-          Xem đề bài
-        </Link>
-      </div>
-    </section>
-  );
+    <h2 id="today-mission-title" className="break-words text-2xl font-semibold leading-snug tracking-tight text-text sm:text-3xl">
+      {activity.title}
+    </h2>
+
+    {activity.objective && <p className="mt-3 line-clamp-2 text-base leading-relaxed text-text-secondary">
+      {activity.objective}
+    </p>}
+
+    <Button size="lg" onClick={() => onStart(activity)} loading={starting} fullWidth className="mt-5" data-tour="today-start">
+
+      {!starting && <Icon name={isContinuing ? "pen-tool" : "play"} className="h-5 w-5" />}
+
+      <span>
+        {starting ? "Đang mở bài…" : isContinuing ? "Tiếp tục bài đang dở" : isRevision ? `Làm bản sửa · ${targetMinutes} phút` : `Bắt đầu · ${targetMinutes} phút`}
+      </span>
+
+    </Button>
+
+    <div className="mt-2 flex flex-wrap items-center justify-between gap-x-3">
+
+      <Link href={`/library/${activity.id}`} className="inline-flex min-h-11 items-center gap-1 text-base font-medium text-text-secondary hover:text-primary-dark">Xem đầy đủ đề bài<Icon name="arrow-right" className="h-4 w-4" /></Link>
+
+      {alternateCount > 0 && <button type="button" onClick={onSwap} disabled={starting} aria-expanded={swapping} aria-controls="today-alternates" className="inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-lg px-2 text-base text-text-secondary hover:bg-surface-muted disabled:opacity-60">
+        <Icon name="refresh" className="h-4 w-4" />
+        {swapping ? "Đóng danh sách" : "Đổi bài"}
+      </button>}
+
+    </div>
+
+    {reason && <details className="mt-2 border-t border-border-subtle">
+      <summary className="min-h-11 cursor-pointer py-3 text-base text-text-secondary">Vì sao gợi ý bài này?</summary>
+      <p className="pb-2 text-base leading-relaxed text-text-secondary">
+        {reason}
+      </p>
+    </details>}
+
+  </section>);
 }

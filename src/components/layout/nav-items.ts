@@ -16,7 +16,7 @@ export interface NavItem {
 export const NAV_ITEMS: NavItem[] = [
   { href: "/today", label: "Hôm nay", icon: "home", tour: "nav-today", showsVocabDueBadge: false },
   { href: "/library", label: "Thư viện", icon: "book", tour: "nav-library", showsVocabDueBadge: false },
-  { href: "/my-work", label: "Bài của tôi", icon: "file-text", tour: "nav-my-work", showsVocabDueBadge: false },
+  { href: "/my-work", label: "Bài làm", icon: "file-text", tour: "nav-my-work", showsVocabDueBadge: false },
   { href: "/vocab", label: "Sổ từ", icon: "pen", tour: "nav-vocab", showsVocabDueBadge: true },
   { href: "/progress", label: "Tiến độ", icon: "bar-chart", tour: "nav-progress", showsVocabDueBadge: false },
 ];

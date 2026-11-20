@@ -1,20 +1,9 @@
 "use client";
-
-/**
- * TodayView — hub "Hôm nay" gọn, tập trung (≤ 2 chạm vào bài):
- *   TodayHero (chào + chọn 30'/45') → lỗi (nếu có) → ContinueBlock (phiên dở)
- *   → RecommendedCard (1 CTA chính nổi bật + đổi bài) → SessionPlan (4 bước gọn)
- *   → DueVocabTeaser (khi có từ đến hạn) → BaselineBanner (khi trước đó đã bỏ qua).
- */
 import { useState } from "react";
 import Link from "next/link";
 import { EmptyState, Skeleton } from "@/components/ui";
 import { PageContainer } from "@/components/layout";
-import type {
-  AlternateActivity,
-  RecommendedActivity,
-  TodayRecommendationContract,
-} from "@/contracts/today";
+import type { AlternateActivity, RecommendedActivity, TodayRecommendationContract } from "@/contracts/today";
 import { useTodayRecommendation } from "./use-today-recommendation";
 import { useStartSession } from "./use-start-session";
 import { TodayHero } from "./today-hero";
@@ -25,131 +14,72 @@ import { DueVocabTeaser } from "./due-vocab-teaser";
 import { RecommendedCard } from "./recommended-card";
 import { AlternateActivities } from "./alternate-activities";
 import { TodayErrorCard } from "./today-error-card";
-
 export interface TodayViewProps {
   initialTargetMinutes: 30 | 45;
   displayName?: string;
 }
-
-export default function TodayView({
-  initialTargetMinutes,
-  displayName,
-}: TodayViewProps) {
-  const { data, loading, error, targetMinutes, selectTargetMinutes, retry } =
-    useTodayRecommendation(initialTargetMinutes);
+export default function TodayView({ initialTargetMinutes, displayName }: TodayViewProps) {
+  const { data, loading, error, targetMinutes, selectTargetMinutes, retry } = useTodayRecommendation(initialTargetMinutes);
   const { startSession, starting } = useStartSession(targetMinutes);
-
   const [selection, setSelection] = useState<{
     dataRef: TodayRecommendationContract;
     activity: RecommendedActivity;
   } | null>(null);
   const [showAlternates, setShowAlternates] = useState(false);
-
-  const currentActivity =
-    selection && selection.dataRef === data
-      ? selection.activity
-      : (data?.recommendedActivity ?? null);
-
-  const handleSelectAlternate = (alt: AlternateActivity) => {
-    if (!data) return;
-    setSelection({
-      dataRef: data,
-      activity: { ...alt, actionType: "new_session" },
-    });
+  const currentActivity = selection && selection.dataRef === data ? selection.activity : (data?.recommendedActivity ?? null);
+  function handleSelectAlternate(alt: AlternateActivity) {
+    if (!data)
+      return;
+    setSelection({ dataRef: data, activity: { ...alt, actionType: "new_session" } });
     setShowAlternates(false);
-  };
+  }
+  const recommendationCard = currentActivity && <RecommendedCard activity={currentActivity} reason={currentActivity.reason || data?.reason || ""} targetMinutes={targetMinutes} starting={starting} onStart={startSession} alternateCount={data?.alternateActivities.length ?? 0} swapping={showAlternates} onSwap={() => setShowAlternates((prev) => !prev)} />;
+  return (<PageContainer size="wide" className="space-y-6">
 
-  const recommendationCard = currentActivity && (
-    <RecommendedCard
-      activity={currentActivity}
-      reason={data?.reason ?? ""}
-      targetMinutes={targetMinutes}
-      starting={starting}
-      onStart={startSession}
-      alternateCount={data?.alternateActivities.length ?? 0}
-      swapping={showAlternates}
-      onSwap={() => setShowAlternates((prev) => !prev)}
-    />
-  );
+    <TodayHero displayName={displayName || data?.learnerName} streakDays={data?.streakDays} targetMinutes={targetMinutes} selectingDisabled={starting} onSelectMinutes={(minutes) => {
+      if (!starting) {
+        setShowAlternates(false);
+        selectTargetMinutes(minutes);
+      }
+    }} />
 
-  return (
-    <PageContainer className="space-y-5">
-      <TodayHero
-        displayName={displayName}
-        streakDays={data?.streakDays ?? null}
-        targetMinutes={targetMinutes}
-        onSelectMinutes={selectTargetMinutes}
-      />
+    <div className="grid items-start gap-6 lg:grid-cols-12">
 
-      {error && !loading && <TodayErrorCard message={error} onRetry={retry} />}
+      <div className="min-w-0 space-y-4 lg:col-span-8" aria-busy={loading}>
 
-      {/* Ưu tiên cao nhất: tiếp tục phiên đang dở bằng 1 chạm */}
-      {data?.inProgressSession && (
-        <ContinueBlock session={data.inProgressSession} />
-      )}
+        {error && !loading && <TodayErrorCard message={error} onRetry={retry} />}
 
-      {/* Khối chính trên nếp gấp: 1 bài gợi ý duy nhất với lý do rõ ràng */}
-      {loading ? (
-        <div className="space-y-4 rounded-2xl border border-border bg-surface p-6 shadow-card">
-          <Skeleton className="h-5 w-40" />
-          <Skeleton className="h-7 w-3/4" />
-          <Skeleton className="h-16 w-full rounded-xl" />
-          <Skeleton className="h-12 w-full rounded-xl" />
+        {loading ? (<div role="status" className="space-y-4 rounded-xl border border-border bg-surface p-5 sm:p-7">
+          <span className="sr-only">Đang tải bài học…</span>
+          <Skeleton className="h-5 w-32" />
+          <Skeleton className="h-8 w-3/4" />
+          <Skeleton className="h-16 w-full" />
+          <Skeleton className="h-12 w-full" />
+        </div>) : data?.inProgressSession ? (<>
+          <ContinueBlock session={data.inProgressSession} />
+          {currentActivity && <details className="rounded-xl border border-border bg-surface px-4">
+            <summary className="min-h-11 cursor-pointer py-3 text-base font-medium text-text-secondary">Chọn bài khác</summary>
+            <div className="pb-4">
+              {recommendationCard}
+            </div>
+          </details>}
+        </>) : currentActivity ? recommendationCard : data && (<EmptyState icon="book-open" title="Chưa có bài học sẵn sàng" description="Thư viện chỉ gợi ý bài đã được duyệt. Hãy mở Thư viện để xem nguồn học hiện có." action={<Link href="/library" className="inline-flex min-h-11 items-center rounded-xl bg-primary px-4 py-3 text-base font-semibold text-white no-underline hover:bg-primary-dark">Mở Thư viện</Link>} />)}
+
+        <div id="today-alternates" hidden={!showAlternates}>
+
+          {showAlternates && data && <AlternateActivities activities={data.alternateActivities} currentId={currentActivity?.id} onSelect={handleSelectAlternate} onClose={() => setShowAlternates(false)} />}
+
         </div>
-      ) : currentActivity ? (
-        data?.inProgressSession ? (
-          <details className="rounded-2xl border border-border bg-surface p-4">
-            <summary className="min-h-11 cursor-pointer py-3 text-sm font-semibold text-text-secondary">
-              Muốn chọn bài khác?
-            </summary>
-            {recommendationCard}
-          </details>
-        ) : recommendationCard
-      ) : (
-        data && (
-          <EmptyState
-            icon="book-open"
-            title="Chưa có bài học nào sẵn sàng trong Thư viện"
-            description="Hệ thống chỉ gợi ý các bài đã được duyệt. Bạn có thể xem Thư viện hoặc thêm bài mới trong Quản trị."
-            action={
-              <div className="flex flex-wrap justify-center gap-3">
-                <Link
-                  href="/library"
-                  className="inline-flex min-h-11 items-center rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-white no-underline transition hover:bg-primary-dark"
-                >
-                  Mở Thư viện bài học
-                </Link>
-                <Link
-                  href="/admin"
-                  className="inline-flex min-h-11 items-center rounded-xl border border-border bg-surface-muted px-4 py-2.5 text-sm font-semibold text-text-secondary no-underline transition hover:bg-slate-200/70"
-                >
-                  Trang Quản trị
-                </Link>
-              </div>
-            }
-          />
-        )
-      )}
 
-      {showAlternates && data && (
-        <AlternateActivities
-          activities={data.alternateActivities}
-          currentId={currentActivity?.id}
-          onSelect={handleSelectAlternate}
-          onClose={() => setShowAlternates(false)}
-        />
-      )}
+      </div>
 
-      {/* Chu trình 4 bước gọn trong ngày */}
-      {data && data.dailyPlan.length > 0 && (
-        <SessionPlan steps={data.dailyPlan} targetMinutes={targetMinutes} />
-      )}
+      {data && <aside className="min-w-0 space-y-4 lg:col-span-4" aria-label="Lộ trình và ôn tập">
+        {data.dailyPlan.length > 0 && <SessionPlan steps={data.dailyPlan} targetMinutes={targetMinutes} />}
+        <DueVocabTeaser count={data.dueVocabCount} />
+        {data.baselineStatus !== "completed" && <BaselineBanner />}
+      </aside>}
 
-      {/* Từ vựng đến hạn (chỉ hiện khi > 0) */}
-      {data && <DueVocabTeaser count={data.dueVocabCount} />}
+    </div>
 
-      {/* Nhắc thiết lập lộ trình (chỉ khi trước đó người học đã chọn Bỏ qua) */}
-      {data && data.baselineStatus !== "completed" && <BaselineBanner />}
-    </PageContainer>
-  );
+  </PageContainer>);
 }

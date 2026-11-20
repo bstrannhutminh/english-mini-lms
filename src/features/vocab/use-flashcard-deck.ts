@@ -7,56 +7,37 @@
  * ở use-deck-keyboard.ts; UI thuần nằm ở flashcard*.tsx.
  */
 import { useState, useEffect, useCallback } from "react";
-import {
-  fetchFlashcardDeck,
-  submitQuickReviews,
-  type FlashcardDeckItem,
-} from "./api";
+import type { FlashcardDeckItem } from "./api";
 import { useCardGesture } from "./use-card-gesture";
 import { useDeckKeyboard } from "./use-deck-keyboard";
 import { speakPhrase } from "./speech";
 
 export type DeckFilterMode = "due" | "all";
-export type CardResult = "know" | "dont_know";
-export type SaveStatus = "idle" | "saving" | "saved" | "failed";
-
-export interface ReviewAction {
-  vocab_id: string;
-  result: CardResult;
-  clientReviewId: string;
-}
-
-export interface HistoryItem {
-  item: FlashcardDeckItem;
-  result: CardResult;
-}
-
-export function useFlashcardDeck() {
-  // Chế độ: "due" (từ đến hạn) hoặc "all" (tất cả / ôn tự do)
-  const [filterMode, setFilterMode] = useState<DeckFilterMode>("due");
+import { useDeckReviews, type CardResult, type ReviewAction } from "./use-deck-reviews";
+import { clearDeckSnapshot, readDeckSnapshot, saveDeckSnapshot } from "./deck-review-storage";
+import { loadFlashcardData } from "./load-flashcard-data";
+export type { CardResult, SaveStatus, ReviewAction, HistoryItem } from "./use-deck-reviews";
+export function useFlashcardDeck(interactionBlocked = false) {
+  const [filterMode, setFilterMode] = useState<DeckFilterMode>(() => readDeckSnapshot()?.mode ?? "due");
   const [items, setItems] = useState<FlashcardDeckItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
 
-  // Chỉ số thẻ hiện tại + trạng thái lật
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
 
-  // Batch kết quả quẹt + lịch sử (cho undo & tổng kết)
-  const [batch, setBatch] = useState<ReviewAction[]>([]);
-  const [history, setHistory] = useState<HistoryItem[]>([]);
-  const [saving, setSaving] = useState(false);
-  const [saveStatus, setSaveStatus] = useState<SaveStatus>("idle");
-  const [isFinished, setIsFinished] = useState(false);
+  const reviews = useDeckReviews();
+  const { batch, setBatch, history, setHistory, saving, saveStatus, setSaveStatus,
+    isFinished, submitBatchReviews, resetReviews } = reviews;
 
-  // Hướng bay của thẻ sau quyết định (hiệu ứng fly-out)
   const [flyDirection, setFlyDirection] = useState<"left" | "right" | null>(null);
 
-  const busy = saving || saveStatus === "saving" || flyDirection !== null;
+  const busy = saving || saveStatus === "saving" || flyDirection !== null || interactionBlocked || error !== null;
 
   const handleFilterModeChange = (mode: DeckFilterMode) => {
-    if (mode !== filterMode) {
+    if (mode !== filterMode && !busy) {
+      resetReviews();
       setLoading(true);
       setError(null);
       setFilterMode(mode);
@@ -69,19 +50,22 @@ export function useFlashcardDeck() {
     setReloadKey((c) => c + 1);
   };
 
-  // Tải bộ thẻ khi đổi mode / retry
   useEffect(() => {
     let active = true;
-    fetchFlashcardDeck({ freePractice: filterMode === "all" })
+    const pendingSnapshot = readDeckSnapshot();
+    loadFlashcardData(filterMode, pendingSnapshot)
       .then((data) => {
         if (!active) return;
-        setItems(data.items || []);
-        setCurrentIndex(0);
+        const snapshot = data.snapshot;
+        const loadedItems = snapshot?.items ?? data.items;
+        setItems(loadedItems);
+        setCurrentIndex(snapshot?.batch.length ?? 0);
         setIsFlipped(false);
-        setBatch([]);
-        setHistory([]);
-        setIsFinished(false);
-        setSaveStatus("idle");
+        if (snapshot) {
+          setBatch(snapshot.batch);
+          setHistory(snapshot.batch.map((entry) => ({ item: loadedItems.find((item) => item.id === entry.vocab_id)!, result: entry.result })));
+          setSaveStatus(snapshot.batch.length >= loadedItems.length ? "failed" : "idle");
+        } else resetReviews();
         setFlyDirection(null);
         setLoading(false);
         setError(null);
@@ -95,49 +79,20 @@ export function useFlashcardDeck() {
     return () => {
       active = false;
     };
-  }, [filterMode, reloadKey]);
+  }, [filterMode, reloadKey, setBatch, setHistory, setSaveStatus, resetReviews]);
 
-  // Cảnh báo beforeunload nếu đã quẹt mà chưa lưu kết quả xong
   useEffect(() => {
-    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      if (batch.length > 0 && saveStatus !== "saved") {
-        e.preventDefault();
-        e.returnValue = "";
-      }
-    };
-    window.addEventListener("beforeunload", handleBeforeUnload);
-    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
-  }, [batch.length, saveStatus]);
+    if (loading || error) return;
+    if (batch.length > 0 && saveStatus !== "saved" && !loading) {
+      saveDeckSnapshot({ mode: filterMode, items, batch });
+    } else if (batch.length === 0) {
+      clearDeckSnapshot();
+    }
+  }, [batch, saveStatus, loading, error, filterMode, items]);
 
-  // Gửi kết quả batch tới server
-  const submitBatchReviews = useCallback(
-    async (reviewsToSubmit: ReviewAction[]) => {
-      if (reviewsToSubmit.length === 0) {
-        setSaveStatus("saved");
-        setIsFinished(true);
-        return;
-      }
-
-      setSaving(true);
-      setSaveStatus("saving");
-      try {
-        await submitQuickReviews(reviewsToSubmit);
-        setSaveStatus("saved");
-        setIsFinished(true);
-      } catch (err) {
-        console.error("Lỗi nộp kết quả flashcard:", err);
-        setSaveStatus("failed");
-      } finally {
-        setSaving(false);
-      }
-    },
-    []
-  );
-
-  // Quyết định thẻ: know (thuộc) hoặc dont_know (chưa thuộc)
   const handleCardDecision = useCallback(
     (decision: CardResult) => {
-      if (currentIndex >= items.length || isFinished || busy) return;
+      if (currentIndex >= items.length || isFinished || busy || loading) return;
 
       const currentItem = items[currentIndex];
       setFlyDirection(decision === "know" ? "right" : "left");
@@ -164,10 +119,9 @@ export function useFlashcardDeck() {
         }
       }, 240);
     },
-    [currentIndex, items, isFinished, busy, batch, submitBatchReviews]
+    [currentIndex, items, isFinished, busy, loading, batch, submitBatchReviews, setBatch, setHistory]
   );
 
-  // Hoàn tác (Undo) thẻ vừa quẹt
   const handleUndo = useCallback(() => {
     if (history.length === 0 || currentIndex === 0 || busy || isFinished) {
       return;
@@ -178,9 +132,8 @@ export function useFlashcardDeck() {
     setCurrentIndex((prev) => Math.max(0, prev - 1));
     setIsFlipped(false);
     setFlyDirection(null);
-  }, [history.length, currentIndex, busy, isFinished]);
+  }, [history.length, currentIndex, busy, isFinished, setHistory, setBatch]);
 
-  // Ôn lại các từ chưa thuộc trong phiên vừa rồi
   const handleReviewIncorrectOnly = useCallback(() => {
     const unmasteredItems = history
       .filter((h) => h.result === "dont_know")
@@ -190,12 +143,9 @@ export function useFlashcardDeck() {
     setItems(unmasteredItems);
     setCurrentIndex(0);
     setIsFlipped(false);
-    setBatch([]);
-    setHistory([]);
-    setIsFinished(false);
-    setSaveStatus("idle");
+    resetReviews();
     setFlyDirection(null);
-  }, [history]);
+  }, [history, resetReviews]);
 
   const flipCard = useCallback(() => {
     if (!busy) setIsFlipped((prev) => !prev);
@@ -203,15 +153,14 @@ export function useFlashcardDeck() {
 
   // Cử chỉ kéo-thả: kéo ngang → quyết định, chạm ngắn → lật
   const { dragOffset, isDragging, cardHandlers } = useCardGesture({
-    disabled: busy || isFinished,
+    disabled: busy || isFinished || loading,
     onTapFlip: () => setIsFlipped((prev) => !prev),
     onSwipeRight: () => handleCardDecision("know"),
     onSwipeLeft: () => handleCardDecision("dont_know"),
   });
 
-  // Phím tắt desktop
   useDeckKeyboard({
-    disabled: busy || isFinished,
+    disabled: busy || isFinished || loading,
     onDontKnow: () => handleCardDecision("dont_know"),
     onKnow: () => handleCardDecision("know"),
     onFlip: flipCard,
@@ -241,6 +190,7 @@ export function useFlashcardDeck() {
     handleRetry,
     speakPhrase,
     submitBatchReviews,
+    resetReviews,
     handleCardDecision,
     handleUndo,
     handleReviewIncorrectOnly,

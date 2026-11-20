@@ -78,7 +78,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
         variant: options.variant ?? "default",
         duration,
       };
-      setItems((prev) => [...prev.slice(-3), item]); // tối đa 4 toast
+      setItems((prev) => [...prev.slice(-2), item]); // tối đa 3 toast
       if (duration > 0) {
         timers.current.set(id, setTimeout(() => dismiss(id), duration));
       }
@@ -103,6 +103,17 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     [toast, dismiss]
   );
 
+  const pause = (id: number) => {
+    const timer = timers.current.get(id);
+    if (timer) clearTimeout(timer);
+    timers.current.delete(id);
+  };
+  const resume = (item: ToastItem) => {
+    if (item.duration > 0 && !timers.current.has(item.id)) {
+      timers.current.set(item.id, setTimeout(() => dismiss(item.id), item.duration));
+    }
+  };
+
   return (
     <ToastContext.Provider value={api}>
       {children}
@@ -117,15 +128,19 @@ export function ToastProvider({ children }: { children: ReactNode }) {
             <div
               key={item.id}
               role={meta.role}
-              className="pointer-events-auto flex animate-slide-up items-start gap-3 rounded-xl border border-border bg-surface p-3.5 shadow-pop"
+              onPointerEnter={() => pause(item.id)}
+              onPointerLeave={() => resume(item)}
+              onFocus={() => pause(item.id)}
+              onBlur={(event) => { if (!event.currentTarget.contains(event.relatedTarget)) resume(item); }}
+              className="pointer-events-auto flex animate-slide-up items-start gap-3 rounded-xl border border-border bg-surface p-4 shadow-pop"
             >
               <Icon name={meta.icon} className={cn("mt-0.5 h-5 w-5", meta.iconClass)} />
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-semibold leading-snug text-text">
+                <p className="break-words text-base font-semibold leading-snug text-text">
                   {item.title}
                 </p>
                 {item.description ? (
-                  <p className="mt-0.5 text-sm leading-snug text-text-secondary">
+                  <p className="mt-1 break-words text-base leading-relaxed text-text-secondary">
                     {item.description}
                   </p>
                 ) : null}
@@ -134,7 +149,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
                 type="button"
                 onClick={() => dismiss(item.id)}
                 aria-label="Đóng thông báo"
-                className="flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700"
+                className="flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-lg text-text-muted transition-colors hover:bg-surface-subtle hover:text-text"
               >
                 <Icon name="x" className="h-4 w-4" />
               </button>

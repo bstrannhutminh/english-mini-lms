@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { PasswordInput } from "./password-input";
+import { Button } from "@/components/ui";
 
 interface PasswordLoginFormProps {
   email: string;
@@ -68,11 +69,11 @@ export function PasswordLoginForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-5">
       <div>
         <label
           htmlFor="email-input"
-          className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-slate-700"
+          className="mb-2 block text-base font-medium text-text"
         >
           Email đăng nhập
         </label>
@@ -84,14 +85,14 @@ export function PasswordLoginForm({
           value={email}
           onChange={(e) => onEmailChange(e.target.value)}
           placeholder="bacsi.minh@email.com"
-          className="min-h-11 w-full rounded-xl border border-slate-200 bg-slate-50 px-3.5 py-2.5 text-base transition focus:border-teal-600 focus:bg-white focus:outline-none focus:ring-2 focus:ring-teal-500/20"
+          className="field-control"
         />
       </div>
 
       <div>
         <label
           htmlFor="password-input"
-          className="mb-1.5 block text-xs font-semibold uppercase tracking-wider text-slate-700"
+          className="mb-2 block text-base font-medium text-text"
         >
           Mật khẩu
         </label>
@@ -102,31 +103,26 @@ export function PasswordLoginForm({
         />
       </div>
 
-      <button
+      <Button
         type="submit"
-        disabled={loading || !email || !password}
-        className="flex min-h-[44px] w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-teal-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-teal-700 active:bg-teal-800 disabled:cursor-not-allowed disabled:bg-slate-300"
+        disabled={!email || !password}
+        loading={loading}
+        fullWidth
+        size="lg"
       >
-        {loading ? (
-          <>
-            <div className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
-            <span>Đang đăng nhập...</span>
-          </>
-        ) : (
-          "Đăng nhập"
-        )}
-      </button>
+        {loading ? "Đang đăng nhập..." : "Đăng nhập"}
+      </Button>
 
-      <div className="border-t border-slate-100 pt-3 text-center">
+      <div className="border-t border-border pt-4 text-center">
         <button
           type="button"
           onClick={() => {
             onError(null);
             onSwitchMode();
           }}
-          className="inline-flex min-h-11 items-center text-xs font-medium text-slate-500 transition hover:text-teal-700"
+          className="inline-flex min-h-11 cursor-pointer items-center text-base font-medium text-text-secondary transition-colors hover:text-primary"
         >
-          Hoặc đăng nhập bằng liên kết gửi qua Email (Magic Link)
+          Đăng nhập bằng liên kết email
         </button>
       </div>
     </form>

@@ -8,6 +8,7 @@ import { useSubmit } from "../hooks/use-submit";
 import { useSmartCapture } from "../hooks/use-smart-capture";
 import { useOnlineStatus } from "../hooks/use-online-status";
 import { useSessionHotkeys } from "../hooks/use-session-hotkeys";
+import { requestSessionHint } from "../hooks/request-session-hint";
 
 /** Coordinate draft, timer, submission and overlay state for a learning session. */
 export function useSessionController(plugin: ModePlugin, data: SessionData) {
@@ -27,6 +28,7 @@ export function useSessionController(plugin: ModePlugin, data: SessionData) {
     useState<SubmissionResult | null>(null);
   const [hintShown, setHintShown] = useState(false);
   const [hintLoading, setHintLoading] = useState(false);
+  const [hintError, setHintError] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
   const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -48,6 +50,7 @@ export function useSessionController(plugin: ModePlugin, data: SessionData) {
   const hideActionBar = Boolean(plugin.staysAfterSubmit && submissionResult);
 
   const handleSubmit = useCallback(async () => {
+    if (hintLoading) return;
     const check = plugin.canSubmit(state);
     if (!check.ok) {
       setError(check.reason || "Bài chưa đủ điều kiện nộp.");
@@ -66,7 +69,7 @@ export function useSessionController(plugin: ModePlugin, data: SessionData) {
         router.push(`/my-work/${result.submissionId}`);
       }
     }
-  }, [plugin, state, submit, timer, data.parentId, router, setError]);
+  }, [plugin, state, submit, timer, data.parentId, router, setError, hintLoading]);
 
   const handleSaveDraft = useCallback(() => {
     void autosave.saveNow();
@@ -99,8 +102,11 @@ export function useSessionController(plugin: ModePlugin, data: SessionData) {
     if (hintShown || hintLoading) return;
     try {
       setHintLoading(true);
-      await postEvent("hint");
-      setHintShown(true);
+      setHintError(null);
+      const accepted = await requestSessionHint(postEvent, () => setHintShown(true));
+      if (!accepted) setHintError("Chưa mở được gợi ý vì chưa ghi nhận được sự kiện hỗ trợ. Kiểm tra kết nối rồi thử lại.");
+    } catch {
+      setHintError("Chưa mở được gợi ý. Kiểm tra kết nối rồi thử lại.");
     } finally {
       setHintLoading(false);
     }
@@ -117,6 +123,7 @@ export function useSessionController(plugin: ModePlugin, data: SessionData) {
     onSubmit: handleSubmit,
     onEscape: handleEscape,
     canSubmit: submitCheck.ok && !isSubmitting && !hideActionBar,
+    enabled: !isSubmitting && !showWrapUp && !confirmExitOpen && !capture.selection,
   });
 
   const showCaptureSavedToast = useCallback(() => {
@@ -144,6 +151,7 @@ export function useSessionController(plugin: ModePlugin, data: SessionData) {
     exiting,
     hintShown,
     hintLoading,
+    hintError,
     toast,
     timer,
     postEvent,

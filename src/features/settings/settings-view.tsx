@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { apiFetch, ApiClientError } from "@/lib/api-client";
@@ -24,6 +24,8 @@ import { ReminderCard } from "./reminder-card";
 import { GuideCard } from "./guide-card";
 import { ExportCard } from "./export-card";
 import { SubmissionsCard } from "./submissions-card";
+import { PageContainer } from "@/components/layout";
+import { SettingsSection } from "./settings-section";
 
 /**
  * Trang Cài đặt — container ghép các thẻ: tài khoản, mật khẩu, nhắc học,
@@ -45,6 +47,7 @@ export function SettingsView() {
   } = useSettingsData();
 
   const [savingPrefs, setSavingPrefs] = useState(false);
+  const preferencesInFlight = useRef(false);
 
   // Đăng xuất — ConfirmDialog thay window.confirm
   const [signOutOpen, setSignOutOpen] = useState(false);
@@ -54,6 +57,9 @@ export function SettingsView() {
     nextEnabled: boolean,
     nextTime: string
   ): Promise<boolean> {
+    if (preferencesInFlight.current) return false;
+    preferencesInFlight.current = true;
+    const previous = { enabled: remindEnabled, time: remindTime };
     setReminders(nextEnabled, nextTime);
     try {
       setSavingPrefs(true);
@@ -61,7 +67,7 @@ export function SettingsView() {
         remindEnabled: nextEnabled,
         remindTime: nextTime,
       };
-      await apiFetch(
+      const response = await apiFetch(
         "/api/v1/settings/preferences",
         {
           method: "PATCH",
@@ -70,14 +76,24 @@ export function SettingsView() {
         },
         preferencesResponseSchema
       );
+      setReminders(
+        typeof response.preferences.remindEnabled === "boolean"
+          ? response.preferences.remindEnabled
+          : nextEnabled,
+        typeof response.preferences.remindTime === "string"
+          ? response.preferences.remindTime
+          : nextTime
+      );
       return true;
     } catch (err) {
+      setReminders(previous.enabled, previous.time);
       toast.error(
         "Không thể lưu cài đặt",
         err instanceof ApiClientError ? err.message : undefined
       );
       return false;
     } finally {
+      preferencesInFlight.current = false;
       setSavingPrefs(false);
     }
   }
@@ -98,28 +114,28 @@ export function SettingsView() {
 
   if (loading) {
     return (
-      <div className="mx-auto max-w-xl space-y-6 px-4 py-6 pb-24">
+      <PageContainer size="wide" className="space-y-6">
         <Skeleton className="h-9 w-40" />
-        <Skeleton className="h-24 w-full rounded-2xl" />
-        <Skeleton className="h-40 w-full rounded-2xl" />
-        <Skeleton className="h-28 w-full rounded-2xl" />
-      </div>
+        <Skeleton className="h-24 w-full rounded-xl" />
+        <Skeleton className="h-40 w-full rounded-xl" />
+        <Skeleton className="h-28 w-full rounded-xl" />
+      </PageContainer>
     );
   }
 
   return (
-    <div className="mx-auto max-w-xl space-y-6 px-4 py-6 pb-24">
-      <div className="border-b pb-4">
-        <h1 className="text-2xl font-bold text-slate-800">Cài đặt</h1>
-        <p className="text-sm text-slate-500">
-          Quản lý tài khoản, dữ liệu học tập và thông báo
+    <PageContainer size="wide" className="space-y-8">
+      <header>
+        <h1 className="page-title">Cài đặt</h1>
+        <p className="page-description">
+          Điều chỉnh lộ trình, tài khoản và dữ liệu học của bạn.
         </p>
-      </div>
+      </header>
 
       {error && (
         <div
           role="alert"
-          className="flex items-center justify-between gap-3 rounded-xl border border-red-200 bg-red-50 p-3 text-sm text-red-700"
+          className="flex items-center justify-between gap-3 rounded-xl border border-red-200 bg-red-50 p-3 text-base text-red-700"
         >
           <span>{error}</span>
           <Button variant="outline" size="sm" onClick={reload}>
@@ -128,18 +144,19 @@ export function SettingsView() {
         </div>
       )}
 
-      <LearningPlanCard profile={profile} />
-      <AccountCard profile={profile} />
-      <PasswordCard />
-      <ReminderCard
-        enabled={remindEnabled}
-        time={remindTime}
-        saving={savingPrefs}
-        onSave={handleSavePreferences}
-      />
-      <GuideCard />
-      <ExportCard />
-      <SubmissionsCard submissions={submissions} onDeleted={removeSubmission} />
+      <SettingsSection title="Nhịp học của bạn" description="Chọn mục tiêu và thời gian phù hợp để dễ quay lại học mỗi ngày.">
+        <LearningPlanCard profile={profile} />
+        <ReminderCard enabled={remindEnabled} time={remindTime} saving={savingPrefs} onSave={handleSavePreferences} />
+        <GuideCard />
+      </SettingsSection>
+      <SettingsSection title="Tài khoản" description="Thông tin người học và cách đăng nhập vào LMS.">
+        <AccountCard profile={profile} />
+        <PasswordCard />
+      </SettingsSection>
+      <SettingsSection title="Dữ liệu học tập" description="Xuất một bản để lưu riêng hoặc quản lý các bài bạn đã nộp.">
+        <ExportCard />
+        <SubmissionsCard submissions={submissions} onDeleted={removeSubmission} />
+      </SettingsSection>
 
       <div className="pt-2">
         <Button
@@ -164,6 +181,6 @@ export function SettingsView() {
         onConfirm={handleSignOut}
         onCancel={() => setSignOutOpen(false)}
       />
-    </div>
+    </PageContainer>
   );
 }

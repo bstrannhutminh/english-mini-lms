@@ -4,6 +4,7 @@ import { useCallback, useState } from "react";
 import { createPortal } from "react-dom";
 import { normalizeYouGlishQuery } from "./youglish";
 import { YouGlishModal } from "./youglish-modal";
+import { Icon } from "@/components/ui";
 
 interface YouGlishButtonProps {
   query: string;
@@ -17,7 +18,7 @@ interface YouGlishButtonProps {
  */
 export function YouGlishButton({
   query,
-  label = "🔊 Nghe người bản xứ nói",
+  label = "Nghe người bản xứ nói",
   className,
 }: YouGlishButtonProps) {
   const [open, setOpen] = useState(false);
@@ -32,10 +33,10 @@ export function YouGlishButton({
         onClick={() => setOpen(true)}
         className={
           className ??
-          "inline-flex min-h-[44px] items-center justify-center gap-1.5 rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-2 text-sm font-semibold text-indigo-700 transition hover:bg-indigo-100 disabled:cursor-not-allowed disabled:opacity-50"
+          "inline-flex min-h-[44px] items-center justify-center gap-1.5 rounded-lg border border-indigo-200 bg-indigo-50 px-3 py-2 text-base font-semibold text-indigo-700 transition hover:bg-indigo-100 disabled:cursor-not-allowed disabled:opacity-50"
         }
       >
-        {label}
+        <Icon name="volume" className="h-4 w-4" />{label}
       </button>
       {open && createPortal(<YouGlishModal query={query} onClose={close} />, document.body)}
     </>

@@ -14,11 +14,13 @@ export function useSessionHotkeys(handlers: {
   onSubmit: () => void;
   onEscape: () => void;
   canSubmit: boolean;
+  enabled?: boolean;
 }): void {
-  const { onSaveDraft, onSubmit, onEscape, canSubmit } = handlers;
+  const { onSaveDraft, onSubmit, onEscape, canSubmit, enabled = true } = handlers;
 
   useEffect(() => {
     function onKeyDown(event: KeyboardEvent) {
+      if (!enabled || document.querySelector('[role="dialog"][aria-modal="true"], dialog[open]')) return;
       const withMod = event.ctrlKey || event.metaKey;
       if (withMod && event.key === "s") {
         event.preventDefault();
@@ -37,5 +39,5 @@ export function useSessionHotkeys(handlers: {
 
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
-  }, [onSaveDraft, onSubmit, onEscape, canSubmit]);
+  }, [onSaveDraft, onSubmit, onEscape, canSubmit, enabled]);
 }

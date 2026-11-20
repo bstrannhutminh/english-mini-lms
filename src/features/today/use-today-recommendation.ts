@@ -68,6 +68,7 @@ export function useTodayRecommendation(
     (mins: 30 | 45) => {
       if (mins !== targetMinutes) {
         setLoading(true);
+        setData(null);
         setError(null);
         setTargetMinutes(mins);
       }
@@ -77,6 +78,7 @@ export function useTodayRecommendation(
 
   const retry = useCallback(() => {
     setLoading(true);
+    setData(null);
     setError(null);
     setReloadTick((c) => c + 1);
   }, []);

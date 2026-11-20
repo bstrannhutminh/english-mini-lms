@@ -12,7 +12,7 @@ interface BottomTabBarProps {
 }
 
 /**
- * Thanh tab dưới cho mobile (<lg). Cao --nav-height (64px + safe-area),
+ * Thanh tab dưới cho mobile (<lg). Cao --nav-height (80px + safe-area),
  * mọi mục ≥44px. Giữ data-tour cho guided tour.
  */
 export function BottomTabBar({ vocabDueCount = 0 }: BottomTabBarProps) {
@@ -21,7 +21,7 @@ export function BottomTabBar({ vocabDueCount = 0 }: BottomTabBarProps) {
   return (
     <nav
       aria-label="Điều hướng chính"
-      className="fixed inset-x-0 bottom-0 z-(--z-nav) flex h-(--nav-height) items-stretch border-t border-border bg-surface/95 pb-[env(safe-area-inset-bottom,0px)] pt-1.5 shadow-[0_-2px_10px_rgba(0,0,0,0.03)] backdrop-blur-md lg:hidden"
+      className="fixed inset-x-0 bottom-0 z-(--z-nav) grid h-(--nav-height) grid-cols-5 items-stretch border-t border-border bg-surface pb-[env(safe-area-inset-bottom,0px)] lg:hidden"
     >
       {NAV_ITEMS.map((item) => {
         const active = isNavItemActive(pathname, item.href);
@@ -32,34 +32,31 @@ export function BottomTabBar({ vocabDueCount = 0 }: BottomTabBarProps) {
             href={item.href}
             data-tour={item.tour}
             aria-current={active ? "page" : undefined}
-            className="group flex min-h-11 flex-1 cursor-pointer flex-col items-center justify-center gap-1 py-1 no-underline"
+            className={cn("group flex min-h-11 min-w-0 cursor-pointer flex-col items-center justify-center gap-2 border-t-2 py-2 no-underline", active ? "border-primary bg-surface-muted" : "border-transparent")}
           >
             <span className="relative">
               <Icon
                 name={item.icon}
                 className={cn(
-                  "h-[22px] w-[22px]",
-                  active ? "text-teal-600" : "text-slate-500 group-hover:text-slate-700"
+                  "h-5 w-5",
+                  active ? "text-primary" : "text-text-muted group-hover:text-text"
                 )}
               />
               {showBadge ? (
                 <span
                   aria-hidden="true"
-                  className="absolute -right-2.5 -top-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-error px-1 text-[10px] font-bold leading-none text-white"
+                  className="absolute -right-3 -top-2 flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1 text-xs font-semibold leading-none text-white"
                 >
                   {formatBadgeCount(vocabDueCount)}
                 </span>
               ) : null}
-              {active && !showBadge ? (
-                <span className="absolute -bottom-1 left-1/2 h-1.5 w-1.5 -translate-x-1/2 rounded-full bg-teal-600" />
-              ) : null}
             </span>
             <span
               className={cn(
-                "text-[0.6875rem] leading-none tracking-tight",
+                "whitespace-nowrap text-base leading-none tracking-[-0.035em]",
                 active
-                  ? "font-bold text-teal-700"
-                  : "font-medium text-slate-500 group-hover:text-slate-800"
+                  ? "font-semibold text-primary-dark"
+                  : "font-normal text-text-muted group-hover:text-text"
               )}
             >
               {item.label}

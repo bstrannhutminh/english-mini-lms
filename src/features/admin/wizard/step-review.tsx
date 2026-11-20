@@ -123,18 +123,16 @@ export default function StepReview({
       <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-5 space-y-4 text-center">
         <Icon name="check-circle" className="mx-auto h-10 w-10 text-emerald-600" />
         <div>
-          <h3 className="text-lg font-bold text-emerald-900">
+          <h3 className="text-lg font-semibold text-emerald-900">
             Đã duyệt &amp; đưa lên Thư viện
           </h3>
-          <p className="text-sm text-emerald-800">
+          <p className="text-base text-emerald-800">
             Bài <strong>{data.title}</strong> ({data.activityId}) đã sẵn sàng để học.
           </p>
         </div>
         <div className="flex flex-wrap justify-center gap-2">
-          <Link href="/library" className="inline-flex">
-            <Button variant="primary" size="lg">
-              <Icon name="book-open" className="h-4 w-4" /> Xem trong Thư viện
-            </Button>
+          <Link href="/library" className="inline-flex min-h-12 items-center justify-center gap-2 rounded-lg bg-primary px-5 text-base font-semibold text-white hover:bg-primary-dark">
+            <Icon name="book-open" className="h-4 w-4" /> Xem trong Thư viện
           </Link>
           <Button
             variant="secondary"
@@ -147,7 +145,7 @@ export default function StepReview({
         </div>
         <button
           type="button"
-          className="text-sm text-emerald-800 underline underline-offset-2"
+          className="inline-flex min-h-11 items-center rounded-lg px-3 text-base text-emerald-800 underline underline-offset-2"
           onClick={onReset}
         >
           Tạo bài khác
@@ -166,8 +164,8 @@ export default function StepReview({
               className={`mt-0.5 h-5 w-5 ${c.ok ? "text-emerald-600" : "text-amber-600"}`}
             />
             <div>
-              <p className="text-sm font-medium text-slate-800">{c.label}</p>
-              <p className={`text-xs ${c.ok ? "text-slate-500" : "text-amber-700"}`}>
+              <p className="text-base font-medium text-slate-800">{c.label}</p>
+              <p className={`text-base ${c.ok ? "text-slate-500" : "text-amber-700"}`}>
                 {c.detail}
               </p>
             </div>
@@ -177,7 +175,7 @@ export default function StepReview({
 
       <ErrorList error={error} details={errorDetails} />
 
-      <div className="rounded-xl bg-slate-50 p-4 text-sm text-slate-600">
+      <div className="rounded-xl bg-slate-50 p-4 text-base text-slate-600">
         Khi bấm duyệt, hệ thống sẽ lần lượt: tạo nguồn video → tạo segment kèm
         transcript → tạo bài học → chuyển trạng thái sang{" "}
         <strong>Đã duyệt</strong>. Server kiểm tra lại toàn bộ trước khi bài
@@ -195,7 +193,7 @@ export default function StepReview({
         {busy ? PHASE_LABEL[phase as keyof typeof PHASE_LABEL] : "✓ Duyệt & đưa lên Thư viện"}
       </Button>
       {!allOk && (
-        <p className="text-center text-xs text-amber-700">
+        <p className="text-center text-base text-amber-700">
           Sửa các mục còn thiếu ở các bước trước để mở nút duyệt.
         </p>
       )}

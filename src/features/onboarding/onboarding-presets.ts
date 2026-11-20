@@ -1,5 +1,5 @@
 import type { IconName } from "@/components/ui";
-import type { OnboardingProfile } from "@/contracts/onboarding";
+import type { OnboardingPayload, OnboardingProfile } from "@/contracts/onboarding";
 import type { Skill } from "@/lib/modes";
 import { selectLearningFocus } from "@/lib/learning-focus";
 
@@ -105,23 +105,34 @@ export function createInitialDraft(
   return {
     displayName: profile?.displayName?.trim() || "Bác sĩ Minh",
     priorities:
-      profile?.priorities && profile.priorities.length > 0
-        ? profile.priorities
+      profile
+        ? [...profile.priorities]
         : [PRIORITY_CARDS[0].value, PRIORITY_CARDS[1].value],
     selfAssessment: {
       writing: profile?.selfAssessment.writing ?? 3,
-      reading: profile?.selfAssessment.reading ?? 4,
+      reading: profile?.selfAssessment.reading ?? 3,
       speaking: profile?.selfAssessment.speaking ?? 3,
       listening: profile?.selfAssessment.listening ?? 3,
     },
-    workContext:
-      profile?.workContext?.trim() ||
-      "Bác sĩ chuyên khoa Cơ Xương Khớp / Siêu âm can thiệp, thường xuyên đọc tài liệu tiếng Anh và trao đổi hội nghị.",
+    workContext: profile?.workContext ?? "",
     ieltsVariant: profile?.ieltsVariant || "none",
-    currentBook:
-      profile?.currentBook?.trim() || "Musculoskeletal Ultrasound Handbook",
-    preferredStudyTime: profile?.preferredStudyTime || "21:00",
+    currentBook: profile?.currentBook ?? "",
+    preferredStudyTime: profile?.preferredStudyTime ?? "21:00",
     targetMinutesDefault: mins,
+  };
+}
+
+/** Save exactly the reviewed choices, keeping optional blanks and the Lite duration. */
+export function buildOnboardingPayload(draft: OnboardingDraft): OnboardingPayload {
+  return {
+    displayName: draft.displayName.trim() || "Bác sĩ Minh",
+    priorities: [...draft.priorities],
+    selfAssessment: { ...draft.selfAssessment },
+    workContext: draft.workContext.trim(),
+    ieltsVariant: draft.ieltsVariant === "none" ? null : draft.ieltsVariant,
+    currentBook: draft.currentBook.trim(),
+    preferredStudyTime: draft.preferredStudyTime,
+    targetMinutesDefault: draft.targetMinutesDefault,
   };
 }
 

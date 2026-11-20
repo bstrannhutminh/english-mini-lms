@@ -31,18 +31,18 @@ export function WritingPanel(props: ModePanelProps) {
   const toggleParentRef = () =>
     setState((prev) => ({ ...prev, showParentRef: !prev.showParentRef }));
 
-  const sourceRef = `Bài viết: ${activity.slot || activity.id}`;
+  const sourceRef = `${activity.title} · ${activity.slot || activity.id}`;
 
   const left = (
     <>
-      <div className="mb-4 rounded-2xl border border-border bg-surface p-5 shadow-card">
+      <div className="mb-6 border-b border-border pb-6">
         <div className="mb-2.5 flex items-center gap-2">
-          <span className="inline-flex items-center gap-1 rounded-md border border-skill-writing-border bg-skill-writing-soft px-2 py-0.5 text-xs font-bold text-skill-writing">
+          <span className="inline-flex items-center gap-1 rounded-md border border-skill-writing-border bg-skill-writing-soft px-2 py-0.5 text-base font-bold text-skill-writing">
             <Icon name="pen-tool" className="h-3.5 w-3.5" />
             Viết thực tế
           </span>
           {activity.durationMinutes && (
-            <span className="text-xs tabular-nums text-text-muted">
+            <span className="text-base tabular-nums text-text-muted">
               Khuyến nghị {activity.durationMinutes} phút
             </span>
           )}
@@ -51,7 +51,7 @@ export function WritingPanel(props: ModePanelProps) {
         <h2 className="mb-2 text-lg font-bold text-text">{activity.title}</h2>
 
         {activity.objective && (
-          <p className="mb-3 text-sm leading-relaxed text-text-secondary">
+          <p className="mb-3 text-base leading-relaxed text-text-secondary">
             <strong className="text-text">Mục tiêu:</strong>{" "}
             {activity.objective}
           </p>
@@ -59,8 +59,8 @@ export function WritingPanel(props: ModePanelProps) {
 
         {activity.promptText && (
           <div
-            {...capture.selectHandlers(activity.promptText, sourceRef)}
-            className="rounded-xl border border-border-subtle bg-surface-muted p-4 text-sm leading-relaxed text-text-secondary"
+            {...capture.selectHandlers(activity.promptText, sourceRef, "text")}
+            className="max-w-prose text-base leading-relaxed text-text"
           >
             <MarkdownText text={activity.promptText} />
           </div>
@@ -80,7 +80,7 @@ export function WritingPanel(props: ModePanelProps) {
   );
 
   const right = (
-    <div className="mb-4 rounded-2xl border border-border bg-surface p-5 shadow-card">
+    <div className="mb-4 rounded-xl border border-border bg-surface p-5 ">
       <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
         <label
           htmlFor="essay-editor"
@@ -90,7 +90,7 @@ export function WritingPanel(props: ModePanelProps) {
         </label>
         <span
           className={cn(
-            "rounded-full px-2.5 py-0.5 text-xs font-semibold tabular-nums",
+            "rounded-full px-2.5 py-0.5 text-base font-semibold tabular-nums",
             inRange
               ? "bg-emerald-50 text-emerald-700"
               : aboveRange
@@ -120,17 +120,18 @@ export function WritingPanel(props: ModePanelProps) {
         />
       </div>}
 
+      <p className="mb-3 text-base text-text-secondary">Viết bản đầu bằng lời của bạn. Bạn có thể đối chiếu đề và chỉnh sửa sau khi nhận góp ý.</p>
       <textarea
         id="essay-editor"
         value={state.text}
         onChange={(e) => setText(e.target.value)}
         disabled={busy}
         placeholder="Viết bài của bạn tại đây bằng tiếng Anh..."
-        rows={14}
-        className="box-border w-full resize-y rounded-xl border border-border bg-surface p-4 text-base leading-relaxed text-text outline-none transition placeholder:text-text-muted focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:opacity-60"
+        rows={16}
+        className="box-border min-h-80 w-full resize-y rounded-lg border border-border-strong bg-surface p-4 text-base leading-relaxed text-text outline-none transition placeholder:text-text-muted focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:opacity-60"
       />
     </div>
   );
 
-  return <SessionColumns left={left} right={right} />;
+  return <SessionColumns left={left} right={right} collapsible sourceLabel="Xem đề bài và yêu cầu" />;
 }

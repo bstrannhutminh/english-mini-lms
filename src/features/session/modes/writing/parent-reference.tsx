@@ -25,22 +25,22 @@ export function WritingParentReference({
   const bodyText = parentData.submission.body ?? "";
 
   return (
-    <div className="mb-4 overflow-hidden rounded-2xl border border-orange-200 bg-white">
+    <div className="mb-4 overflow-hidden rounded-xl border border-orange-200 bg-white">
       <button
         type="button"
         onClick={onToggle}
-        className="flex min-h-[48px] w-full items-center justify-between bg-orange-50 px-4 py-3 text-left text-sm font-semibold text-orange-700"
+        className="flex min-h-[48px] w-full items-center justify-between bg-orange-50 px-4 py-3 text-left text-base font-semibold text-orange-700"
       >
         <span>
-          📖 Đối chiếu Bản 1 và các lỗi cần sửa ({open ? "Thu gọn" : "Mở rộng"})
+          Đối chiếu Bản {parentData.submission.revision} và góp ý ({open ? "Thu gọn" : "Mở rộng"})
         </span>
         <span>{open ? "▲" : "▼"}</span>
       </button>
 
       {open && (
-        <div className="p-3.5 text-sm">
+        <div className="p-3.5 text-base">
           <div
-            {...capture.selectHandlers(bodyText, sourceRef)}
+            {...capture.selectHandlers(bodyText, `${sourceRef} · bài nộp ${parentData.submission.id} · bản ${parentData.submission.revision}`, "text")}
             className="mb-3 whitespace-pre-wrap rounded-lg border border-slate-200 bg-slate-50 p-3 leading-relaxed text-slate-700"
           >
             {parentData.submission.body}
@@ -55,7 +55,7 @@ export function WritingParentReference({
                 {feedback.observations.map((obs, idx) => (
                   <div
                     key={idx}
-                    className="rounded-md border border-amber-200 bg-amber-50 px-2.5 py-2 text-[13px]"
+                    className="rounded-md border border-amber-200 bg-amber-50 px-2.5 py-2 text-base"
                   >
                     <span className="font-semibold text-amber-700">
                       {obs.location}:

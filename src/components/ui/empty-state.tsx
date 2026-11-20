@@ -13,7 +13,7 @@ export interface EmptyStateProps {
 }
 
 /**
- * Trạng thái trống thống nhất: icon tròn + tiêu đề + gợi ý tiếng Việt + 1 action.
+ * Trạng thái trống thống nhất: tiêu đề, gợi ý tiếng Việt và một action.
  * Dùng cho danh sách rỗng, kết quả tìm kiếm trống, dữ liệu chưa có.
  */
 export function EmptyState({
@@ -26,17 +26,17 @@ export function EmptyState({
   return (
     <div
       className={cn(
-        "flex flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-slate-300 bg-surface px-6 py-10 text-center",
+        "flex flex-col items-center justify-center gap-4 rounded-xl bg-surface-muted px-6 py-10 text-center",
         className
       )}
     >
-      <div className="flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-slate-500">
+      <div aria-hidden="true" className="flex h-10 w-10 items-center justify-center text-text-muted">
         <Icon name={icon} className="h-6 w-6" />
       </div>
       <div className="space-y-1">
         <p className="text-base font-semibold text-text">{title}</p>
         {description ? (
-          <p className="mx-auto max-w-sm text-sm leading-relaxed text-text-secondary">
+          <p className="mx-auto max-w-md text-base leading-relaxed text-text-secondary">
             {description}
           </p>
         ) : null}

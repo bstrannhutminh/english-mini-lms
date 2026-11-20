@@ -6,17 +6,9 @@
  * nguồn → segment → activity → approve. 409 "đã tồn tại" → PATCH cập nhật
  * (idempotent, an toàn khi bấm lại sau lỗi).
  */
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { Button, Icon, useToast } from "@/components/ui";
-import { slugifyTopic } from "@/lib/topics";
-import {
-  createActivity,
-  createSegment,
-  createSource,
-  updateActivity,
-  updateSegment,
-  updateSource,
-} from "../admin-api";
+
 import { toErrorState } from "../form-bits";
 import type { FieldError } from "@/lib/content-constants";
 import StepQuestions from "./step-questions";
@@ -24,13 +16,13 @@ import StepReview, { type SubmitPhase } from "./step-review";
 import StepSource from "./step-source";
 import StepTranscript from "./step-transcript";
 import {
-  draftToQuestion,
   validateQuestionsStep,
   validateSourceStep,
   validateTranscriptStep,
   type WizardData,
 } from "./wizard-types";
-import { initialData, intOrNull, upsert } from "./wizard-submit";
+import { initialData } from "./wizard-submit";
+import { createWizardLesson } from "./wizard-create";
 
 const STEPS = [
   { key: "source", label: "1. Nguồn" },
@@ -58,6 +50,7 @@ export default function LessonWizard({
   const [phase, setPhase] = useState<SubmitPhase>("idle");
   const [error, setError] = useState<string | null>(null);
   const [errorDetails, setErrorDetails] = useState<FieldError[]>([]);
+  const created = useRef({ source: new Set<string>(), segment: new Set<string>(), activity: new Set<string>() });
 
   const patch = (p: Partial<WizardData>) => setData((d) => ({ ...d, ...p }));
 
@@ -83,46 +76,9 @@ export default function LessonWizard({
     setError(null);
     setErrorDetails([]);
     const title = data.title.trim();
-    const url = data.youtubeUrl.trim();
-    const transcript = data.transcript.trim();
-    const topic = data.topic.trim() ? slugifyTopic(data.topic) : null;
 
     try {
-      setPhase("source");
-      await upsert(createSource, updateSource, data.sourceId, {
-        title,
-        kind: "video",
-        url,
-        locatorType: "seconds",
-        permission: "personal-study",
-      });
-
-      setPhase("segment");
-      await upsert(createSegment, updateSegment, data.segmentId, {
-        sourceId: data.sourceId,
-        startSeconds: intOrNull(data.startSeconds),
-        endSeconds: intOrNull(data.endSeconds),
-        transcriptContent: transcript,
-        verifiedTranscript: data.verifiedTranscript,
-        language: "en",
-      });
-
-      setPhase("activity");
-      await upsert(createActivity, updateActivity, data.activityId, {
-        mode: data.mode,
-        title,
-        durationMinutes: intOrNull(data.durationMinutes),
-        difficulty: "beginner",
-        purpose: "practice",
-        answerReveal: "after_submit",
-        segmentIds: [data.segmentId],
-        questions: data.questions.map(draftToQuestion),
-        topic,
-      });
-
-      setPhase("approve");
-      await updateSource(data.sourceId, { reviewState: "approved" });
-      await updateActivity(data.activityId, { reviewState: "approved" });
+      await createWizardLesson(data, created.current, setPhase);
 
       setPhase("done");
       toast.success("Đã duyệt bài học", `"${title}" đã lên Thư viện.`);
@@ -137,6 +93,7 @@ export default function LessonWizard({
   }
 
   function reset() {
+    created.current = { source: new Set(), segment: new Set(), activity: new Set() };
     setData(initialData(existingActivityIds));
     setStep("source");
     setPhase("idle");
@@ -145,7 +102,7 @@ export default function LessonWizard({
   }
 
   return (
-    <section className="bg-white rounded-xl border border-slate-200 shadow-sm p-4 sm:p-5 space-y-5">
+    <section className="bg-white rounded-xl border border-slate-200  p-4 sm:p-5 space-y-5">
       <div className="flex items-center justify-between gap-3">
         <h2 className="text-lg font-semibold text-slate-800">
           ＋ Bài nghe YouTube mới
@@ -166,7 +123,7 @@ export default function LessonWizard({
               onClick={() => i <= stepIndex && setStep(s.key)}
               disabled={i > stepIndex}
               aria-current={s.key === step ? "step" : undefined}
-              className={`min-h-11 rounded-lg px-3 text-sm font-medium transition ${
+              className={`min-h-11 rounded-lg px-3 text-base font-medium transition ${
                 s.key === step
                   ? "bg-indigo-600 text-white"
                   : i < stepIndex

@@ -17,10 +17,12 @@ export function FailedState({ assessmentId, resultRef }: FailedStateProps) {
   const router = useRouter();
   const toast = useToast();
   const [isRetrying, setIsRetrying] = useState(false);
+  const [retryError, setRetryError] = useState<string | null>(null);
 
   async function handleRetry() {
     if (isRetrying) return;
     setIsRetrying(true);
+    setRetryError(null);
     try {
       await apiFetch(
         `/api/v1/assessments/${assessmentId}/retry`,
@@ -30,6 +32,7 @@ export function FailedState({ assessmentId, resultRef }: FailedStateProps) {
       toast.success("Đã chấm lại xong — đang tải kết quả mới.");
       router.refresh();
     } catch (err) {
+      setRetryError(err instanceof Error ? err.message : "Chưa chấm lại được. Hãy thử lại khi có kết nối.");
       toast.error(
         "Chấm lại thất bại",
         err instanceof Error ? err.message : undefined
@@ -41,17 +44,16 @@ export function FailedState({ assessmentId, resultRef }: FailedStateProps) {
 
   return (
     <Card className="mb-4 border-red-200 bg-red-50">
-      <p className="flex items-center gap-2 text-sm font-bold text-red-900">
+      <p className="flex items-center gap-2 text-base font-bold text-red-900">
         <Icon name="alert-triangle" className="h-4 w-4" />
-        Không thể hoàn tất chấm điểm với Gemini
+        Bài đã lưu, nhưng chưa có góp ý
       </p>
-      <p className="mt-1 text-sm text-red-800">
+      <p className="mt-1 text-base text-red-800">
         {resultRef || "Quá thời gian kết nối hoặc Gemini phản hồi không hợp lệ."}
       </p>
       <div className="mt-3">
         <Button
-          variant="danger"
-          size="sm"
+          variant="outline"
           onClick={handleRetry}
           loading={isRetrying}
         >
@@ -59,6 +61,7 @@ export function FailedState({ assessmentId, resultRef }: FailedStateProps) {
           {isRetrying ? "Đang chấm lại…" : "Chấm lại ngay"}
         </Button>
       </div>
+      {retryError && <p role="alert" className="mt-3 text-base text-red-800">{retryError}</p>}
     </Card>
   );
 }

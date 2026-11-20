@@ -51,6 +51,17 @@ describe("mergePreferences", () => {
 });
 
 describe("preferencesPatchSchema", () => {
+  it("keeps the selected study duration when onboarding is skipped", () => {
+    const patch = preferencesPatchSchema.parse({ targetMinutesDefault: 45, onboardingSkipped: true });
+    const merged = mergePreferences({ targetMinutesDefault: 30, remindTime: "21:00" }, patch, NOW);
+    expect(merged.targetMinutesDefault).toBe(45);
+    expect(merged.onboardingSkipped).toBe(true);
+    expect(merged.remindTime).toBe("21:00");
+  });
+
+  it("rejects an unsupported study duration", () => {
+    expect(preferencesPatchSchema.safeParse({ targetMinutesDefault: 60 }).success).toBe(false);
+  });
   it("chấp nhận patch hợp lệ", () => {
     expect(
       preferencesPatchSchema.safeParse({ remindEnabled: true, remindTime: "08:05" }).success,

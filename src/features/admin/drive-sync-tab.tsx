@@ -71,7 +71,7 @@ export default function DriveSyncTab() {
           title="Đồng bộ từ Google Drive"
           description={
             <>
-              Đọc <code className="bg-slate-100 px-1 rounded text-xs">manifest.yaml</code>{" "}
+              Đọc <code className="bg-slate-100 px-1 rounded text-base">manifest.yaml</code>{" "}
               và nạp nội dung <strong>đã duyệt</strong> vào DB. Bài do admin tạo
               không bao giờ bị ghi đè.
             </>
@@ -99,7 +99,7 @@ export default function DriveSyncTab() {
             <Icon name="check" className="h-4 w-4" /> Áp dụng vào DB
           </Button>
           {dryResult && (
-            <span className="text-xs text-slate-500">
+            <span className="text-base text-slate-500">
               Dry-run lúc {new Date().toLocaleTimeString("vi-VN")} —{" "}
               {canApply
                 ? "có thay đổi để áp dụng"
@@ -107,14 +107,14 @@ export default function DriveSyncTab() {
             </span>
           )}
         </div>
-        <p className="mt-3 text-xs text-slate-400">
+        <p className="mt-3 text-base text-slate-400">
           Luồng an toàn: <strong>1.</strong> Kiểm tra (không ghi) →{" "}
           <strong>2.</strong> Xem thay đổi → <strong>3.</strong> Xác nhận áp dụng.
         </p>
       </Card>
 
       {apiError && (
-        <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-sm text-red-800">
+        <div className="p-4 bg-red-50 border border-red-200 rounded-xl text-base text-red-800">
           <p className="font-semibold">Lỗi kết nối API</p>
           <p className="mt-1">{apiError}</p>
         </div>

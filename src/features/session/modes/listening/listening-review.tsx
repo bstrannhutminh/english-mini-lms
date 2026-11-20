@@ -23,15 +23,15 @@ export function ListeningReview({
   return (
     <div className="flex flex-col gap-4">
       {/* Thẻ tổng kết điểm */}
-      <div className="flex items-center justify-between gap-3 rounded-2xl border border-slate-200 bg-white p-4">
+      <div className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-4">
         <div>
           <div className="text-lg font-extrabold text-slate-900">
             Kết quả nghe hiểu
           </div>
-          <div className="mt-0.5 text-sm text-slate-600">
+          <div className="mt-0.5 text-base text-slate-600">
             {assisted
               ? "Đã hoàn thành (có xem gợi ý/transcript)"
-              : "Đã hoàn thành tự lực 100%"}
+              : "Đã hoàn thành tự làm độc lập"}
           </div>
         </div>
         <div className="rounded-xl border border-green-200 bg-green-50 px-4 py-2 text-lg font-extrabold text-green-700">
@@ -45,15 +45,15 @@ export function ListeningReview({
         return (
           <div
             key={q.id}
-            className={`rounded-2xl border bg-white p-4 ${
+            className={`rounded-xl border bg-white p-4 ${
               q.isCorrect ? "border-green-300" : "border-red-300"
             }`}
           >
-            <div className="mb-2 text-[15px] font-bold text-slate-900">
+            <div className="mb-2 text-base font-bold text-slate-900">
               {q.isCorrect ? "✅" : "❌"} Câu {idx + 1}: {q.prompt}
             </div>
 
-            <div className="mb-2 text-sm">
+            <div className="mb-2 text-base">
               <div>
                 Lựa chọn của bạn:{" "}
                 <strong
@@ -73,7 +73,7 @@ export function ListeningReview({
             </div>
 
             {/* Giải thích & nút nghe lại mốc giây gây nhầm */}
-            <div className="rounded-lg border border-slate-200 bg-slate-50 p-3 text-[13px] leading-relaxed text-slate-700">
+            <div className="rounded-lg border border-slate-200 bg-slate-50 p-3 text-base leading-relaxed text-slate-700">
               <div className="mb-1 font-bold text-slate-600">
                 💡 Phân tích & đoạn gây nhầm:
               </div>
@@ -82,7 +82,7 @@ export function ListeningReview({
                 <button
                   type="button"
                   onClick={() => onSeek(seekTarget)}
-                  className="inline-flex min-h-[32px] items-center gap-1 rounded-md bg-indigo-100 px-2 text-xs font-bold text-indigo-800 hover:bg-indigo-200"
+                  className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-border bg-surface px-3 text-base font-medium text-primary-dark hover:bg-primary-soft"
                 >
                   ⏱️ Nghe lại đoạn mốc {seekTarget}s trên video
                 </button>

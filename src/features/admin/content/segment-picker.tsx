@@ -34,7 +34,7 @@ export default function SegmentPicker({
 }) {
   return (
     <div className="space-y-2">
-      <span className="text-sm font-medium text-slate-700">
+      <span className="text-base font-medium text-slate-700">
         Segment dùng trong bài{" "}
         <span className="text-slate-400 font-normal">
           (thứ tự chọn = thứ tự dùng)
@@ -42,7 +42,7 @@ export default function SegmentPicker({
       </span>
       <div className="max-h-56 overflow-y-auto rounded-lg border border-slate-200 divide-y divide-slate-100">
         {segments.length === 0 && (
-          <p className="p-3 text-sm text-slate-400 italic">
+          <p className="p-3 text-base text-slate-400 italic">
             Chưa có segment nào — tạo segment trước.
           </p>
         )}
@@ -51,7 +51,7 @@ export default function SegmentPicker({
           return (
             <label
               key={seg.id}
-              className={`flex min-h-11 cursor-pointer items-center gap-2 px-3 py-2 text-sm ${
+              className={`flex min-h-11 cursor-pointer items-center gap-2 px-3 py-2 text-base ${
                 checked ? "bg-indigo-50/60 text-slate-800" : "text-slate-600"
               }`}
             >

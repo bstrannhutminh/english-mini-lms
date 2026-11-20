@@ -8,7 +8,7 @@ import type { ReactNode } from "react";
  */
 export function StructuredBody({ body }: { body: string | null }) {
   if (!body) {
-    return <p className="text-sm italic text-text-muted">(Không có nội dung)</p>;
+    return <p className="text-base italic text-text-muted">(Không có nội dung)</p>;
   }
 
   const parsed = tryParseReadingBody(body);
@@ -68,9 +68,9 @@ function Section({
 }) {
   return (
     <div>
-      <p className="mb-1 text-xs font-bold text-text-secondary">{label}</p>
+      <p className="mb-1 text-base font-bold text-text-secondary">{label}</p>
       <div
-        className={`rounded-lg border border-border bg-surface px-3 py-2.5 text-sm text-text ${
+        className={`rounded-lg border border-border bg-surface px-3 py-2.5 text-base text-text ${
           preserve ? "whitespace-pre-wrap" : ""
         }`}
       >

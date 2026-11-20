@@ -47,7 +47,7 @@ export function DashboardActivityTable({
         }
       />
       <div className="mt-4 overflow-x-auto border rounded-lg">
-        <table className="w-full text-left text-xs text-slate-600">
+        <table className="w-full text-left text-base text-slate-600">
           <thead className="bg-slate-50 text-slate-500 uppercase tracking-wider border-b">
             <tr>
               <th className="py-2.5 px-3">Mã</th>
@@ -70,7 +70,7 @@ export function DashboardActivityTable({
                 const topic = getTopicMeta(act.topic);
                 return (
                   <tr key={act.id} className="hover:bg-slate-50/50">
-                    <td className="py-2.5 px-3 font-mono text-[11px] text-slate-500">
+                    <td className="py-2.5 px-3 font-mono text-base text-slate-500">
                       <Link href={`/library/${act.id}`} className="inline-flex min-h-11 min-w-11 items-center hover:underline">
                         {act.id}
                       </Link>

@@ -18,6 +18,7 @@ export function PasswordCard() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (changing) return;
     if (!newPassword || newPassword.length < 6) {
       setMessage({
         type: "error",
@@ -60,32 +61,30 @@ export function PasswordCard() {
   return (
     <Card className="space-y-4">
       <CardHeader
-        title="Bảo mật & Mật khẩu"
+        title="Mật khẩu"
         description="Đổi mật khẩu đăng nhập LMS cho tài khoản này"
-        action={
+      />
           <Button
             variant="outline"
             size="sm"
+            disabled={changing}
             onClick={() => {
               setOpen((v) => !v);
               setMessage(null);
             }}
           >
-            {open ? "Đóng lại" : "Đổi mật khẩu 🔑"}
+            {open ? "Đóng lại" : "Đổi mật khẩu"}
           </Button>
-        }
-      />
 
       {message && (
         <div
           role={message.type === "error" ? "alert" : "status"}
-          className={`rounded-xl border p-3 text-xs sm:text-sm ${
+          className={`rounded-xl border p-3 text-base ${
             message.type === "success"
               ? "border-teal-200 bg-teal-50 text-teal-800"
               : "border-red-200 bg-red-50 text-red-700"
           }`}
         >
-          {message.type === "success" ? "✅ " : "⚠️ "}
           {message.text}
         </div>
       )}
@@ -95,10 +94,11 @@ export function PasswordCard() {
           onSubmit={handleSubmit}
           className="space-y-3 border-t border-slate-100 pt-3"
         >
+          <fieldset disabled={changing} className="space-y-3">
           <div>
             <label
               htmlFor="new-pwd"
-              className="mb-1 block text-xs font-medium text-slate-700"
+              className="mb-1 block text-base font-medium text-slate-700"
             >
               Mật khẩu mới (tối thiểu 6 ký tự)
             </label>
@@ -113,7 +113,7 @@ export function PasswordCard() {
           <div>
             <label
               htmlFor="confirm-pwd"
-              className="mb-1 block text-xs font-medium text-slate-700"
+              className="mb-1 block text-base font-medium text-slate-700"
             >
               Xác nhận mật khẩu mới
             </label>
@@ -133,6 +133,7 @@ export function PasswordCard() {
           >
             {changing ? "Đang cập nhật..." : "Lưu mật khẩu mới"}
           </Button>
+          </fieldset>
         </form>
       )}
     </Card>

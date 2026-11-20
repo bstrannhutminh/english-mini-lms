@@ -24,7 +24,7 @@ interface SubmissionsCardProps {
 
 /**
  * Danh sách bài nộp + xoá mềm theo yêu cầu (ConfirmDialog thay confirm()).
- * Xoá mềm khỏi tiến độ; file âm thanh trên storage bị xoá vĩnh viễn.
+ * Xoá mềm khỏi tiến độ; việc dọn tệp âm thanh được xử lý riêng.
  */
 export function SubmissionsCard({ submissions, onDeleted }: SubmissionsCardProps) {
   const toast = useToast();
@@ -59,7 +59,7 @@ export function SubmissionsCard({ submissions, onDeleted }: SubmissionsCardProps
     <Card className="space-y-4">
       <CardHeader
         title="Quản lý và xoá bài làm theo yêu cầu"
-        description="Xoá mềm bài nộp khỏi tiến độ và vĩnh viễn xoá file âm thanh lưu trữ trên máy chủ."
+        description="Ẩn bài khỏi tiến độ và danh sách bài làm. Lịch sử bản sửa vẫn được giữ trong hệ thống."
       />
 
       {submissions.length === 0 ? (
@@ -72,13 +72,13 @@ export function SubmissionsCard({ submissions, onDeleted }: SubmissionsCardProps
           {submissions.map((sub) => (
             <div
               key={sub.id}
-              className="flex items-center justify-between gap-3 py-3 text-sm"
+              className="flex items-center justify-between gap-3 py-3 text-base"
             >
               <div className="min-w-0 flex-1">
                 <p className="truncate font-medium text-slate-800">
                   {sub.activityTitle}
                 </p>
-                <p className="mt-0.5 flex items-center gap-2 text-xs text-slate-500">
+                <p className="mt-0.5 flex items-center gap-2 text-base text-slate-500">
                   <Badge tone={modeMeta(sub.activityMode).tone}>
                     {modeMeta(sub.activityMode).label}
                   </Badge>
@@ -113,7 +113,7 @@ export function SubmissionsCard({ submissions, onDeleted }: SubmissionsCardProps
         title="Xoá bài làm này?"
         description={
           pending
-            ? `“${pending.activityTitle}” sẽ bị xoá khỏi tiến độ và file âm thanh (nếu có) bị xoá vĩnh viễn. Bản ghi lịch sử vẫn giữ trong hệ thống (xoá mềm).`
+            ? `“${pending.activityTitle}” sẽ được ẩn khỏi tiến độ. Lịch sử bản sửa vẫn được giữ. Ứng dụng sẽ thử xóa âm thanh đi kèm; màn hình này chưa xác nhận được kết quả xóa tệp.`
             : undefined
         }
         confirmLabel="Xoá bài"

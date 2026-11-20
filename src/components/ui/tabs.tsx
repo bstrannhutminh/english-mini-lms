@@ -1,6 +1,7 @@
 "use client";
 
 import { cn } from "@/lib/utils";
+import { useRef, type KeyboardEvent } from "react";
 import { Icon, type IconName } from "./icons";
 
 export interface TabItem {
@@ -34,49 +35,55 @@ export function Tabs({
   "aria-label": ariaLabel,
   className,
 }: TabsProps) {
-  const onKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
-    const index = tabs.findIndex((t) => t.value === value);
-    if (index === -1) return;
-    const delta = e.key === "ArrowRight" ? 1 : -1;
-    const next = tabs[(index + delta + tabs.length) % tabs.length];
-    onValueChange(next.value);
+  const tabRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  const onKeyDown = (e: KeyboardEvent<HTMLButtonElement>, index: number) => {
+    let nextIndex: number;
+    if (e.key === "ArrowRight") nextIndex = (index + 1) % tabs.length;
+    else if (e.key === "ArrowLeft") nextIndex = (index - 1 + tabs.length) % tabs.length;
+    else if (e.key === "Home") nextIndex = 0;
+    else if (e.key === "End") nextIndex = tabs.length - 1;
+    else return;
+    e.preventDefault();
+    tabRefs.current[nextIndex]?.focus();
+    onValueChange(tabs[nextIndex].value);
   };
 
   return (
     <div
       role="tablist"
       aria-label={ariaLabel}
-      onKeyDown={onKeyDown}
       className={cn(
         variant === "underline"
-          ? "flex gap-1 border-b border-border"
-          : "inline-flex gap-1 rounded-xl bg-slate-100 p-1",
+          ? "flex flex-wrap gap-1 border-b border-border"
+          : "inline-flex flex-wrap gap-1 rounded-xl bg-surface-subtle p-1",
         className
       )}
     >
-      {tabs.map((tab) => {
+      {tabs.map((tab, index) => {
         const active = tab.value === value;
         return (
           <button
             key={tab.value}
             type="button"
+            ref={(node) => { tabRefs.current[index] = node; }}
             role="tab"
             aria-selected={active}
+            tabIndex={active || (!tabs.some((item) => item.value === value) && index === 0) ? 0 : -1}
+            onKeyDown={(event) => onKeyDown(event, index)}
             onClick={() => onValueChange(tab.value)}
             className={cn(
               "inline-flex min-h-11 cursor-pointer items-center gap-1.5 font-medium transition-colors",
               variant === "underline"
                 ? cn(
-                    "-mb-px border-b-2 px-3 text-sm",
+                    "-mb-px border-b-2 px-3 text-base",
                     active
                       ? "border-primary text-teal-800"
                       : "border-transparent text-text-secondary hover:text-text"
                   )
                 : cn(
-                    "rounded-lg px-3.5 text-sm",
+                    "rounded-lg px-3.5 text-base",
                     active
-                      ? "bg-surface text-text shadow-xs"
+                      ? "bg-surface text-primary-dark"
                       : "text-text-secondary hover:text-text"
                   )
             )}

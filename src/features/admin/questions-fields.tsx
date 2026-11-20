@@ -58,7 +58,7 @@ export default function QuestionsFields({
   return (
     <div className="space-y-4">
       {value.length === 0 && (
-        <p className="text-sm text-slate-500 italic">
+        <p className="text-base text-slate-500 italic">
           Chưa có câu hỏi — bài nghe cần ít nhất 1 câu để được duyệt.
         </p>
       )}
@@ -74,8 +74,8 @@ export default function QuestionsFields({
             className="rounded-xl border border-slate-200 bg-slate-50/60 p-3 space-y-3"
           >
             <div className="flex items-center justify-between gap-2">
-              <span className="text-sm font-semibold text-slate-700">
-                Câu {i + 1} <code className="text-xs text-slate-400">({q.id})</code>
+              <span className="text-base font-semibold text-slate-700">
+                Câu {i + 1} <code className="text-base text-slate-400">({q.id})</code>
               </span>
               <Button
                 variant="ghost"
@@ -97,10 +97,10 @@ export default function QuestionsFields({
             </Field>
 
             <div className="space-y-2">
-              <span className="text-sm font-medium text-slate-700">Lựa chọn</span>
+              <span className="text-base font-medium text-slate-700">Lựa chọn</span>
               {q.options.map((o, j) => (
                 <div key={j} className="flex items-center gap-2">
-                  <span className="w-7 shrink-0 text-center text-sm font-bold text-slate-500">
+                  <span className="w-7 shrink-0 text-center text-base font-semibold text-slate-500">
                     {o.id}
                   </span>
                   <input
@@ -185,7 +185,7 @@ export default function QuestionsFields({
       {!check.ok && (
         <ul
           role="alert"
-          className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800 list-disc pl-6 space-y-0.5"
+          className="rounded-lg border border-red-200 bg-red-50 p-3 text-base text-red-800 list-disc pl-6 space-y-0.5"
         >
           {check.errors.slice(0, 8).map((e, i) => (
             <li key={i}>{e}</li>

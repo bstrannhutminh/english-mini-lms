@@ -45,10 +45,10 @@ export function FeedbackDetailView({
   const markFlagged = (idx: number) =>
     setFlaggedIndexes((prev) => ({ ...prev, [idx]: true }));
 
-  const sourceRef = `my-work: ${activity.title}`;
+  const sourceRef = `${activity.title} · bài nộp ${submission.id} · bản ${submission.revision}${feedback?.id ? ` · góp ý ${feedback.id}` : ""}`;
 
   return (
-    <div className="mx-auto w-full max-w-2xl px-4 pb-10 pt-4 lg:max-w-6xl">
+    <div className="mx-auto w-full max-w-6xl px-4 pb-10 pt-6 sm:px-6">
       <DetailHeader
         activity={activity}
         submission={submission}
@@ -60,7 +60,7 @@ export function FeedbackDetailView({
       />
 
       {revisionError ? (
-        <p className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-2.5 text-sm text-red-800">
+        <p className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-2.5 text-base text-red-800">
           {revisionError} — vui lòng thử lại.
         </p>
       ) : null}
@@ -75,29 +75,29 @@ export function FeedbackDetailView({
 
       {/* Top-3 góp ý ưu tiên — học trước: thấy ngay việc cần sửa */}
       {feedback ? (
-        <PriorityObservations
-          feedback={feedback}
-          sourceRef={sourceRef}
-          flaggedIndexes={flaggedIndexes}
-          onFlagged={markFlagged}
-          onStartRevision={startRevision}
-          isCreatingRevision={isCreating}
-          revisionLabel={`Bản ${submission.revision + 1}`}
-        />
+        <>
+          {feedback.next_action && (
+            <div className="mb-6 border-l-2 border-primary px-4 py-2 text-base leading-relaxed text-text">
+              <h2 className="mb-1 font-semibold text-primary-dark">Việc cần làm ở bản tiếp theo</h2>
+              {feedback.next_action}
+            </div>
+          )}
+          <PriorityObservations
+            feedback={feedback}
+            sourceRef={sourceRef}
+            flaggedIndexes={flaggedIndexes}
+            onFlagged={markFlagged}
+          />
+        </>
       ) : null}
 
-      <div className="grid grid-cols-1 items-start gap-x-6 lg:grid-cols-2">
-        <div className="min-w-0">
-          {activeTab === "compare" && parent ? (
-            <CompareView
-              current={submission}
-              currentFeedback={feedback}
-              parent={parent}
-            />
-          ) : (
+      {activeTab === "compare" && parent && <CompareView current={submission} currentFeedback={feedback} parent={parent} />}
+      <div className={`grid grid-cols-1 items-start gap-6 ${activeTab === "compare" && parent ? "" : "lg:grid-cols-[minmax(0,6fr)_minmax(0,5fr)] lg:gap-8"}`}>
+        {(activeTab !== "compare" || !parent) && (
+          <div className="min-w-0">
             <SubmissionPanel submission={submission} activityMode={activity.mode} />
-          )}
-        </div>
+          </div>
+        )}
 
         <div className="min-w-0">
           {feedback ? (
@@ -108,7 +108,7 @@ export function FeedbackDetailView({
               onFlagged={markFlagged}
             />
           ) : assessment?.status === "feedback_ready" ? null : (
-            <p className="rounded-2xl border border-dashed border-slate-300 bg-surface px-5 py-8 text-center text-sm text-text-muted">
+            <p className="rounded-xl border border-dashed border-slate-300 bg-surface px-5 py-8 text-center text-base text-text-muted">
               Chưa có nhận xét — bài nộp sẽ hiển thị góp ý chi tiết ngay khi AI
               chấm xong.
             </p>

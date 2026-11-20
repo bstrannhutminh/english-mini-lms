@@ -11,28 +11,54 @@
  */
 @theme {
   /* Brand — teal */
-  --color-primary: #0d9488;
-  --color-primary-light: #14b8a6;
-  --color-primary-dark: #0f766e;
+  --color-primary: #0f766e;
+  --color-primary-light: #0d9488;
+  --color-primary-dark: #115e59;
+  --color-primary-soft: #e0efec;
   --color-accent: #d97706;
 
   /* Surfaces */
   --color-surface: #ffffff;
   --color-surface-elevated: #ffffff;
-  --color-surface-muted: #f8fafc;
-  --color-surface-subtle: #f1f5f9;
+  --color-surface-muted: #f6f9f9;
+  --color-surface-subtle: #edf4f2;
 
   /* Text */
-  --color-text: #0f172a;
-  --color-text-secondary: #475569;
-  --color-text-muted: #64748b;
+  --color-text: #172c2b;
+  --color-text-secondary: #445b59;
+  --color-text-muted: #586d69;
 
   /* Borders */
-  --color-border: #e2e8f0;
-  --color-border-subtle: #f1f5f9;
+  --color-border: #dce5e3;
+  --color-border-subtle: #edf4f2;
+  --color-border-strong: #7b918d;
+
+  /* Existing utilities follow the neutral/action ramp; skill tones stay separate. */
+  --color-teal-50: #eef6f4;
+  --color-teal-100: #e0efec;
+  --color-teal-200: #bddbd5;
+  --color-teal-600: #0f766e;
+  --color-teal-700: #115e59;
+  --color-teal-800: #134e4a;
+  --color-slate-50: #f6f9f9;
+  --color-slate-100: #edf4f2;
+  --color-slate-200: #dce5e3;
+  --color-slate-300: #b7c8c4;
+  --color-slate-400: #607471;
+  --color-slate-500: #607471;
+  --color-slate-600: #536966;
+  --color-slate-700: #445b59;
+  --color-slate-800: #2c4340;
+  --color-slate-900: #172c2b;
+  --color-slate-950: #102221;
+
+  --radius-lg: 0.5rem;
+  --radius-xl: 0.75rem;
+  --radius-2xl: 0.75rem;
 
   /* Status */
-  --color-success: #059669;
+  --color-success: #047857;
+  --color-emerald-600: #047857;
   --color-warning: #d97706;
   --color-error: #dc2626;
   --color-info: #0284c7;
@@ -55,8 +81,8 @@
   --color-skill-listening-border: #bae6fd;
 
   /* Shadows */
-  --shadow-card: 0 1px 2px rgb(15 23 42 / 0.04), 0 1px 3px rgb(15 23 42 / 0.06);
-  --shadow-pop: 0 8px 24px rgb(15 23 42 / 0.12), 0 2px 6px rgb(15 23 42 / 0.08);
+  --shadow-card: 0 0 #0000;
+  --shadow-pop: 0 16px 48px rgb(23 44 43 / 0.16);
 
   /* Motion — lớp phủ/toast/modal. prefers-reduced-motion tắt bên dưới. */
   --animate-fade-in: fade-in 160ms ease-out;
@@ -82,10 +108,14 @@
   --font-sans: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 
   /* Layout chrome — KHÔNG đưa vào @theme (không phải scale utility). */
-  --nav-height: 64px;              /* thanh tab dưới mobile */
+  --nav-height: 80px;              /* thanh tab dưới mobile */
   --topbar-height: 56px;           /* thanh trên mobile (brand + avatar) */
-  --sidebar-width: 240px;          /* sidebar desktop (w-60) */
+  --sidebar-width: 232px;          /* sidebar desktop */
   --touch-target: 44px;            /* WCAG 2.2 AA */
+  --control-height: 48px;
+  --reading-width: 65ch;
+  --duration-state: 160ms;
+  --overlay-backdrop: rgb(23 44 43 / 0.28);
 
   /* Z-index scale — tour overlay ở 9998+ vẫn cao nhất. */
   --z-nav: 50;
@@ -105,6 +135,8 @@ html {
 
 body {
   font-family: var(--font-sans);
+  font-size: 1rem;
+  line-height: 1.6;
   color: var(--color-text);
   background-color: var(--color-surface-muted);
   margin: 0;
@@ -114,6 +146,32 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+@layer components {
+  .field-control {
+    width: 100%; min-height: var(--touch-target); padding: 0.625rem 0.875rem;
+    border: 1px solid var(--color-border-strong); border-radius: var(--radius-lg);
+    background: var(--color-surface); color: var(--color-text);
+    font-size: 1rem; line-height: 1.5;
+    transition: border-color var(--duration-state), box-shadow var(--duration-state);
+  }
+  .field-control:focus-visible {
+    border-color: var(--color-primary); outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+  }
+  .field-control::placeholder { color: var(--color-text-muted); }
+  .field-control:disabled { background: var(--color-surface-subtle); cursor: not-allowed; }
+  .page-title { font-size: 2rem; line-height: 1.2; font-weight: 600; letter-spacing: -0.03em; }
+  .page-description { font-size: 1rem; line-height: 1.6; color: var(--color-text-secondary); }
+  .section-title { font-size: 1.125rem; line-height: 1.5; font-weight: 600; }
+  .surface-panel { border: 1px solid var(--color-border); border-radius: var(--radius-xl); background: var(--color-surface); }
+}
+
+/* Closed native dialogs retain the browser-provided display:none. */
+.lms-dialog[open] { display: block; }
+.lms-dialog::backdrop { background: var(--overlay-backdrop); animation: fade-in 160ms ease-out; }
+.lms-tour-dialog[open] { display: block; }
+.lms-tour-dialog::backdrop { background: transparent; }
+
 /* Accessibility: Consistent visible focus ring */
 :focus-visible {
   outline: 2px solid var(--color-primary);
@@ -122,7 +180,7 @@ body {
 
 /* Accessibility: Respect reduced motion preferences */
 @media (prefers-reduced-motion: reduce) {
-  *, ::before, ::after {
+  *, ::before, ::after, ::backdrop {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
@@ -133,6 +191,7 @@ body {
 /* Safe area for devices with notch / home indicator */
 @supports (padding: env(safe-area-inset-bottom)) {
   :root {
-    --nav-height: calc(64px + env(safe-area-inset-bottom));
+    --nav-height: calc(80px + env(safe-area-inset-bottom));
+    --topbar-height: calc(56px + env(safe-area-inset-top));
   }
 }

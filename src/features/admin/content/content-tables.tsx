@@ -31,8 +31,8 @@ function ModeChip({ mode }: { mode: string }) {
 function Table({ head, children }: { head: string[]; children: ReactNode }) {
   return (
     <div className="overflow-x-auto border rounded-lg">
-      <table className="w-full text-left text-sm text-slate-600">
-        <thead className="bg-slate-50 text-slate-500 uppercase text-xs tracking-wider border-b">
+      <table className="w-full text-left text-base text-slate-600">
+        <thead className="bg-slate-50 text-slate-500 uppercase text-base tracking-wider border-b">
           <tr>
             {head.map((h) => (
               <th key={h} className={th}>
@@ -69,11 +69,11 @@ export function ActivitiesTable({
         const topic = getTopicMeta(a.topic);
         return (
           <tr key={a.id} className="hover:bg-slate-50/50">
-            <td className={`${td} font-mono text-xs text-slate-500`}>{a.id}</td>
+            <td className={`${td} font-mono text-base text-slate-500`}>{a.id}</td>
             <td className={`${td} font-medium text-slate-800 min-w-[160px]`}>
               {a.title}
               {a.origin === "admin" && (
-                <span className="ml-1 text-[10px] text-slate-400">· tạo tay</span>
+                <span className="ml-1 text-base text-slate-400">· tạo tay</span>
               )}
             </td>
             <td className={td}>
@@ -112,12 +112,12 @@ export function SourcesTable({
     <Table head={["Mã", "Tiêu đề", "Loại", "URL", "Trạng thái", ""]}>
       {rows.map((s) => (
         <tr key={s.id} className="hover:bg-slate-50/50">
-          <td className={`${td} font-mono text-xs text-slate-500`}>{s.id}</td>
+          <td className={`${td} font-mono text-base text-slate-500`}>{s.id}</td>
           <td className={`${td} font-medium text-slate-800 min-w-[140px]`}>
             {s.title}
           </td>
           <td className={td}>{s.kind}</td>
-          <td className={`${td} max-w-[160px] truncate text-xs`}>
+          <td className={`${td} max-w-[160px] truncate text-base`}>
             {s.url ?? "—"}
           </td>
           <td className={td}>
@@ -149,8 +149,8 @@ export function SegmentsTable({
     <Table head={["Mã", "Nguồn", "Vị trí", "Nội dung", ""]}>
       {rows.map((s) => (
         <tr key={s.id} className="hover:bg-slate-50/50">
-          <td className={`${td} font-mono text-xs text-slate-500`}>{s.id}</td>
-          <td className={`${td} font-mono text-xs`}>{s.sourceId}</td>
+          <td className={`${td} font-mono text-base text-slate-500`}>{s.id}</td>
+          <td className={`${td} font-mono text-base`}>{s.sourceId}</td>
           <td className={`${td} whitespace-nowrap`}>
             {s.page != null
               ? `tr.${s.page}`
@@ -158,7 +158,7 @@ export function SegmentsTable({
                 ? `${s.startSeconds}–${s.endSeconds ?? "?"}s`
                 : "—"}
           </td>
-          <td className={`${td} text-xs`}>
+          <td className={`${td} text-base`}>
             {[
               s.textContent ? "text" : "",
               s.transcriptContent ? "transcript" : "",

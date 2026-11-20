@@ -14,10 +14,10 @@ export function InsufficientDataBanner() {
         className="mt-0.5 h-5 w-5 shrink-0 text-amber-600"
       />
       <div>
-        <h3 className="text-xs font-bold text-amber-900 sm:text-sm">
+        <h3 className="text-base font-semibold text-amber-900 sm:text-base">
           Chưa đủ bằng chứng để phân tích xu hướng
         </h3>
-        <p className="mt-0.5 text-xs text-amber-700">
+        <p className="mt-0.5 text-base text-amber-700">
           Hệ thống cần tối thiểu 3 bài làm để bắt đầu nhận diện mẫu lỗi lặp và
           so sánh độ tiến bộ. Hãy tiếp tục luyện tập thêm các bài trong Thư
           viện!

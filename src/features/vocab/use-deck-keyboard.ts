@@ -25,8 +25,10 @@ export function useDeckKeyboard({
 }: DeckKeyboardOptions) {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      const tag = (e.target as HTMLElement)?.tagName;
-      if (tag === "INPUT" || tag === "TEXTAREA") return;
+      if (e.defaultPrevented || e.ctrlKey || e.metaKey || e.altKey || e.isComposing) return;
+      const target = e.target instanceof Element ? e.target : null;
+      if (target?.closest("input, textarea, select, button, a, [contenteditable='true']")) return;
+      if (document.querySelector("dialog[open], [aria-modal='true']")) return;
       if (disabled) return;
 
       if (e.key === "ArrowLeft" || e.key === "a" || e.key === "A") {

@@ -1,109 +1,51 @@
 "use client";
-
-import { Icon } from "@/components/ui";
 import { SKILL_INFO, type Skill } from "@/lib/modes";
-import { cn } from "@/lib/utils";
 import { SKILL_LEVEL_LABELS, type OnboardingDraft } from "./onboarding-presets";
-
 interface StepSkillsProps {
   draft: OnboardingDraft;
   onChange: (patch: Partial<OnboardingDraft>) => void;
 }
-
 const SKILL_ORDER: Skill[] = ["listening", "speaking", "reading", "writing"];
-
-/** Bước 3 Onboarding: Tự đánh giá nhanh 4 kỹ năng bằng nút chạm 1–5 trực quan. */
 export function StepSkills({ draft, onChange }: StepSkillsProps) {
-  function setSkillScore(skill: Skill, value: number) {
-    onChange({
-      selfAssessment: {
-        ...draft.selfAssessment,
-        [skill]: value,
-      },
-    });
-  }
+  return (<div className="space-y-6">
 
-  return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-xl font-bold tracking-tight text-text sm:text-2xl">
-          Tự đánh giá nhanh 4 kỹ năng
-        </h2>
-        <p className="mt-1.5 text-base leading-relaxed text-text-secondary">
-          Chạm mức độ cảm nhận hiện tại của bạn cho từng kỹ năng để hệ thống ưu
-          tiên đúng phần cần rèn trước.
-        </p>
-      </div>
-
-      <div className="flex items-start gap-2.5 rounded-xl border border-teal-200/70 bg-teal-50/60 px-4 py-3 text-sm text-teal-900">
-        <Icon name="info" className="mt-0.5 h-4.5 w-4.5 shrink-0 text-primary" />
-        <span>
-          Đây chỉ là cảm nhận ban đầu để gợi ý bài vừa sức —{" "}
-          <strong>không phải điểm kiểm tra hay xếp hạng IELTS/CEFR</strong>.
-        </span>
-      </div>
-
-      <div className="space-y-3.5">
-        {SKILL_ORDER.map((skill) => {
-          const meta = SKILL_INFO[skill];
-          const score = draft.selfAssessment[skill];
-          const levelInfo = SKILL_LEVEL_LABELS[score] ?? SKILL_LEVEL_LABELS[3];
-
-          return (
-            <div
-              key={skill}
-              className="rounded-2xl border border-border bg-surface p-4 shadow-xs"
-            >
-              <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-                <div className="flex items-center gap-2.5">
-                  <span
-                    className={cn(
-                      "inline-flex h-9 w-9 items-center justify-center rounded-xl border",
-                      meta.badgeClass
-                    )}
-                  >
-                    <Icon name={meta.icon} className="h-4.5 w-4.5" />
-                  </span>
-                  <div>
-                    <p className="text-sm font-bold text-text">{meta.label}</p>
-                    <p className="text-xs text-text-muted">{levelInfo.detail}</p>
-                  </div>
-                </div>
-                <span className="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-semibold text-slate-700">
-                  Mức {score}/5 · {levelInfo.short}
-                </span>
-              </div>
-
-              <div
-                role="radiogroup"
-                aria-label={`Tự đánh giá kỹ năng ${meta.label}`}
-                className="grid grid-cols-5 gap-2"
-              >
-                {[1, 2, 3, 4, 5].map((level) => {
-                  const selected = score === level;
-                  return (
-                    <button
-                      key={level}
-                      type="button"
-                      role="radio"
-                      aria-checked={selected}
-                      onClick={() => setSkillScore(skill, level)}
-                      className={cn(
-                        "flex min-h-11 cursor-pointer items-center justify-center rounded-xl border text-sm font-bold transition",
-                        selected
-                          ? "border-primary bg-primary text-white shadow-xs"
-                          : "border-border bg-surface-muted text-text-secondary hover:border-primary/40 hover:bg-teal-50/40"
-                      )}
-                    >
-                      {level}
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          );
-        })}
-      </div>
+    <div>
+      <h2 className="text-2xl font-semibold tracking-tight text-text">Bạn cảm thấy thế nào với từng kỹ năng?</h2>
+      <p className="mt-2 text-base leading-relaxed text-text-secondary">Tự chọn mức gần nhất với mình. Mức 3 là gợi ý mặc định, bạn có thể chỉnh hoặc giữ để bắt đầu.</p>
     </div>
-  );
+
+    <p className="rounded-xl border border-border bg-surface-muted p-4 text-base leading-relaxed text-text-secondary">Đây là tự đánh giá để chọn bài khởi đầu. Không phải kết quả kiểm tra hay điểm IELTS/CEFR.</p>
+
+    <div className="divide-y divide-border">
+      {SKILL_ORDER.map((skill) => {
+        const meta = SKILL_INFO[skill]; const score = draft.selfAssessment[skill]; const levelInfo = SKILL_LEVEL_LABELS[score] ?? SKILL_LEVEL_LABELS[3]; return <fieldset key={skill} className="py-5">
+          <legend className="pt-5 text-lg font-semibold text-text">
+            {meta.label}
+          </legend>
+          <p id={`skill-description-${skill}`} className="mb-3 text-base leading-relaxed text-text-secondary">Mức {score}/5 · {levelInfo.short}. {levelInfo.detail}</p>
+          <div className="grid grid-cols-5 gap-1">
+            {[1, 2, 3, 4, 5].map((level) => <label key={level} className="relative cursor-pointer">
+              <input type="radio" name={`onboarding-${skill}`} value={level} checked={score === level} onChange={() => onChange({ selfAssessment: { ...draft.selfAssessment, [skill]: level } })} aria-label={`Mức ${level}: ${SKILL_LEVEL_LABELS[level].short}`} aria-describedby={`skill-description-${skill}`} className="peer sr-only" />
+              <span className="flex min-h-11 min-w-11 items-center justify-center rounded-lg border border-border bg-surface text-base font-medium text-text-secondary peer-checked:border-primary peer-checked:bg-primary peer-checked:text-white peer-focus-visible:ring-2 peer-focus-visible:ring-primary peer-focus-visible:ring-offset-2">
+                {level}
+              </span>
+            </label>)}
+          </div>
+        </fieldset>;
+      })}
+    </div>
+
+    <details className="border-t border-border">
+      <summary className="min-h-11 cursor-pointer py-3 text-base text-text-secondary">Thang tự đánh giá 1–5</summary>
+      <dl className="space-y-3 pb-3">
+        {Object.entries(SKILL_LEVEL_LABELS).map(([level, info]) => <div key={level}>
+          <dt className="text-base font-medium text-text">{level} · {info.short}</dt>
+          <dd className="text-base text-text-secondary">
+            {info.detail}
+          </dd>
+        </div>)}
+      </dl>
+    </details>
+
+  </div>);
 }

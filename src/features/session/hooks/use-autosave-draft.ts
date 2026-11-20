@@ -36,6 +36,7 @@ export function useAutosaveDraft(options: {
   const [lastSavedAt, setLastSavedAt] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [saveFailed, setSaveFailed] = useState(false);
+  const inFlightRef = useRef<Promise<boolean> | null>(null);
 
   const save = useCallback(async (): Promise<boolean> => {
     const content = getContent();
@@ -58,18 +59,21 @@ export function useAutosaveDraft(options: {
   }, [sessionId, getContent, draftVersion]);
 
   const saveNow = useCallback(async (): Promise<boolean> => {
+    // An exit/save request must capture fresh input after an older autosave finishes.
+    while (inFlightRef.current) await inFlightRef.current;
     setIsSaving(true);
-    try {
-      return await save();
-    } finally {
+    const pending = save().finally(() => {
       setIsSaving(false);
-    }
+      inFlightRef.current = null;
+    });
+    inFlightRef.current = pending;
+    return pending;
   }, [save]);
 
-  const saveRef = useRef(save);
+  const saveRef = useRef(saveNow);
   useEffect(() => {
-    saveRef.current = save;
-  }, [save]);
+    saveRef.current = saveNow;
+  }, [saveNow]);
 
   useEffect(() => {
     if (!enabled) return;

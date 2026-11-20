@@ -24,13 +24,13 @@ export function SubmissionCard({ item, revision }: SubmissionCardProps) {
   return (
     <Link
       href={`/my-work/${item.id}`}
-      className="group block rounded-2xl border border-border bg-surface p-5 shadow-card no-underline transition hover:border-teal-400 hover:shadow-md"
+      className="group block rounded-xl border border-border bg-surface p-5 no-underline transition hover:border-primary hover:bg-primary-soft/30"
     >
       {/* Hàng meta: mode chip + IELTS + Bản n/m + assisted + trạng thái chấm */}
       <div className="mb-2.5 flex flex-wrap items-center justify-between gap-2">
         <div className="flex flex-wrap items-center gap-1.5">
           <span
-            className={`inline-flex items-center gap-1 rounded-md border px-2.5 py-0.5 text-xs font-bold ${meta.badgeClass}`}
+            className={`inline-flex items-center gap-1 rounded-md border px-2.5 py-0.5 text-base font-bold ${meta.badgeClass}`}
           >
             <Icon name={meta.icon} className="h-3.5 w-3.5" />
             {item.activitySlot ? `${item.activitySlot} · ` : ""}
@@ -67,11 +67,11 @@ export function SubmissionCard({ item, revision }: SubmissionCardProps) {
         <AssessmentStatusBadge status={item.assessmentStatus} />
       </div>
 
-      <h2 className="mb-2 text-base font-bold leading-snug text-text transition group-hover:text-teal-700">
+      <h2 className="mb-3 break-words text-lg font-semibold leading-snug text-text transition group-hover:text-primary-dark">
         {item.activityTitle}
       </h2>
 
-      <div className="flex items-center justify-between border-t border-slate-100 pt-2 text-xs text-text-secondary">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-3 text-base text-text-secondary">
         <span>Nộp lúc {formatSubmittedAt(item.submittedAt)}</span>
         <span className="flex items-center gap-1 font-semibold text-teal-700 transition-transform group-hover:translate-x-0.5">
           Xem bài làm & nhận xét

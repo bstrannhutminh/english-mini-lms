@@ -17,13 +17,12 @@ export function EmbedErrorCard({
   directYoutubeLink,
 }: EmbedErrorCardProps) {
   return (
-    <div className="bg-indigo-950 px-5 py-6 text-center text-indigo-100">
-      <div className="mb-2 text-3xl">🎬</div>
+    <div className="bg-surface-muted px-5 py-6 text-base text-text">
       <div className="mb-1.5 text-base font-bold">
         Video bị chủ sở hữu giới hạn phát nhúng trên web
       </div>
-      <p className="mx-auto mb-3.5 max-w-md text-sm leading-relaxed text-indigo-200">
-        Bạn vẫn hoàn toàn làm bài bình thường! Hãy mở video ở tab mới để xem
+      <p className="mb-4 max-w-prose text-base leading-relaxed text-text-secondary">
+        Mở video ở tab mới để xem
         đoạn từ <strong>{startSeconds}s đến {endSeconds}s</strong>, sau đó quay
         lại đây chọn đáp án.
       </p>
@@ -31,7 +30,7 @@ export function EmbedErrorCard({
         href={directYoutubeLink}
         target="_blank"
         rel="noopener noreferrer"
-        className="inline-flex items-center gap-1.5 rounded-xl bg-red-500 px-4 py-2.5 text-sm font-bold text-white no-underline"
+        className="inline-flex min-h-11 items-center gap-2 rounded-lg bg-primary px-4 py-3 text-base font-medium text-white no-underline hover:bg-primary-dark"
       >
         ▶ Mở video trên YouTube ({startSeconds}s - {endSeconds}s) ↗
       </a>

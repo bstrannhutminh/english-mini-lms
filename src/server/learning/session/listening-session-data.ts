@@ -8,6 +8,7 @@ import {
   sources,
 } from "@/db/schema";
 import { loadListeningQuestions } from "../listening-questions";
+import { listeningSourceMedia } from "./listening-source-media";
 
 export interface TranscriptSegment {
   startSeconds: number;
@@ -84,9 +85,7 @@ export async function loadListeningSessionData(
     );
   const hasRevealEvent = revealEvents.length > 0;
 
-  let startSec = 95;
-  let endSec = 155;
-  let videoUrl = "https://www.youtube.com/watch?v=uVSiFJ85EtM";
+  let media = listeningSourceMedia();
   let rawTranscript = "";
 
   if (activity.segmentIds && activity.segmentIds.length > 0) {
@@ -103,9 +102,7 @@ export async function loadListeningSessionData(
       .limit(1);
 
     if (seg) {
-      if (seg.startSeconds !== null) startSec = seg.startSeconds;
-      if (seg.endSeconds !== null) endSec = seg.endSeconds;
-      if (seg.url) videoUrl = seg.url;
+      media = listeningSourceMedia(seg);
       if (seg.transcriptContent) rawTranscript = seg.transcriptContent;
     }
   }
@@ -142,9 +139,7 @@ export async function loadListeningSessionData(
   });
 
   return {
-    videoUrl,
-    startSeconds: startSec,
-    endSeconds: endSec,
+    ...media,
     questions: questionsList,
     transcriptSegments: transcriptOpen ? transcriptSegments : [],
     isTranscriptRevealed: transcriptOpen,

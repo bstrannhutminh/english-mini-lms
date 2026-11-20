@@ -31,7 +31,7 @@ export function FeedbackPanel({
   return (
     <div>
       {isUnderReview ? (
-        <div className="mb-4 flex items-center gap-2 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+        <div className="mb-4 flex items-center gap-2 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-base text-amber-900">
           <Icon name="flag" className="h-4 w-4 shrink-0" />
           <span>
             Bài nộp này có nhận xét đang được gắn cờ{" "}
@@ -50,7 +50,7 @@ export function FeedbackPanel({
         >
           <div className="mb-1.5 flex items-center justify-between gap-2">
             <p
-              className={`text-sm font-bold ${
+              className={`text-base font-bold ${
                 feedback.pronunciation.status === "assessed"
                   ? "text-emerald-900"
                   : "text-red-900"
@@ -65,7 +65,7 @@ export function FeedbackPanel({
             </Badge>
           </div>
           <p
-            className={`text-sm leading-relaxed ${
+            className={`text-base leading-relaxed ${
               feedback.pronunciation.status === "assessed"
                 ? "text-emerald-800"
                 : "text-red-800"
@@ -78,7 +78,7 @@ export function FeedbackPanel({
 
       {feedback.scores.length > 0 ? (
         <Card className="mb-4">
-          <p className="mb-3 text-xs font-bold uppercase tracking-wide text-text-secondary">
+          <p className="mb-3 text-base font-bold uppercase tracking-wide text-text-secondary">
             Điểm ước tính luyện tập
           </p>
           <div className="grid grid-cols-[repeat(auto-fit,minmax(160px,1fr))] gap-2.5">
@@ -88,7 +88,7 @@ export function FeedbackPanel({
                 className="rounded-xl border border-border bg-surface-muted p-3"
               >
                 <div className="flex items-center justify-between gap-2">
-                  <span className="text-xs font-semibold text-text">{sc.dimension}</span>
+                  <span className="text-base font-semibold text-text">{sc.dimension}</span>
                   <span
                     className={`text-lg font-extrabold ${
                       sc.value >= 7 ? "text-emerald-600" : "text-primary-dark"
@@ -98,7 +98,7 @@ export function FeedbackPanel({
                   </span>
                 </div>
                 {sc.note ? (
-                  <p className="mt-1 text-xs text-text-muted">{sc.note}</p>
+                  <p className="mt-1 text-base text-text-muted">{sc.note}</p>
                 ) : null}
               </div>
             ))}
@@ -108,11 +108,11 @@ export function FeedbackPanel({
 
       {feedback.strengths.length > 0 ? (
         <Card className="mb-4 border-emerald-200 bg-emerald-50">
-          <p className="mb-2 flex items-center gap-1.5 text-sm font-bold text-emerald-900">
+          <p className="mb-2 flex items-center gap-1.5 text-base font-bold text-emerald-900">
             <Icon name="sparkles" className="h-4 w-4" />
             Điểm sáng đã làm tốt
           </p>
-          <ul className="m-0 list-disc pl-5 text-sm leading-relaxed text-emerald-800">
+          <ul className="m-0 list-disc pl-5 text-base leading-relaxed text-emerald-800">
             {feedback.strengths.map((s, i) => (
               <li key={i} className="mb-1">
                 {s}
@@ -146,19 +146,8 @@ export function FeedbackPanel({
         </div>
       ) : null}
 
-      {feedback.next_action ? (
-        <Card className="mb-4 border-teal-200 bg-teal-50/70">
-          <p className="mb-1 text-sm font-bold text-primary-dark">
-            Hành động trọng tâm cho bản sửa
-          </p>
-          <p className="m-0 text-sm leading-relaxed text-teal-900">
-            {feedback.next_action}
-          </p>
-        </Card>
-      ) : null}
-
       {feedback.limitations ? (
-        <div className="rounded-lg border border-border bg-surface-muted px-3.5 py-3 text-xs leading-relaxed text-text-muted">
+        <div className="rounded-lg border border-border bg-surface-muted px-3.5 py-3 text-base leading-relaxed text-text-muted">
           <strong>Lưu ý:</strong> {feedback.limitations}
         </div>
       ) : null}

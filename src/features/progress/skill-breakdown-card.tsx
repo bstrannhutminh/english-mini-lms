@@ -18,13 +18,13 @@ export function SkillBreakdownCard({ summary }: SkillBreakdownCardProps) {
   return (
     <section
       data-tour="progress-chart"
-      className="space-y-4 rounded-2xl border border-slate-200 bg-white p-5 shadow-xs"
+      className="space-y-4 rounded-xl border border-slate-200 bg-white p-5 "
     >
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3">
-        <h2 className="text-sm font-bold text-slate-900">
+        <h2 className="text-base font-semibold text-slate-900">
           Phân bổ bài tập theo kỹ năng
         </h2>
-        <div className="flex items-center gap-3 text-[11px] text-slate-500">
+        <div className="flex items-center gap-3 text-base text-slate-500">
           <span className="flex items-center gap-1">
             <span className="inline-block h-2.5 w-2.5 rounded bg-emerald-500" />
             Độc lập
@@ -56,7 +56,7 @@ export function SkillBreakdownCard({ summary }: SkillBreakdownCardProps) {
 
           return (
             <div key={item.skill} className="space-y-1.5">
-              <div className="flex items-center justify-between gap-2 text-xs">
+              <div className="flex items-center justify-between gap-2 text-base">
                 <span className="flex items-center gap-1.5 font-semibold text-slate-800">
                   <Icon
                     name={info.icon}

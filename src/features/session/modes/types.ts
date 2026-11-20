@@ -14,6 +14,7 @@ import type {
 
 export type { Skill } from "@/lib/modes";
 import type { Skill } from "@/lib/modes";
+import type { CaptureSourceType } from "../shared/capture-context";
 
 /**
  * Trạng thái làm bài của plugin, do `initialState` tạo và shell giữ hộ.
@@ -125,6 +126,7 @@ export interface CaptureHelpers {
   selectHandlers: (
     fullText: string,
     sourceRef: string,
+    sourceType?: CaptureSourceType,
   ) => {
     onMouseUp: () => void;
     onTouchEnd: () => void;

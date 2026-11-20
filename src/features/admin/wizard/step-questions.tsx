@@ -13,7 +13,7 @@ export default function StepQuestions({
 }) {
   return (
     <div className="space-y-4">
-      <p className="text-sm text-slate-600">
+      <p className="text-base text-slate-600">
         Thêm câu hỏi trắc nghiệm cho bài nghe. Cần ít nhất 1 câu — mỗi câu có
         từ 2 lựa chọn trở lên và một đáp án đúng.
       </p>

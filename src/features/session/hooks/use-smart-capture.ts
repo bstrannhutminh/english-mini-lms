@@ -2,11 +2,13 @@
 
 import { useCallback, useState } from "react";
 import type { CaptureHelpers } from "../modes/types";
+import type { CaptureSourceType } from "../shared/capture-context";
 
 export interface CaptureSelection {
   selectedText: string;
   surroundingSentence: string;
   sourceRef: string;
+  sourceType: CaptureSourceType;
   position: { x: number; y: number };
 }
 
@@ -39,7 +41,7 @@ export function useSmartCapture(): {
   const [selection, setSelection] = useState<CaptureSelection | null>(null);
 
   const handleSelection = useCallback(
-    (fullText: string, sourceRef: string) => {
+    (fullText: string, sourceRef: string, sourceType: CaptureSourceType = "text") => {
       const sel = window.getSelection();
       if (!sel || sel.isCollapsed) return;
 
@@ -51,6 +53,7 @@ export function useSmartCapture(): {
         selectedText: text,
         surroundingSentence: extractSurroundingSentence(fullText, text),
         sourceRef,
+        sourceType,
         position: { x: rect.left + rect.width / 2, y: rect.bottom },
       });
     },
@@ -58,9 +61,9 @@ export function useSmartCapture(): {
   );
 
   const helpers: CaptureHelpers = {
-    selectHandlers: (fullText, sourceRef) => ({
-      onMouseUp: () => handleSelection(fullText, sourceRef),
-      onTouchEnd: () => handleSelection(fullText, sourceRef),
+    selectHandlers: (fullText, sourceRef, sourceType) => ({
+      onMouseUp: () => handleSelection(fullText, sourceRef, sourceType),
+      onTouchEnd: () => handleSelection(fullText, sourceRef, sourceType),
     }),
   };
 

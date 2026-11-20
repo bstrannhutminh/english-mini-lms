@@ -46,7 +46,7 @@ export function ShellOverlays({
       {toast && (
         <div
           role="status"
-          className="fixed bottom-24 right-5 z-[9999] rounded-xl bg-slate-900 px-4 py-2.5 text-sm text-white shadow-lg"
+          className="fixed bottom-24 right-5 z-[9999] rounded-xl bg-slate-900 px-4 py-2.5 text-base text-white shadow-lg"
         >
           {toast}
         </div>
@@ -54,9 +54,11 @@ export function ShellOverlays({
 
       {captureSelection && (
         <SmartCapturePopup
+          key={`${captureSelection.sourceRef}:${captureSelection.selectedText}`}
           selectedText={captureSelection.selectedText}
           surroundingSentence={captureSelection.surroundingSentence}
           sourceRef={captureSelection.sourceRef}
+          sourceType={captureSelection.sourceType}
           position={captureSelection.position}
           onClose={onCaptureClose}
           onSaved={onCaptureSaved}

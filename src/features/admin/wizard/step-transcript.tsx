@@ -83,7 +83,7 @@ export default function StepTranscript({
         >
           ⏱ Tự tạo mốc giây
         </Button>
-        <label className="inline-flex min-h-11 items-center gap-2 text-sm text-slate-700">
+        <label className="inline-flex min-h-11 items-center gap-2 text-base text-slate-700">
           <input
             type="checkbox"
             className="h-4 w-4 rounded accent-indigo-600"
@@ -94,7 +94,7 @@ export default function StepTranscript({
         </label>
       </div>
       {hasPlainLines && (
-        <p className="text-xs text-amber-700">
+        <p className="text-base text-amber-700">
           Có dòng chưa có mốc giây — bấm &quot;Tự tạo mốc giây&quot; để chuyển
           sang dạng start|end|text, rồi chỉnh lại cho khớp.
         </p>
@@ -102,7 +102,7 @@ export default function StepTranscript({
 
       {data.transcript.trim() !== "" &&
         (lineErrors.length === 0 ? (
-          <p className="text-sm text-emerald-700">
+          <p className="text-base text-emerald-700">
             ✓ Transcript hợp lệ (
             {data.transcript.split("\n").filter((l) => l.trim() !== "").length}{" "}
             dòng)
@@ -110,7 +110,7 @@ export default function StepTranscript({
         ) : (
           <ul
             role="alert"
-            className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800 list-disc pl-6 space-y-0.5"
+            className="rounded-lg border border-red-200 bg-red-50 p-3 text-base text-red-800 list-disc pl-6 space-y-0.5"
           >
             {lineErrors.slice(0, 10).map((e, i) => (
               <li key={i}>{e.message}</li>

@@ -12,8 +12,8 @@ interface LoginFormProps {
 
 function BrowserHint() {
   return (
-    <p className="mt-2.5 flex items-start gap-1.5 text-xs leading-relaxed text-text-secondary">
-      <Icon name="lightbulb" className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-600" />
+    <p className="mt-3 flex items-start gap-2 text-base leading-relaxed text-text-secondary">
+      <Icon name="lightbulb" className="mt-1 h-4 w-4 shrink-0 text-amber-700" />
       <span>
         Liên kết đăng nhập chỉ hoạt động khi mở bằng{" "}
         <strong>đúng trình duyệt đã bấm &ldquo;Gửi link&rdquo;</strong>{" "}
@@ -32,24 +32,24 @@ export function LoginForm({ initialError, showBrowserHint }: LoginFormProps) {
   const [error, setError] = useState<string | null>(initialError ?? null);
 
   return (
-    <div className="flex min-h-dvh items-center justify-center bg-surface-muted p-4">
-      <div className="w-full max-w-md rounded-2xl border border-border bg-surface p-6 shadow-pop sm:p-8">
-        <div className="mb-6 text-center">
-          <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary text-lg font-extrabold tracking-wider text-white shadow-sm">
+    <div className="flex min-h-dvh items-center justify-center bg-surface-muted px-5 py-10 sm:px-6">
+      <div className="w-full max-w-md rounded-xl border border-border bg-surface p-6 sm:p-8">
+        <div className="mb-8 text-left">
+          <div className="mb-5 flex h-11 w-11 items-center justify-center rounded-lg bg-primary text-base font-semibold tracking-wide text-white">
             MD
           </div>
-          <h1 className="text-2xl font-bold tracking-tight text-text">
+          <h1 className="text-2xl font-semibold tracking-tight text-text">
             English Mini LMS
           </h1>
-          <p className="mt-1 text-sm text-text-secondary">
-            Học tiếng Anh y khoa 30–45 phút mỗi ngày — vào là học
+          <p className="mt-2 text-base leading-relaxed text-text-secondary">
+            Không gian học tiếng Anh cá nhân, 30–45 phút mỗi ngày.
           </p>
         </div>
 
         {error && (
           <div
             role="alert"
-            className="mb-4 rounded-xl border border-red-200 bg-red-50 p-3.5 text-sm leading-relaxed text-red-700"
+            className="mb-5 rounded-lg border border-red-200 bg-red-50 p-4 text-base leading-relaxed text-red-800"
           >
             <p className="flex items-start gap-2">
               <Icon name="alert-triangle" className="mt-0.5 h-4 w-4 shrink-0" />
@@ -60,12 +60,12 @@ export function LoginForm({ initialError, showBrowserHint }: LoginFormProps) {
         )}
 
         {sent ? (
-          <div className="space-y-3 rounded-2xl border border-teal-200 bg-teal-50/60 p-6 text-center">
+          <div role="status" className="space-y-4 rounded-xl bg-surface-subtle p-5 text-left">
             <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-xl bg-primary text-white">
               <Icon name="send" className="h-5 w-5" />
             </div>
             <p className="font-bold text-text">Đã gửi link đăng nhập</p>
-            <p className="text-sm text-text-secondary">
+            <p className="break-words text-base leading-relaxed text-text-secondary">
               Kiểm tra hộp thư <strong>{email}</strong> và bấm vào liên kết để
               vào học.
             </p>
@@ -78,7 +78,7 @@ export function LoginForm({ initialError, showBrowserHint }: LoginFormProps) {
                 setSent(false);
                 setMode("password");
               }}
-              className="mt-2 inline-flex min-h-11 cursor-pointer items-center gap-1 text-sm font-semibold text-primary-dark underline underline-offset-2 hover:text-primary"
+              className="mt-2 inline-flex min-h-11 cursor-pointer items-center gap-2 text-left text-base font-medium text-primary-dark underline underline-offset-2 hover:text-primary"
             >
               <Icon name="arrow-left" className="h-4 w-4" />
               Quay lại đăng nhập bằng mật khẩu

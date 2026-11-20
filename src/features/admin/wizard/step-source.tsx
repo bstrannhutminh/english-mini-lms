@@ -48,7 +48,7 @@ export default function StepSource({
         />
       </Field>
       {urlOk && (
-        <p className="text-sm text-emerald-700">✓ Link YouTube hợp lệ</p>
+        <p className="text-base text-emerald-700">✓ Link YouTube hợp lệ</p>
       )}
 
       <Field label="Tiêu đề bài học">
@@ -123,7 +123,7 @@ export default function StepSource({
       </div>
 
       <details className="rounded-lg border border-slate-200 bg-slate-50/60 p-3">
-        <summary className="cursor-pointer text-sm font-medium text-slate-600">
+        <summary className="min-h-11 cursor-pointer py-3 text-base font-medium text-slate-600">
           Mã định danh (tự tạo — chỉnh khi cần)
         </summary>
         <div className="mt-3 grid gap-3 sm:grid-cols-3">

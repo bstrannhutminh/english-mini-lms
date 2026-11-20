@@ -8,12 +8,14 @@ const eslintConfig = defineConfig([
   // Override default ignores of eslint-config-next.
   globalIgnores([
     // Default ignores of eslint-config-next:
-    ".next/**",
+    "**/.next/**",
     "out/**",
     "build/**",
     "next-env.d.ts",
     ".agents/**",
     "scratch/**",
+    // Isolated runtime copies are artifacts; the owning source is linted above.
+    "plans/reports/**/app/**",
   ]),
 ]);
 

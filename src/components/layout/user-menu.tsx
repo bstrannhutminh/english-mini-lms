@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useId, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { createClient } from "@/lib/supabase/client";
 import { ConfirmDialog, Icon, type IconName } from "@/components/ui";
+import { useUserMenuNavigation } from "./use-user-menu-navigation";
 
 export interface NavUser {
   displayName: string | null;
@@ -42,41 +43,24 @@ function initials(name: string | null): string {
  */
 export function UserMenu({ user, variant = "avatar", className }: UserMenuProps) {
   const router = useRouter();
-  const [open, setOpen] = useState(false);
+  const { open, rootRef, triggerRef, menuRef, close, toggle, onTriggerKeyDown, onMenuKeyDown } = useUserMenuNavigation();
+  const menuId = useId();
   const [confirmingLogout, setConfirmingLogout] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
-  const rootRef = useRef<HTMLDivElement>(null);
-
-  // Đóng khi bấm ra ngoài hoặc ESC
-  useEffect(() => {
-    if (!open) return;
-    const onPointerDown = (e: PointerEvent) => {
-      if (rootRef.current && !rootRef.current.contains(e.target as Node)) {
-        setOpen(false);
-      }
-    };
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") setOpen(false);
-    };
-    document.addEventListener("pointerdown", onPointerDown);
-    document.addEventListener("keydown", onKey);
-    return () => {
-      document.removeEventListener("pointerdown", onPointerDown);
-      document.removeEventListener("keydown", onKey);
-    };
-  }, [open]);
+  const [logoutError, setLogoutError] = useState<string | null>(null);
 
   async function handleSignOut() {
     try {
       setSigningOut(true);
+      setLogoutError(null);
       const supabase = createClient();
-      await supabase.auth.signOut();
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
       router.push("/login");
       router.refresh();
     } catch {
       setSigningOut(false);
-      setConfirmingLogout(false);
-      // signOut lỗi rất hiếm; giữ người dùng ở lại và cho thử lại
+      setLogoutError("Chưa đăng xuất được. Vui lòng thử lại.");
     }
   }
 
@@ -85,53 +69,63 @@ export function UserMenu({ user, variant = "avatar", className }: UserMenuProps)
     : MENU_ENTRIES;
 
   const avatarCircle = (
-    <span className="flex h-9 w-9 items-center justify-center rounded-full bg-teal-600 text-sm font-bold text-white shadow-xs">
+    <span className="flex h-9 w-9 items-center justify-center rounded-full bg-primary text-base font-semibold text-white">
       {initials(user.displayName)}
     </span>
   );
 
   return (
-    <div ref={rootRef} className={cn("relative", className)}>
+    <div ref={rootRef} className={cn("relative", className)}
+      onBlur={(event) => { if (!event.currentTarget.contains(event.relatedTarget)) close(); }}>
       {variant === "avatar" ? (
         <button
           type="button"
-          onClick={() => setOpen((v) => !v)}
+          ref={triggerRef}
+          onClick={toggle}
+          onKeyDown={onTriggerKeyDown}
           aria-label="Menu Tôi"
           aria-expanded={open}
           aria-haspopup="menu"
-          className="flex h-11 w-11 cursor-pointer items-center justify-center rounded-full transition-shadow hover:ring-2 hover:ring-teal-200"
+          aria-controls={open ? menuId : undefined}
+          className="flex h-11 w-11 cursor-pointer items-center justify-center rounded-full transition-colors hover:bg-primary-soft"
         >
           {avatarCircle}
         </button>
       ) : (
         <button
           type="button"
-          onClick={() => setOpen((v) => !v)}
+          ref={triggerRef}
+          onClick={toggle}
+          onKeyDown={onTriggerKeyDown}
           aria-label="Menu Tôi"
           aria-expanded={open}
           aria-haspopup="menu"
-          className="flex min-h-11 w-full cursor-pointer items-center gap-3 rounded-xl border border-transparent px-3 py-2 text-left transition-colors hover:bg-slate-50"
+          aria-controls={open ? menuId : undefined}
+          className="flex min-h-12 w-full cursor-pointer items-center gap-3 rounded-lg border border-transparent px-3 py-2 text-left transition-colors hover:bg-surface-muted"
         >
           {avatarCircle}
           <span className="min-w-0 flex-1">
-            <span className="block truncate text-sm font-semibold text-text">
-              {user.displayName || "BS. Minh"}
+            <span className="block truncate text-base font-semibold text-text" title={user.displayName || undefined}>
+              {user.displayName || "Tài khoản của bạn"}
             </span>
             <span className="block text-xs text-text-muted">Tôi</span>
           </span>
           <Icon
             name="chevron-down"
-            className={cn("h-4 w-4 text-slate-400 transition-transform", open && "rotate-180")}
+            className={cn("h-4 w-4 text-text-muted transition-transform", open && "rotate-180")}
           />
         </button>
       )}
 
       {open ? (
         <div
+          ref={menuRef}
+          id={menuId}
           role="menu"
           aria-label="Menu Tôi"
+          onKeyDown={onMenuKeyDown}
           className={cn(
-            "absolute z-(--z-dropdown) w-52 animate-fade-in rounded-xl border border-border bg-surface p-1.5 shadow-pop",
+            "absolute z-(--z-dropdown) w-60 max-w-[calc(100vw-2.5rem)] animate-fade-in rounded-xl border border-border bg-surface p-1.5 shadow-pop",
             variant === "avatar"
               ? "right-0 top-full mt-1.5"
               : "bottom-full left-0 mb-1.5"
@@ -142,8 +136,9 @@ export function UserMenu({ user, variant = "avatar", className }: UserMenuProps)
               key={item.href}
               href={item.href}
               role="menuitem"
-              onClick={() => setOpen(false)}
-              className="flex min-h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium text-slate-700 no-underline transition-colors hover:bg-slate-100 hover:text-slate-900"
+              tabIndex={-1}
+              onClick={() => close()}
+              className="flex min-h-11 items-center gap-3 rounded-lg px-3 text-base font-medium text-text-secondary no-underline transition-colors hover:bg-surface-subtle hover:text-text focus:bg-surface-subtle"
             >
               <Icon name={item.icon} className="h-4 w-4 text-slate-500" />
               {item.label}
@@ -155,11 +150,13 @@ export function UserMenu({ user, variant = "avatar", className }: UserMenuProps)
           <button
             type="button"
             role="menuitem"
+            tabIndex={-1}
             onClick={() => {
-              setOpen(false);
+              close(true);
+              setLogoutError(null);
               setConfirmingLogout(true);
             }}
-            className="flex min-h-11 w-full cursor-pointer items-center gap-3 rounded-lg px-3 text-left text-sm font-medium text-red-700 transition-colors hover:bg-red-50"
+            className="flex min-h-11 w-full cursor-pointer items-center gap-3 rounded-lg px-3 text-left text-base font-medium text-red-700 transition-colors hover:bg-red-50 focus:bg-red-50"
           >
             <Icon name="log-out" className="h-4 w-4" />
             Đăng xuất
@@ -170,7 +167,7 @@ export function UserMenu({ user, variant = "avatar", className }: UserMenuProps)
       <ConfirmDialog
         open={confirmingLogout}
         title="Đăng xuất khỏi hệ thống?"
-        description="Bạn sẽ cần đăng nhập lại để tiếp tục học."
+        description={logoutError ? <span role="alert" className="text-red-700">{logoutError}</span> : "Bạn sẽ cần đăng nhập lại để tiếp tục học."}
         confirmLabel="Đăng xuất"
         cancelLabel="Ở lại"
         tone="danger"

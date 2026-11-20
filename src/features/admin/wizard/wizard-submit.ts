@@ -1,6 +1,6 @@
 /**
  * Helpers thuần cho wizard 4 bước: khởi tạo dữ liệu + upsert nguồn/segment/
- * activity (tạo mới; 409 "đã tồn tại" → PATCH — idempotent khi bấm lại).
+ * activity. Chỉ cập nhật lại đối tượng đã tạo trong lần nhập hiện tại.
  */
 import { ApiClientError } from "@/lib/api-client";
 import {
@@ -33,19 +33,28 @@ export function initialData(existingIds: string[]): WizardData {
   };
 }
 
-/** Tạo mới; nếu đã tồn tại (409) thì PATCH nội dung — an toàn để bấm lại. */
+/** Một ID đã có từ trước không được ghi đè dưới thao tác tạo mới. */
 export async function upsert(
   createFn: (body: unknown) => Promise<unknown>,
   updateFn: (id: string, body: unknown) => Promise<unknown>,
   id: string,
-  body: Record<string, unknown>
+  body: Record<string, unknown>,
+  createdIds: Set<string> = new Set()
 ): Promise<void> {
+  if (createdIds.has(id)) {
+    await updateFn(id, body);
+    return;
+  }
   try {
     await createFn({ ...body, id });
+    createdIds.add(id);
   } catch (err) {
     if (err instanceof ApiClientError && err.status === 409) {
-      await updateFn(id, body);
-      return;
+      throw new ApiClientError(
+        "conflict",
+        `Mã “${id}” đã tồn tại. Chọn mã mới hoặc mở nội dung hiện có để chỉnh sửa.`,
+        409
+      );
     }
     throw err;
   }

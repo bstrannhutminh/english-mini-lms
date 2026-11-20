@@ -44,7 +44,7 @@ export function DetailHeader({
         aria-label="Điều hướng"
         className="mb-3.5 flex flex-wrap items-center justify-between gap-2"
       >
-        <div className="flex items-center gap-3 text-sm">
+        <div className="flex items-center gap-3 text-base">
           <Link
             href="/my-work"
             className="inline-flex min-h-11 items-center gap-1 text-text-secondary no-underline hover:text-text"
@@ -70,11 +70,11 @@ export function DetailHeader({
         </Link>
       </nav>
 
-      <header className="mb-4 rounded-2xl border border-border bg-surface p-5 shadow-card">
+      <header className="mb-4 rounded-xl border border-border bg-surface p-5 ">
         <div className="mb-2.5 flex flex-wrap items-center justify-between gap-2">
           <div className="flex flex-wrap items-center gap-1.5">
             <span
-              className={`inline-flex items-center gap-1 rounded-md border px-2.5 py-0.5 text-xs font-bold ${meta.badgeClass}`}
+              className={`inline-flex items-center gap-1 rounded-md border px-2.5 py-0.5 text-base font-bold ${meta.badgeClass}`}
             >
               <Icon name={meta.icon} className="h-3.5 w-3.5" />
               {activity.slot || activity.id} · Bản {submission.revision}
@@ -90,7 +90,7 @@ export function DetailHeader({
               </Badge>
             )}
           </div>
-          <span className="text-xs text-text-muted">
+          <span className="text-base text-text-muted">
             Nộp lúc {formatSubmittedAt(submission.submittedAt)}
           </span>
         </div>

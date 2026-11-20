@@ -7,6 +7,8 @@ const SOURCE_LABELS: Record<string, string> = {
   book: "Sách / tài liệu",
   video: "Video",
   article: "Bài báo",
+  text: "Bài viết",
+  feedback: "Góp ý bài làm",
 };
 
 function sourceLabel(sourceType: string | null): string {
@@ -41,9 +43,9 @@ export function VocabFilterBar({
   masteredCount,
 }: VocabFilterBarProps) {
   return (
-    <div className="space-y-3 rounded-2xl border border-border bg-surface p-4 shadow-card">
+    <div className="space-y-3 rounded-xl border border-border bg-surface p-4 ">
       <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center">
-        <div className="relative flex-1">
+        <div className="relative min-w-0 flex-1">
           <Icon
             name="search"
             className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-text-muted"
@@ -54,7 +56,7 @@ export function VocabFilterBar({
             onChange={(e) => onQueryChange(e.target.value)}
             placeholder="Tìm cụm từ tiếng Anh, nghĩa tiếng Việt hoặc câu gốc..."
             aria-label="Tìm kiếm trong sổ từ"
-            className="min-h-11 w-full rounded-xl border border-border bg-surface-muted pl-10 pr-4 text-base text-text placeholder:text-text-muted focus:border-primary focus:bg-surface focus:outline-none focus:ring-2 focus:ring-primary/20"
+            className="min-h-11 w-full rounded-xl border border-border-strong bg-surface-muted pl-10 pr-4 text-base text-text placeholder:text-text-muted focus:border-primary focus:bg-surface focus:outline-none focus:ring-2 focus:ring-primary/20"
           />
         </div>
 
@@ -62,7 +64,7 @@ export function VocabFilterBar({
           <select
             value={sourceFilter}
             onChange={(e) => onSourceFilterChange(e.target.value)}
-            className="min-h-11 rounded-xl border border-border bg-surface-muted px-3.5 text-base font-medium text-text focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+            className="max-w-full min-h-11 rounded-xl border border-border-strong bg-surface-muted px-3.5 text-base font-medium text-text focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
             aria-label="Lọc theo nguồn"
           >
             <option value="all">Tất cả nguồn</option>

@@ -45,7 +45,7 @@ export function FlaggedFeedbackList({
 
   if (items.length === 0) {
     return (
-      <div className="p-4 bg-emerald-50 text-emerald-800 rounded-lg text-sm border border-emerald-100">
+      <div className="p-4 bg-emerald-50 text-emerald-800 rounded-lg text-base border border-emerald-100">
         ✓ Không có nhận xét nào đang bị gắn cờ.
       </div>
     );
@@ -66,7 +66,7 @@ export function FlaggedFeedbackList({
               <div className="flex items-center gap-3">
                 <Link
                   href={`/my-work/${item.submissionId}`}
-                  className="text-sm text-blue-600 hover:underline font-medium"
+                  className="text-base text-blue-600 hover:underline font-medium"
                 >
                   Xem bài nộp ↗
                 </Link>
@@ -82,7 +82,7 @@ export function FlaggedFeedbackList({
             </div>
 
             {item.submissionBodySnippet && (
-              <p className="text-xs text-slate-600 italic bg-slate-50 p-2 rounded border border-slate-100">
+              <p className="text-base text-slate-600 italic bg-slate-50 p-2 rounded border border-slate-100">
                 Trích bài: &quot;{item.submissionBodySnippet}&quot;
               </p>
             )}
@@ -92,7 +92,7 @@ export function FlaggedFeedbackList({
                 {(item.observations as Observation[]).map((obs, idx) => (
                   <div
                     key={idx}
-                    className={`text-xs p-3 rounded-lg border ${
+                    className={`text-base p-3 rounded-lg border ${
                       obs.flagged
                         ? "bg-amber-50/70 border-amber-300 text-amber-900"
                         : "bg-white border-slate-200 text-slate-700"
@@ -104,7 +104,7 @@ export function FlaggedFeedbackList({
                         {obs.location} ({obs.category || "ngữ pháp"})
                       </span>
                       {obs.flagged && (
-                        <span className="text-[11px] text-amber-700 font-normal">
+                        <span className="text-base text-amber-700 font-normal">
                           {obs.flaggedReason || "Người học phản ánh"}
                         </span>
                       )}
@@ -121,7 +121,7 @@ export function FlaggedFeedbackList({
               </div>
             )}
 
-            <p className="text-[11px] text-slate-400">
+            <p className="text-base text-slate-400">
               {new Date(item.createdAt).toLocaleString("vi-VN")} ·{" "}
               {item.learnerName || "Người học"}
             </p>

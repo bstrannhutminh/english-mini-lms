@@ -1,56 +1,31 @@
 "use client";
-
-/**
- * ContinueBlock — khối 1 của hub Hôm nay (spec §3.3): phiên đang dở
- * (active/paused) luôn trên cùng, vào tiếp bằng 1 chạm.
- */
 import Link from "next/link";
-import { Icon } from "@/components/ui";
+import { Badge, Icon } from "@/components/ui";
 import { modeMeta } from "@/lib/modes";
 import type { InProgressSession } from "@/contracts/today";
-
 export interface ContinueBlockProps {
   session: InProgressSession;
 }
-
 export function ContinueBlock({ session }: ContinueBlockProps) {
   const meta = modeMeta(session.mode);
+  return (<section aria-labelledby="today-continue-title" className="rounded-xl border border-border bg-surface p-5 sm:p-7">
 
-  return (
-    <div className="space-y-3 rounded-2xl border border-amber-200/90 bg-amber-50/70 p-5 shadow-xs">
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <div className="flex items-center gap-2">
-          <span className="flex items-center gap-1.5 rounded-md border border-amber-300 bg-amber-200/80 px-2.5 py-0.5 text-[11px] font-bold tracking-wider text-amber-900 uppercase">
-            <Icon name="clock" className="h-3 w-3 text-amber-800" />
-            <span>Phiên đang dở</span>
-          </span>
-          <span className="text-xs font-medium text-amber-800">
-            {session.slot ? `${session.slot} · ` : ""}
-            {meta.label}
-          </span>
-        </div>
-        <span className="text-xs font-medium tabular-nums text-amber-800/80">
-          Mục tiêu {session.targetMinutes} phút
-        </span>
-      </div>
-
-      <div>
-        <h3 className="text-base font-bold text-slate-900">{session.title}</h3>
-        <p className="mt-0.5 text-xs leading-relaxed text-slate-600">
-          Bạn có một phiên học chưa khép lại. Nhấp để tiếp tục bài làm ngay lập
-          tức.
-        </p>
-      </div>
-
-      <div className="pt-1">
-        <Link
-          href={`/learn/${session.sessionId}`}
-          className="inline-flex min-h-11 cursor-pointer items-center justify-center gap-2 rounded-xl bg-amber-600 px-5 py-2.5 text-xs font-semibold text-white shadow-xs transition hover:bg-amber-700 active:bg-amber-800 sm:text-sm"
-        >
-          <Icon name="play" className="h-3.5 w-3.5" />
-          <span>Tiếp tục phiên học ngay</span>
-        </Link>
-      </div>
+    <div className="mb-4 flex flex-wrap items-center gap-2 text-base text-text-secondary">
+      <Badge tone={meta.tone}>
+        {meta.label}
+      </Badge>
+      <span>{session.slot ? `${session.slot} · ` : ""}{session.targetMinutes} phút</span>
     </div>
-  );
+
+    <p className="mb-2 text-base font-medium text-primary-dark">Tiếp tục phiên đang dở</p>
+
+    <h2 id="today-continue-title" className="break-words text-2xl font-semibold leading-snug tracking-tight text-text sm:text-3xl">
+      {session.title}
+    </h2>
+
+    <p className="mt-3 text-base leading-relaxed text-text-secondary">Bài làm đang chờ bạn. Tiếp tục phiên hiện tại trước khi mở bài mới.</p>
+
+    <Link href={`/learn/${session.sessionId}`} data-tour="today-start" className="mt-5 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-base font-semibold text-white no-underline transition hover:bg-primary-dark"><Icon name="play" className="h-5 w-5" />Tiếp tục bài học</Link>
+
+  </section>);
 }

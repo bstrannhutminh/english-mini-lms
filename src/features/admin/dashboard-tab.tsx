@@ -95,7 +95,7 @@ export default function DashboardTab() {
         />
         <div className="mt-4">
           {data.failedAssessments.length === 0 ? (
-            <p className="p-4 bg-emerald-50 text-emerald-800 rounded-lg text-sm border border-emerald-100">
+            <p className="p-4 bg-emerald-50 text-emerald-800 rounded-lg text-base border border-emerald-100">
               ✓ Tất cả bài nộp đã chấm xong.
             </p>
           ) : (
@@ -114,11 +114,11 @@ export default function DashboardTab() {
                         <Badge tone="error">Lỗi · lần {item.runVersion}</Badge>
                       </div>
                       {item.submissionBodySnippet && (
-                        <p className="text-xs text-slate-600 italic truncate max-w-lg">
+                        <p className="text-base text-slate-600 italic truncate max-w-lg">
                           &quot;{item.submissionBodySnippet}&quot;
                         </p>
                       )}
-                      <p className="text-[11px] text-slate-400">
+                      <p className="text-base text-slate-400">
                         {new Date(item.createdAt).toLocaleString("vi-VN")}
                       </p>
                     </div>
@@ -155,7 +155,7 @@ export default function DashboardTab() {
         <Card padded={false} className="p-4 sm:p-5">
           <CardHeader title="Token & chi phí theo thao tác" />
           <div className="mt-4 overflow-x-auto border rounded-lg">
-            <table className="w-full text-left text-xs text-slate-600">
+            <table className="w-full text-left text-base text-slate-600">
               <thead className="bg-slate-50 text-slate-500 uppercase tracking-wider border-b">
                 <tr>
                   <th className="py-2.5 px-3">Thao tác</th>

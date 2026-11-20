@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Button, Card, CardHeader, useToast } from "@/components/ui";
+import { Button, Card, CardHeader, Icon, useToast } from "@/components/ui";
 
 /**
  * Xuất dữ liệu: GET /api/v1/settings/export trả file JSON (blob) —
@@ -40,7 +40,7 @@ export function ExportCard() {
     <Card className="space-y-3">
       <CardHeader
         title="Xuất dữ liệu của tôi"
-        description="Tải về toàn bộ lịch sử học tập, bài nộp, nhận xét AI, sổ từ vựng và link tải file ghi âm (JSON)."
+        description="Tải hồ sơ, các phiên học, bài nộp chưa xóa, nhận xét và sổ từ dưới dạng JSON. Link âm thanh chỉ có khi tạo được; bản xuất chưa gồm nháp và lịch sử từng lượt ôn từ."
       />
       <Button
         variant="secondary"
@@ -52,7 +52,7 @@ export function ExportCard() {
           "Đang tạo file sao lưu..."
         ) : (
           <>
-            <span aria-hidden>📦</span> Xuất dữ liệu học tập (JSON)
+            <Icon name="save" className="h-4 w-4" /> Xuất dữ liệu học tập (JSON)
           </>
         )}
       </Button>

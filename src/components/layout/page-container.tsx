@@ -11,14 +11,14 @@ export interface PageContainerProps {
 }
 
 const SIZE_CLASSES = {
-  narrow: "max-w-xl",
-  default: "max-w-2xl lg:max-w-4xl",
-  wide: "max-w-2xl lg:max-w-6xl",
+  narrow: "max-w-2xl",
+  default: "max-w-6xl",
+  wide: "max-w-7xl",
 } as const;
 
 /**
  * Container nội dung chuẩn của mọi trang trong (main): căn giữa, padding
- * ngang 16px, rộng tối đa theo `size`. Trang chỉ việc đặt <PageContainer>.
+ * ngang 20/24/32px, rộng tối đa theo `size`.
  */
 export function PageContainer({
   children,
@@ -31,7 +31,7 @@ export function PageContainer({
       className={cn(
         "mx-auto w-full",
         SIZE_CLASSES[size],
-        padded && "px-4 py-6 sm:py-8",
+        padded && "px-5 py-6 sm:px-6 sm:py-8 lg:px-8 lg:py-10",
         className
       )}
     >

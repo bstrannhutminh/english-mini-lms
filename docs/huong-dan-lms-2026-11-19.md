@@ -1,5 +1,7 @@
 # Hướng dẫn dùng English Mini LMS
 
+Cập nhật giao diện và thao tác: 20/11/2026.
+
 Dành cho BS. Minh: thiết lập một lần, rồi học theo nhịp 30 hoặc 45 phút. Hướng dẫn này mô tả luồng đã có trong mã nguồn; chưa xác nhận luồng chạy trọn vẹn trên điện thoại thật, với tài khoản/dữ liệu Supabase và Gemini thật, hoặc trên bản production.
 
 ## Thiết lập lộ trình
@@ -9,27 +11,27 @@ Lần đầu mở **Hôm nay**, ứng dụng dẫn vào **Thiết lập lộ tr�
 1. **Mục tiêu:** chọn ưu tiên học và bối cảnh chuyên môn.
 2. **Nhịp học:** chọn 30/45 phút, giờ học, sách đang đọc và lựa chọn IELTS nếu cần.
 3. **4 kỹ năng:** tự đánh giá nghe, nói, đọc, viết. Mức 1–5 là cảm nhận ban đầu, không phải điểm thi hay chứng nhận trình độ.
-4. **Lộ trình:** xem trước chu trình, rồi bấm **Hoàn tất & Vào học ngay**. Nếu lưu lỗi, sửa hoặc thử lại trên màn hình này.
+4. **Lộ trình:** xem trước chu trình, rồi bấm **Lưu và vào học**. Nếu lưu lỗi, sửa hoặc thử lại trên màn hình này.
 
-Có thể chọn **Bỏ qua, vào học ngay**. Khi lựa chọn này lưu thành công, lần mở sau không ép thiết lập lại; nếu lưu lỗi, màn hình giữ lại để thử lại. Muốn bổ sung hoặc đổi mục tiêu: mở menu **Tôi → Thiết lập lộ trình**, hoặc **Cài đặt → Chỉnh lộ trình**. Khi quay lại chỉnh hồ sơ, **Về Hôm nay** rời màn hình mà không lưu thay đổi đang nhập.
+Có thể chọn bỏ qua để vào học ngay. Thời lượng 30/45 phút đang chọn được lưu khi bỏ qua thành công. Lần mở sau không ép thiết lập lại; nếu lưu lỗi, màn hình giữ lại để thử lại. Muốn bổ sung hoặc đổi mục tiêu: mở menu **Tôi → Thiết lập lộ trình**, hoặc **Cài đặt → Chỉnh lộ trình**. Khi quay lại chỉnh hồ sơ, **Về Hôm nay** rời màn hình mà không lưu thay đổi đang nhập.
 
 Thời lượng lưu trong lộ trình là mặc định cho các lần mở **Hôm nay** sau. Nút 30/45 phút ở **Hôm nay** đổi thời lượng cho lượt chọn hiện tại; muốn đổi mặc định, sửa lộ trình và lưu lại.
 
 ## Học mỗi ngày
 
-Mở **Hôm nay**, ưu tiên **Tiếp tục phiên học ngay** nếu còn bài dở. Nếu bắt đầu bài mới, đọc lý do gợi ý rồi bấm **Bắt đầu luyện tập**; dùng **Đổi bài khác** để chọn bài phù hợp hơn.
+Mở **Hôm nay**, dùng nút học chính để tiếp tục bài dở, tạo bản sửa từ góp ý hoặc bắt đầu bài mới. Tên nút phản ánh việc sẽ làm. Có thể mở **Vì sao gợi ý bài này?** để đọc lý do, hoặc chọn **Đổi bài**.
 
 Khi còn phiên dở, các gợi ý khác thu gọn trong **Muốn chọn bài khác?**, để trang chỉ có một hành động chính nổi bật.
 
 Gợi ý ưu tiên kỹ năng ít được luyện trong bảy ngày gần nhất. Khi số bài ngang nhau, ứng dụng dùng tự đánh giá ban đầu và mục tiêu đã lưu để chọn; đây là gợi ý khởi đầu, không phải kết luận về trình độ.
 
-Thanh **Chu trình hôm nay** dẫn qua **Ôn từ đến hạn → Bài chính → Sửa / vận dụng → Kết thúc**. Đây là gợi ý phân bổ buổi học, không phải thời khóa biểu bắt buộc. Đọc góp ý trong **Bài của tôi**, tạo bản sửa, rồi xem lại bằng chứng ở **Tiến độ**; số bài và phút học không tự chứng minh tăng trình độ.
+Thanh **Chu trình hôm nay** dẫn qua **Ôn từ đến hạn → Bài chính → Sửa / vận dụng → Kết thúc**. Đây là gợi ý phân bổ buổi học, không phải thời khóa biểu bắt buộc. Đọc góp ý trong **Bài làm**, tạo bản sửa, rồi xem lại bằng chứng ở **Tiến độ**; số bài và phút học không tự chứng minh tăng trình độ.
 
-Trong màn học và thiết lập lộ trình, thanh điều hướng chính được ẩn để tập trung. Bấm đồng hồ để tạm dừng/tiếp tục; tạm dừng trước khi xử lý cuộc gọi nếu không muốn đồng hồ tiếp tục tính thời gian. **Thoát → Lưu nháp & thoát** chỉ rời bài khi nháp có nội dung đã lưu thành công; lưu lỗi thì ở lại để thử lại. Bộ nhớ đồng hồ trong cùng tab không thay cho việc lưu nội dung bài làm.
+Trong màn học và thiết lập lộ trình, thanh điều hướng chính được ẩn để tập trung. Trên điện thoại, có thể mở/thu gọn đề để dễ tiếp cận vùng trả lời; việc thu gọn không xóa nội dung đang nhập. Trạng thái lưu nháp và đồng hồ hiển thị ở đầu màn hình. Bấm đồng hồ để tạm dừng/tiếp tục; tạm dừng trước khi xử lý cuộc gọi nếu không muốn đồng hồ tiếp tục tính thời gian. **Thoát → Lưu nháp & thoát** chỉ rời bài khi nháp có nội dung đã lưu thành công; lưu lỗi thì ở lại để thử lại. Bộ nhớ đồng hồ trong cùng tab không thay cho việc lưu nội dung bài làm.
 
 ## Tìm bài trong Thư viện
 
-Mở **Thư viện** để thấy bài học ngay. Kết hợp chủ đề, ô tìm kiếm, kỹ năng và trạng thái **Chưa học / Đang dở / Đã nộp**. Bộ lọc IELTS xuất hiện khi thư viện có bài IELTS. Nếu danh sách trống, thử **Xoá lọc**; **Đã nộp** chỉ nói bài đã có lượt nộp, không chứng nhận đã thành thạo.
+Mở **Thư viện** để thấy bài học ngay. Kết hợp chủ đề, ô tìm kiếm, kỹ năng và trạng thái **Chưa học / Đang dở / Đã nộp**. Bộ lọc IELTS luôn có thể chọn; không có bài phù hợp thì hiển thị danh sách trống. Tìm kiếm, chủ đề, kỹ năng và trạng thái được giữ trong đường link, khi tải lại hoặc quay lại trang. Nếu danh sách trống, chọn **Xóa bộ lọc**; **Đã nộp** chỉ nói bài đã có lượt nộp, không chứng nhận đã thành thạo.
 
 Mở một bài để đọc mục tiêu và chọn thời lượng. Khi chưa có nguồn học đã duyệt, bổ sung nội dung qua quản trị trước khi học.
 
@@ -43,6 +45,22 @@ Mở một bài để đọc mục tiêu và chọn thời lượng. Khi chưa c
 | Nghe & Shadowing | Nghe và trả lời trước, rồi đối chiếu đáp án/transcript sau nộp. Mở transcript trước nộp được ghi là **Có hỗ trợ**. Sau nộp, chọn **Luyện Shadowing từng câu** để nghe và nói lại. |
 
 Góp ý AI là tham khảo, có giới hạn theo bằng chứng đầu vào. Với sách y khoa, chỉ dùng để luyện ngôn ngữ và đối chiếu đoạn nguồn; không nhập dữ liệu bệnh nhân hoặc dùng góp ý như khuyến nghị điều trị. Điểm luyện IELTS không phải điểm thi chính thức.
+
+## Ôn và lưu từ
+
+Trong **Sổ từ**, tìm theo cụm từ/nghĩa/câu gốc, lọc theo nguồn hoặc mức nhớ. Mở một từ để xem câu gốc, nghe cách dùng qua YouGlish và viết **Câu của tôi**. Nút lưu báo kết quả thật; lưu lỗi giữ nội dung để thử lại.
+
+**Ôn bằng thẻ** giữ kết quả theo đợt. Khi đã ôn một số thẻ mà đổi bộ hoặc sang màn khác, chọn **Lưu và tiếp tục**, **Bỏ kết quả** hoặc **Ôn tiếp**. Nếu chưa xác nhận lưu, có thể quay lại trong cùng tab để khôi phục đợt ôn. Khi lưu lỗi, thử lại dùng cùng lượt ôn; không coi kết quả đã được ghi nhận cho đến khi thấy tổng kết lưu thành công. Phím tắt không tác động thẻ nền khi hộp thoại mở, nhập văn bản hoặc đang tải/lưu.
+
+Trong **Thử viết một câu**, ô trả lời và lựa chọn nhập được khóa trong lúc gửi. Đọc chính tả bằng bàn phím điện thoại tạo văn bản; đây không phải bản ghi âm để đánh giá phát âm.
+
+## Cài đặt và dữ liệu
+
+**Cài đặt** chia thành nhịp học, tài khoản và dữ liệu học tập. Giờ học được lưu trong hồ sơ; không tự suy ra thông báo đã gửi từ việc lưu cài đặt. Lưu lỗi trả lựa chọn về giá trị trước đó.
+
+Bản xuất JSON gồm hồ sơ, phiên học, bài nộp chưa xóa, nhận xét và sổ từ; link âm thanh chỉ có khi tạo được. Bản này chưa gồm nháp và lịch sử từng lượt ôn, nên không thay bản backup DB đầy đủ. Xóa bài làm là xóa mềm khỏi tiến độ/danh sách; lịch sử bản sửa vẫn giữ và màn hình chưa xác nhận riêng kết quả xóa file âm thanh.
+
+Trong Quản trị, tạo bài mới không tự ghi đè nguồn đã có khi trùng mã. Nếu bị trùng mã, chọn mã mới trong phần định danh hoặc mở nội dung hiện có để sửa có chủ đích.
 
 ## Riêng tư và mất mạng
 

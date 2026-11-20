@@ -34,7 +34,7 @@ const MODE_TABS = [
 
 const STATUS_TABS: { value: StatusFilter; label: string }[] = [
   { value: "all", label: "Tất cả trạng thái" },
-  { value: "feedback_ready", label: "Có feedback" },
+  { value: "feedback_ready", label: "Có góp ý" },
   { value: "processing", label: "Đang chấm" },
   { value: "not_assessed", label: "Chưa chấm" },
   { value: "needs_input", label: "Đã gắn cờ" },
@@ -76,38 +76,39 @@ export function WorkListView() {
   }));
 
   return (
-    <div className="mx-auto w-full max-w-2xl px-4 pb-12 pt-4 lg:max-w-5xl">
+    <div className="mx-auto w-full max-w-5xl px-4 pb-12 pt-6 sm:px-6">
       <header className="mb-6">
         <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight text-text">
           <Icon name="file-text" className="h-6 w-6 text-teal-700" />
           Bài của tôi
         </h1>
-        <p className="mt-1 text-sm text-text-secondary">
+        <p className="mt-1 text-base text-text-secondary">
           Xem lại tất cả bài tập đã nộp, trạng thái chấm của AI và lịch sử sửa bài.
         </p>
       </header>
 
       {/* Bộ lọc: kỹ năng (gộp IELTS vào skill gốc) + trạng thái chấm */}
-      <div className="mb-6 space-y-3 rounded-2xl border border-border bg-surface p-4 shadow-xs">
+      <div className="mb-6 space-y-3 border-b border-border pb-5">
         <Tabs
-          variant="pills"
+          variant="underline"
           aria-label="Lọc theo kỹ năng"
           tabs={modeTabs}
           value={modeFilter}
           onValueChange={(v) => setModeFilter(v as ModeFilter)}
           className="max-w-full overflow-x-auto"
         />
-        <div className="flex flex-wrap items-center gap-2 border-t border-slate-100 pt-2 text-xs text-text-secondary">
+        <div className="flex flex-wrap items-center gap-2 border-t border-slate-100 pt-2 text-base text-text-secondary">
           <span className="font-medium">Trạng thái chấm:</span>
           {STATUS_TABS.map((st) => (
             <button
               key={st.value}
               type="button"
               onClick={() => setStatusFilter(st.value)}
-              className={`min-h-11 cursor-pointer rounded-lg px-3 py-1 text-xs font-medium transition ${
+              aria-pressed={statusFilter === st.value}
+              className={`min-h-11 cursor-pointer rounded-lg px-3 py-1 text-base font-medium transition ${
                 statusFilter === st.value
-                  ? "bg-slate-900 text-white"
-                  : "border border-slate-200 bg-slate-50 text-slate-600 hover:bg-slate-100"
+                  ? "border border-primary bg-primary-soft text-primary-dark"
+                  : "border border-border bg-surface text-text-secondary hover:bg-surface-muted"
               }`}
             >
               {st.label}
@@ -119,7 +120,7 @@ export function WorkListView() {
       {loading ? (
         <div className="space-y-3" aria-label="Đang tải danh sách bài làm">
           {[0, 1, 2].map((i) => (
-            <Skeleton key={i} className="h-28 w-full rounded-2xl" />
+            <Skeleton key={i} className="h-28 w-full rounded-xl" />
           ))}
         </div>
       ) : error ? (
@@ -152,10 +153,12 @@ export function WorkListView() {
               <Link href="/library" className="inline-flex min-h-11">
                 <Button>Khám phá Thư viện bài học</Button>
               </Link>
-            ) : undefined
+            ) : <Button variant="outline" onClick={() => { setModeFilter("all"); setStatusFilter("all"); }}>Xoá bộ lọc</Button>
           }
         />
       ) : (
+        <>
+        <p role="status" className="mb-4 text-base text-text-secondary">{filtered.length} bài nộp phù hợp</p>
         <div className="space-y-3">
           {filtered.map((item) => (
             <SubmissionCard
@@ -165,6 +168,7 @@ export function WorkListView() {
             />
           ))}
         </div>
+        </>
       )}
     </div>
   );

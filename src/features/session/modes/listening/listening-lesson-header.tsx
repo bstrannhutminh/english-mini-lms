@@ -15,16 +15,16 @@ export function ListeningLessonHeader({
   const submitted = Boolean(submission);
 
   return (
-    <div className="mb-4 rounded-2xl border border-border bg-surface p-4 shadow-card">
+    <div className="mb-4 rounded-xl border border-border bg-surface p-4 ">
       <div className="mb-2 flex flex-wrap items-center gap-2">
-        <span className="inline-flex items-center gap-1 rounded-md border border-skill-listening-border bg-skill-listening-soft px-2 py-0.5 text-xs font-bold text-skill-listening">
+        <span className="inline-flex items-center gap-1 rounded-md border border-skill-listening-border bg-skill-listening-soft px-2 py-0.5 text-base font-bold text-skill-listening">
           <Icon name="headphones" className="h-3.5 w-3.5" />
           Nghe &amp; Shadowing
         </span>
         {submitted && (
           <span
             className={cn(
-              "rounded-md px-2 py-0.5 text-xs font-bold",
+              "rounded-md px-2 py-0.5 text-base font-bold",
               submission?.assisted
                 ? "bg-amber-100 text-amber-800"
                 : "bg-emerald-100 text-emerald-800"
@@ -38,14 +38,14 @@ export function ListeningLessonHeader({
         {activity.title}
       </h2>
       {activity.objective && (
-        <p className="m-0 text-sm leading-relaxed text-text-secondary">
+        <p className="m-0 text-base leading-relaxed text-text-secondary">
           <strong className="text-text">Mục tiêu:</strong>{" "}
           {activity.objective}
         </p>
       )}
 
       {/* 3 chặng học bài nghe */}
-      <ol className="mt-3.5 grid grid-cols-3 gap-1.5 text-center text-xs">
+      <ol className="mt-3.5 grid grid-cols-3 gap-1.5 text-center text-base">
         {[
           { num: 1, label: "Nghe & Trả lời" },
           { num: 2, label: "Đáp án & Transcript" },

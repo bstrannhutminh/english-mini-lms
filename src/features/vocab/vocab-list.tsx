@@ -4,7 +4,8 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { EmptyState, Icon } from "@/components/ui";
 import type { VocabularyItem } from "@/contracts/vocabulary";
-import { fetchVocabularyList, type VocabFilter } from "./api";
+import { type VocabFilter } from "./api";
+import { PageContainer } from "@/components/layout";
 import { isDueNow, isMastered } from "./mastery";
 import { DueTodayCard } from "./due-today-card";
 import { VocabFilterBar } from "./vocab-filter-bar";
@@ -28,7 +29,7 @@ export function VocabListView({ initialItems }: VocabListViewProps) {
   const [expandedId, setExpandedId] = useState<string | null>(
     initialItems.length > 0 ? initialItems[0].id : null
   );
-  const [isLoadingFilter, setIsLoadingFilter] = useState(false);
+  const isLoadingFilter = false;
 
   const now = useMemo(() => new Date(), []);
 
@@ -64,20 +65,8 @@ export function VocabListView({ initialItems }: VocabListViewProps) {
     return true;
   });
 
-  async function handleFilterChange(filter: string) {
-    const next = (
-      filter === "due" || filter === "mastered" ? filter : "all"
-    ) as VocabFilter;
-    setActiveFilter(next);
-    try {
-      setIsLoadingFilter(true);
-      const data = await fetchVocabularyList(next);
-      setItems(data.items);
-    } catch (err) {
-      console.error("Lỗi tải danh sách từ:", err);
-    } finally {
-      setIsLoadingFilter(false);
-    }
+  function handleFilterChange(filter: string) {
+    setActiveFilter(filter === "due" || filter === "mastered" ? filter : "all");
   }
 
   function handleItemChange(updated: VocabularyItem) {
@@ -95,7 +84,7 @@ export function VocabListView({ initialItems }: VocabListViewProps) {
   }
 
   return (
-    <div className="mx-auto w-full max-w-3xl space-y-5 px-4 pb-20 pt-6 lg:max-w-5xl">
+    <PageContainer className="space-y-6">
       <VocabPageHeader />
 
       <DueTodayCard dueCount={dueCount} />
@@ -114,7 +103,7 @@ export function VocabListView({ initialItems }: VocabListViewProps) {
       />
 
       {isLoadingFilter && (
-        <div className="py-10 text-center text-sm font-medium text-text-muted">
+        <div className="py-10 text-center text-base font-medium text-text-muted">
           Đang lọc danh sách thuật ngữ...
         </div>
       )}
@@ -136,7 +125,7 @@ export function VocabListView({ initialItems }: VocabListViewProps) {
           action={
             <Link
               href="/library"
-              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-primary px-5 text-sm font-semibold text-white no-underline shadow-xs transition hover:bg-primary-dark"
+              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-primary px-5 text-base font-semibold text-white no-underline  transition hover:bg-primary-dark"
             >
               <span>Luyện đọc ngay</span>
               <Icon name="arrow-right" className="h-4 w-4" />
@@ -148,10 +137,10 @@ export function VocabListView({ initialItems }: VocabListViewProps) {
       {!isLoadingFilter &&
         Object.entries(groupedByDate).map(([dateStr, dateItems]) => (
           <div key={dateStr} className="space-y-3">
-            <div className="flex items-center gap-2 pl-1 text-xs font-bold uppercase tracking-wider text-text-muted">
+            <div className="flex items-center gap-2 pl-1 text-base font-semibold uppercase tracking-wider text-text-muted">
               <Icon name="calendar" className="h-3.5 w-3.5" />
               <span>Ngày lưu: {dateStr}</span>
-              <span className="rounded-full bg-slate-200/70 px-2 py-0.5 text-[11px] font-semibold tabular-nums text-text-secondary">
+              <span className="rounded-full bg-slate-200/70 px-2 py-0.5 text-base font-semibold tabular-nums text-text-secondary">
                 {dateItems.length}
               </span>
             </div>
@@ -174,6 +163,6 @@ export function VocabListView({ initialItems }: VocabListViewProps) {
             </div>
           </div>
         ))}
-    </div>
+    </PageContainer>
   );
 }

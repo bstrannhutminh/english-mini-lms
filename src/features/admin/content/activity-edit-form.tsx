@@ -127,11 +127,11 @@ export default function ActivityEditForm({
         e.preventDefault();
         save();
       }}
-      className="bg-white rounded-xl border border-slate-200 shadow-sm p-4 sm:p-5 space-y-4"
+      className="bg-white rounded-xl border border-slate-200  p-4 sm:p-5 space-y-4"
     >
       <h2 className="text-lg font-semibold text-slate-800">
         Sửa bài {activity.id}{" "}
-        <span className="text-sm font-normal text-slate-500">
+        <span className="text-base font-normal text-slate-500">
           ({meta.label}
           {meta.isIelts ? " · IELTS" : ""})
         </span>
@@ -202,13 +202,13 @@ export default function ActivityEditForm({
 
       {isListening && (
         <div className="space-y-2">
-          <span className="text-sm font-medium text-slate-700">Câu hỏi nghe</span>
+          <span className="text-base font-medium text-slate-700">Câu hỏi nghe</span>
           {usesFileQuestions && !replaceFileQuestions ? (
-            <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
+            <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-base text-amber-800">
               Bài này đang dùng câu hỏi từ file <code>{activity.questionsFile}</code>.{" "}
               <button
                 type="button"
-                className="font-semibold underline underline-offset-2"
+                className="inline-flex min-h-11 items-center rounded-lg px-2 text-base font-semibold underline underline-offset-2"
                 onClick={() => setReplaceFileQuestions(true)}
               >
                 Thay bằng câu hỏi nhập tay

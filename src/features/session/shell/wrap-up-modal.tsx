@@ -38,7 +38,7 @@ export function SessionWrapUpModal({
           Học thêm 5 phút
         </Button>
       </div>
-      <p className="mt-4 text-sm leading-relaxed text-text-secondary">
+      <p className="mt-4 text-base leading-relaxed text-text-secondary">
         Sau khi nộp, đọc góp ý rồi chọn <strong>Sửa lại ngay</strong> để tạo Bản 2.
       </p>
     </Modal>

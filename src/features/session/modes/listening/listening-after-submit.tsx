@@ -67,7 +67,7 @@ export function ListeningAfterSubmit({
             onSeek={onSeek}
           />
         ) : (
-          <div className="flex items-start gap-2 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+          <div className="flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 p-4 text-base text-amber-900">
             <Icon name="alert-triangle" className="mt-0.5 h-4.5 w-4.5 shrink-0" />
             <span>
               Bài đã nộp nhưng việc chấm đáp án gặp lỗi. Bạn có thể xem lại kết
@@ -95,13 +95,13 @@ export function ListeningAfterSubmit({
       <div className="mt-5 flex flex-wrap items-center justify-end gap-3 border-t border-border pt-4">
         <Link
           href={`/my-work/${submission.submissionId}`}
-          className="inline-flex min-h-11 items-center text-sm font-semibold text-text-secondary underline underline-offset-2 hover:text-text"
+          className="inline-flex min-h-11 items-center text-base font-semibold text-text-secondary underline underline-offset-2 hover:text-text"
         >
           Xem trong Bài của tôi
         </Link>
         <Link
           href="/today"
-          className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-primary px-5 text-sm font-semibold text-white no-underline shadow-xs transition hover:bg-primary-dark"
+          className="inline-flex min-h-11 items-center gap-2 rounded-xl bg-primary px-5 text-base font-semibold text-white no-underline  transition hover:bg-primary-dark"
         >
           <span>Bài tiếp theo</span>
           <Icon name="arrow-right" className="h-4 w-4" />

@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { Button, Card, CardHeader } from "@/components/ui";
+import { Button, Card, CardHeader, Icon } from "@/components/ui";
 import { apiFetch } from "@/lib/api-client";
 import { preferencesResponseSchema } from "@/contracts/settings";
 import { TOUR_DONE_KEY, TOUR_STEP_KEY } from "@/components/tour-host";
@@ -37,7 +37,7 @@ export function GuideCard() {
         description="Xem lại tour ngắn chỉ vị trí các khu vực chính: Hôm nay, Thư viện, Sổ từ, Tiến độ."
       />
       <Button variant="outline" onClick={handleReplay} className="w-full sm:w-auto">
-        <span aria-hidden>▶️</span> Xem lại hướng dẫn
+        <Icon name="play" className="h-4 w-4" /> Xem lại hướng dẫn
       </Button>
     </Card>
   );

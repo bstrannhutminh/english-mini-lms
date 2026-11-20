@@ -9,7 +9,7 @@ import { ApiClientError } from "@/lib/api-client";
 import type { FieldError } from "@/lib/content-constants";
 
 export const inputCls =
-  "w-full min-h-[44px] rounded-lg border border-slate-300 bg-white px-3 py-2 text-base text-slate-800 focus:outline-none focus:ring-2 focus:ring-primary disabled:bg-slate-100 disabled:text-slate-500";
+  "field-control w-full";
 export const textareaCls = `${inputCls} font-mono leading-relaxed`;
 
 export function Field({
@@ -25,12 +25,12 @@ export function Field({
 }) {
   return (
     <label className="block space-y-1">
-      <span className="text-sm font-medium text-slate-700">{label}</span>
+      <span className="text-base font-medium text-slate-700">{label}</span>
       {children}
       {error ? (
-        <span className="block text-xs text-red-600">{error}</span>
+        <span className="block text-base text-red-600">{error}</span>
       ) : hint ? (
-        <span className="block text-xs text-slate-500">{hint}</span>
+        <span className="block text-base text-slate-500">{hint}</span>
       ) : null}
     </label>
   );
@@ -67,7 +67,7 @@ export function ErrorList({
   return (
     <div
       role="alert"
-      className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800 space-y-1"
+      className="rounded-lg border border-red-200 bg-red-50 p-3 text-base text-red-800 space-y-1"
     >
       {error && <p className="font-medium">{error}</p>}
       {details.length > 0 && (

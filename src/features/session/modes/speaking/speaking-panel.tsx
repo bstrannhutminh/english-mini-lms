@@ -114,9 +114,9 @@ export function SpeakingPanel(props: ModePanelProps) {
         />
       )}
 
-      <div className="mb-4 rounded-2xl border border-border bg-surface p-5 shadow-card">
+      <div className="mb-4 rounded-xl border border-border bg-surface p-5 ">
         <div className="mb-2.5 flex items-center gap-2">
-          <span className="inline-flex items-center gap-1 rounded-md border border-skill-speaking-border bg-skill-speaking-soft px-2 py-0.5 text-xs font-bold text-skill-speaking">
+          <span className="inline-flex items-center gap-1 rounded-md border border-skill-speaking-border bg-skill-speaking-soft px-2 py-0.5 text-base font-bold text-skill-speaking">
             <Icon name="mic" className="h-3.5 w-3.5" />
             Tình huống nói
           </span>
@@ -125,15 +125,15 @@ export function SpeakingPanel(props: ModePanelProps) {
         <h2 className="mb-2 text-lg font-bold text-text">{activity.title}</h2>
 
         {activity.objective && (
-          <p className="mb-3 text-sm leading-relaxed text-text-secondary">
+          <p className="mb-3 text-base leading-relaxed text-text-secondary">
             <strong className="text-text">Mục tiêu:</strong>{" "}
             {activity.objective}
           </p>
         )}
 
         <div
-          {...capture.selectHandlers(promptText, sourceRef)}
-          className="rounded-xl border border-border-subtle bg-surface-muted px-4 py-3.5 text-sm leading-relaxed text-text-secondary"
+          {...capture.selectHandlers(promptText, sourceRef, "text")}
+          className="rounded-xl border border-border-subtle bg-surface-muted px-4 py-3.5 text-base leading-relaxed text-text-secondary"
         >
           <MarkdownText text={promptText} />
         </div>
@@ -152,10 +152,10 @@ export function SpeakingPanel(props: ModePanelProps) {
         onClearTake={handleClearTake}
       />
 
-      <div className="mt-4 rounded-2xl border border-border bg-surface p-5 shadow-card">
+      <div className="mt-4 rounded-xl border border-border bg-surface p-5 ">
         <label
           htmlFor="speaking-notes"
-          className="mb-2 flex items-center gap-1.5 text-sm font-semibold text-text"
+          className="mb-2 flex items-center gap-1.5 text-base font-semibold text-text"
         >
           <Icon name="pen" className="h-4 w-4 text-text-muted" />
           <span>Ghi chú dàn ý nói (tuỳ chọn)</span>
@@ -169,10 +169,10 @@ export function SpeakingPanel(props: ModePanelProps) {
           disabled={busy}
           placeholder="Ghi nhanh vài từ khoá dự kiến nói..."
           rows={3}
-          className="box-border w-full resize-y rounded-xl border border-border bg-surface p-3.5 text-base leading-relaxed text-text outline-none transition placeholder:text-text-muted focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:opacity-60"
+          className="box-border w-full resize-y rounded-xl border border-border-strong bg-surface p-3.5 text-base leading-relaxed text-text outline-none transition placeholder:text-text-muted focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:opacity-60"
         />
         {!recorder.blob && !recorder.isRecording && (
-          <p className="mt-2 text-xs leading-relaxed text-text-muted">
+          <p className="mt-2 text-base leading-relaxed text-text-muted">
             Khi không tiện ghi âm, bạn vẫn có thể nộp nội dung gõ tay — AI sẽ
             góp ý từ vựng & cấu trúc và ghi nhận phát âm là &ldquo;chưa đánh giá
             được&rdquo;.
@@ -182,5 +182,5 @@ export function SpeakingPanel(props: ModePanelProps) {
     </>
   );
 
-  return <SessionColumns left={left} right={right} />;
+  return <SessionColumns left={left} right={right} collapsible sourceLabel="Xem tình huống và bản nói trước" />;
 }

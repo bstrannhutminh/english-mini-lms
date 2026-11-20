@@ -1,6 +1,6 @@
 "use client";
 
-import { Button, Icon } from "@/components/ui";
+import { Icon } from "@/components/ui";
 import { ObservationCard } from "./observation-card";
 import { topPriorityObservations } from "../revision-chain";
 import type { MyWorkFeedback } from "../types";
@@ -14,10 +14,6 @@ interface PriorityObservationsProps {
   sourceRef?: string;
   flaggedIndexes: Record<number, boolean>;
   onFlagged: (index: number) => void;
-  /** "Sửa ngay" — tạo phiên bản sửa (submission mới qua parentId). */
-  onStartRevision: () => void;
-  isCreatingRevision: boolean;
-  revisionLabel: string;
 }
 
 /**
@@ -29,9 +25,6 @@ export function PriorityObservations({
   sourceRef,
   flaggedIndexes,
   onFlagged,
-  onStartRevision,
-  isCreatingRevision,
-  revisionLabel,
 }: PriorityObservationsProps) {
   const top = topPriorityObservations(feedback.observations, TOP_PRIORITY_COUNT);
   if (top.length === 0) return null;
@@ -39,7 +32,7 @@ export function PriorityObservations({
   return (
     <section
       aria-label="Các điểm cần sửa ưu tiên"
-      className="mb-5 rounded-2xl border border-teal-200 bg-teal-50/60 p-4 sm:p-5"
+      className="mb-8"
     >
       <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
         <div>
@@ -47,17 +40,13 @@ export function PriorityObservations({
             <Icon name="alert-triangle" className="h-4 w-4" />
             {top.length} điểm cần sửa trước
           </h2>
-          <p className="mt-0.5 text-xs text-teal-800">
-            AI đã xếp theo mức ưu tiên — tập trung các điểm này khi viết lại.
+          <p className="mt-0.5 text-base text-teal-800">
+            Tập trung từng điểm, rồi thử lại bằng lời của bạn.
           </p>
         </div>
-        <Button onClick={onStartRevision} loading={isCreatingRevision}>
-          <Icon name="pen" className="h-4 w-4" />
-          {isCreatingRevision ? "Đang mở phiên…" : `Sửa ngay (${revisionLabel})`}
-        </Button>
       </div>
 
-      <div className="flex flex-col gap-3">
+      <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
         {top.map((obs, i) => (
           <ObservationCard
             key={i}

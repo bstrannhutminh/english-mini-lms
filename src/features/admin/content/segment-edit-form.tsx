@@ -91,11 +91,11 @@ export default function SegmentEditForm({
         e.preventDefault();
         save();
       }}
-      className="bg-white rounded-xl border border-slate-200 shadow-sm p-4 sm:p-5 space-y-4"
+      className="bg-white rounded-xl border border-slate-200  p-4 sm:p-5 space-y-4"
     >
       <h2 className="text-lg font-semibold text-slate-800">
         {isNew ? "＋ Segment mới" : `Sửa segment ${segment.id}`}{" "}
-        <span className="text-sm font-normal text-slate-500">
+        <span className="text-base font-normal text-slate-500">
           — nguồn {sourceTitle ?? (isNew ? f.sourceId : segment.sourceId)}
         </span>
       </h2>
@@ -164,7 +164,7 @@ export default function SegmentEditForm({
             onChange={(e) => set("language", e.target.value)}
           />
         </Field>
-        <label className="flex min-h-11 items-center gap-2 text-sm text-slate-700 self-end">
+        <label className="flex min-h-11 items-center gap-2 text-base text-slate-700 self-end">
           <input
             type="checkbox"
             className="h-4 w-4 rounded accent-indigo-600"
@@ -196,7 +196,7 @@ export default function SegmentEditForm({
         />
       </Field>
       {transcriptErrors.length > 1 && (
-        <ul className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-800 list-disc pl-6 space-y-0.5">
+        <ul className="rounded-lg border border-red-200 bg-red-50 p-3 text-base text-red-800 list-disc pl-6 space-y-0.5">
           {transcriptErrors.slice(1).map((e, i) => (
             <li key={i}>{e.message}</li>
           ))}

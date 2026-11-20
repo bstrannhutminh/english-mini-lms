@@ -23,7 +23,7 @@ export const settingsSubmissionSchema = z.object({
   revision: z.number().int(),
   createdAt: isoDateTimeSchema,
   mediaId: uuidSchema.nullable(),
-  activityId: uuidSchema,
+  activityId: z.string().min(1),
   activityTitle: z.string(),
   activityMode: z.string(),
 });
@@ -42,6 +42,7 @@ export type SettingsResponse = z.infer<typeof settingsResponseSchema>;
  * preferences hiện có (xem server/settings/preferences.ts mergePreferences).
  */
 export const preferencesPatchSchema = z.object({
+  targetMinutesDefault: z.union([z.literal(30), z.literal(45)]).optional(),
   remindEnabled: z.boolean().optional(),
   remindTime: z
     .string()

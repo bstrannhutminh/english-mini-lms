@@ -3,6 +3,7 @@
  * Plain Tailwind, Vietnamese copy.
  */
 import Link from "next/link";
+import { Icon } from "@/components/ui";
 
 interface NotFoundScreenProps {
   title?: string;
@@ -14,18 +15,18 @@ export function NotFoundScreen({
   message = "Trang bạn tìm không tồn tại hoặc đã bị di chuyển. Quay về Hôm nay để tiếp tục buổi học.",
 }: NotFoundScreenProps) {
   return (
-    <div className="mx-auto flex min-h-[60vh] w-full max-w-md flex-col items-center justify-center px-4 py-12 text-center">
+    <div className="mx-auto flex min-h-[60vh] w-full max-w-lg flex-col items-center justify-center px-5 py-12 text-center">
       <div
-        className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-slate-100 text-2xl"
+        className="mb-5 flex h-12 w-12 items-center justify-center text-text-muted"
         aria-hidden
       >
-        🔍
+        <Icon name="search" className="h-8 w-8" />
       </div>
-      <h1 className="text-lg font-bold text-slate-900">{title}</h1>
-      <p className="mt-2 text-sm leading-relaxed text-slate-500">{message}</p>
+      <h1 className="text-2xl font-semibold tracking-tight text-text">{title}</h1>
+      <p className="mt-3 text-base leading-relaxed text-text-secondary">{message}</p>
       <Link
         href="/today"
-        className="mt-6 rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700"
+        className="mt-6 inline-flex min-h-12 items-center justify-center rounded-lg bg-primary px-5 py-3 text-base font-medium text-white transition-colors hover:bg-primary-dark"
       >
         Về Hôm nay
       </Link>

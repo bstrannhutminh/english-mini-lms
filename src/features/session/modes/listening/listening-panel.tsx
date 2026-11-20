@@ -17,8 +17,6 @@ import { ListeningTranscriptCard } from "./listening-transcript-card";
 import { ListeningAfterSubmit } from "./listening-after-submit";
 import { ListeningLessonHeader } from "./listening-lesson-header";
 
-const DEMO_VIDEO_URL = "https://www.youtube.com/watch?v=uVSiFJ85EtM";
-
 /**
  * Vùng làm bài mode Nghe & Shadowing với tiến trình 3 chặng rõ ràng:
  * 1. Nghe & Trả lời → 2. Đối chiếu đáp án & Transcript → 3. Shadowing từng câu.
@@ -32,7 +30,7 @@ export function ListeningPanel(props: ModePanelProps) {
 
   const listening = data.listening;
   const playerControlRef = useRef<YouTubePlayerHandle>(null);
-  useListeningHotkeys(playerControlRef);
+  useListeningHotkeys(playerControlRef, !busy);
 
   const submitted = Boolean(submission);
   const revealed =
@@ -64,7 +62,7 @@ export function ListeningPanel(props: ModePanelProps) {
 
   if (!listening) {
     return (
-      <div className="flex items-start gap-2.5 rounded-2xl border border-amber-200 bg-amber-50 p-5 text-sm text-amber-900">
+      <div className="flex items-start gap-2.5 rounded-xl border border-amber-200 bg-amber-50 p-5 text-base text-amber-900">
         <Icon name="alert-triangle" className="mt-0.5 h-5 w-5 shrink-0" />
         <span>
           <strong>Chưa thể mở bài nghe.</strong> Bài này chưa có dữ liệu đoạn
@@ -74,7 +72,7 @@ export function ListeningPanel(props: ModePanelProps) {
     );
   }
 
-  const sourceRef = `Bài nghe: ${data.activity.slot || data.activity.id}`;
+  const sourceRef = `${data.activity.title} · ${listening.videoUrl || "Nguồn video chưa được ghi nhận"} · ${listening.startSeconds}–${listening.endSeconds}s`;
   const currentStage = !submitted
     ? 1
     : state.activeTab === "shadowing"
@@ -119,23 +117,23 @@ export function ListeningPanel(props: ModePanelProps) {
       />
 
       {!listening.videoUrl && (
-        <div className="mb-3 flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3.5 py-2.5 text-xs text-amber-900">
+        <div className="mb-3 flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3.5 py-2.5 text-base text-amber-900">
           <Icon name="alert-triangle" className="mt-0.5 h-4 w-4 shrink-0" />
           <span>
-            <strong>Thiếu video gốc — đang phát video minh hoạ tạm.</strong>
+            <strong>Chưa có video nguồn.</strong> Hãy báo quản trị bổ sung video đã duyệt cho bài này.
           </span>
         </div>
       )}
 
-      <YouTubePlayer
-        videoUrl={listening.videoUrl || DEMO_VIDEO_URL}
+      {listening.videoUrl && <YouTubePlayer
+        videoUrl={listening.videoUrl}
         startSeconds={listening.startSeconds}
         endSeconds={listening.endSeconds}
         seekTo={seekTo}
         controlRef={playerControlRef}
-      />
+      />}
 
-      <p className="mb-4 hidden text-xs text-text-muted lg:block">
+      <p className="mb-4 hidden text-base text-text-muted lg:block">
         Phím tắt:{" "}
         <kbd className="rounded border border-border bg-surface px-1.5 py-0.5">
           Space

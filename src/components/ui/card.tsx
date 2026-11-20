@@ -8,7 +8,7 @@ export interface CardProps extends HTMLAttributes<HTMLDivElement> {
   interactive?: boolean;
 }
 
-/** Khung thẻ chuẩn: nền trắng, viền slate, bo 16px, shadow-card. */
+/** Khung thẻ nhẹ: nền trắng, đường mảnh và bo 12px. */
 export function Card({
   padded = true,
   interactive = false,
@@ -18,10 +18,10 @@ export function Card({
   return (
     <div
       className={cn(
-        "rounded-2xl border border-border bg-surface shadow-card",
-        padded && "p-5",
+        "rounded-xl border border-border bg-surface",
+        padded && "p-5 sm:p-6",
         interactive &&
-          "cursor-pointer transition-shadow hover:shadow-md hover:border-slate-300",
+          "cursor-pointer transition-colors hover:border-border-strong hover:bg-surface-muted",
         className
       )}
       {...rest}
@@ -44,7 +44,7 @@ export function CardHeader({ title, description, action, className }: CardHeader
       <div className="min-w-0 space-y-1">
         <h3 className="text-base font-semibold leading-snug text-text">{title}</h3>
         {description ? (
-          <p className="text-sm leading-relaxed text-text-secondary">{description}</p>
+          <p className="text-base leading-relaxed text-text-secondary">{description}</p>
         ) : null}
       </div>
       {action ? <div className="shrink-0">{action}</div> : null}

@@ -36,7 +36,7 @@ export function FlagButton({
 
   if (flagged) {
     return (
-      <span className="inline-flex items-center gap-1 rounded-md border border-amber-200 bg-amber-50 px-2 py-0.5 text-xs font-semibold text-amber-800">
+      <span className="inline-flex items-center gap-1 rounded-md border border-amber-200 bg-amber-50 px-2 py-0.5 text-base font-semibold text-amber-800">
         <Icon name="flag" className="h-3 w-3" />
         Đã gắn cờ để rà soát
       </span>
@@ -81,7 +81,7 @@ export function FlagButton({
         type="button"
         onClick={() => setOpen(true)}
         title="Bấm nếu bạn thấy nhận xét của AI chưa chuẩn xác hoặc máy móc"
-        className="inline-flex min-h-9 cursor-pointer items-center gap-1 rounded-md border border-dashed border-slate-300 px-2 py-0.5 text-xs text-text-muted transition hover:border-amber-400 hover:text-amber-800"
+        className="inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-lg px-3 py-2 text-base text-text-secondary transition hover:bg-amber-50 hover:text-amber-900"
       >
         <Icon name="flag" className="h-3 w-3" />
         Tôi không đồng ý
@@ -113,15 +113,16 @@ export function FlagButton({
           </>
         }
       >
-        <label className="block text-sm font-medium text-text">
+        <label className="block text-base font-medium text-text">
           Lý do (không bắt buộc)
           <textarea
             value={reason}
             onChange={(e) => setReason(e.target.value)}
             rows={3}
+            disabled={sending}
             maxLength={500}
             placeholder="Ví dụ: nhận xét chưa đúng ngữ cảnh y khoa, câu gốc đã đúng ngữ pháp…"
-            className="mt-1.5 w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-text outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-200"
+            className="mt-1.5 w-full rounded-lg border border-border-strong px-3 py-2 text-base text-text outline-none focus:border-teal-600 focus:ring-2 focus:ring-teal-200"
           />
         </label>
       </Modal>

@@ -97,7 +97,7 @@ export default function SourceEditForm({
         e.preventDefault();
         save();
       }}
-      className="bg-white rounded-xl border border-slate-200 shadow-sm p-4 sm:p-5 space-y-4"
+      className="bg-white rounded-xl border border-slate-200  p-4 sm:p-5 space-y-4"
     >
       <h2 className="text-lg font-semibold text-slate-800">
         {isNew ? "＋ Nguồn mới (Nháp)" : `Sửa nguồn ${source.id}`}

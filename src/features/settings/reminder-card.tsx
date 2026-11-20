@@ -16,6 +16,7 @@ export function ReminderCard({ enabled, time, saving, onSave }: ReminderCardProp
   const [savedTick, setSavedTick] = useState(false);
 
   const save = async (nextEnabled: boolean, nextTime: string) => {
+    setSavedTick(false);
     const ok = await onSave(nextEnabled, nextTime);
     if (ok) {
       setSavedTick(true);
@@ -26,8 +27,8 @@ export function ReminderCard({ enabled, time, saving, onSave }: ReminderCardProp
   return (
     <Card className="space-y-4">
       <CardHeader
-        title="Nhắc nhở học hàng ngày"
-        description="Thông báo nhắc nhở 30–45 phút học mỗi ngày (mặc định tắt)"
+        title="Giờ học hằng ngày"
+        description="Lưu một giờ học phù hợp vào hồ sơ để duy trì nhịp học mỗi ngày."
         action={
           <label className="relative inline-flex min-h-11 min-w-11 cursor-pointer items-center">
             <input
@@ -35,7 +36,7 @@ export function ReminderCard({ enabled, time, saving, onSave }: ReminderCardProp
               className="peer sr-only"
               checked={enabled}
               disabled={saving}
-              aria-label="Bật nhắc nhở học hàng ngày"
+              aria-label="Dùng giờ học cố định"
               onChange={(e) => void save(e.target.checked, time)}
             />
             <div className="relative h-6 w-11 rounded-full bg-slate-200 peer-checked:bg-primary peer-focus-visible:outline-2 peer-focus-visible:outline-primary after:absolute after:top-[2px] after:left-[2px] after:h-5 after:w-5 after:rounded-full after:border after:border-slate-300 after:bg-white after:transition-all after:content-[''] peer-checked:after:translate-x-full peer-checked:after:border-white"></div>
@@ -45,21 +46,21 @@ export function ReminderCard({ enabled, time, saving, onSave }: ReminderCardProp
 
       {enabled && (
         <div className="flex items-center justify-between border-t border-slate-100 pt-3">
-          <span className="text-sm text-slate-700">Giờ nhắc học:</span>
+          <span className="text-base text-text-secondary">Giờ học:</span>
           <input
             type="time"
             value={time}
             disabled={saving}
-            aria-label="Giờ nhắc học"
+            aria-label="Giờ học hằng ngày"
             onChange={(e) => void save(enabled, e.target.value)}
-            className="min-h-11 rounded-lg border border-border px-2.5 py-1 text-base focus:ring-1 focus:ring-primary"
+            className="min-h-11 rounded-lg border border-border-strong px-2.5 py-1 text-base focus:ring-1 focus:ring-primary"
           />
         </div>
       )}
 
       {savedTick && (
-        <div className="text-xs font-medium text-emerald-600" role="status">
-          ✓ Đã lưu cài đặt nhắc học thành công.
+        <div className="text-base font-medium text-emerald-600" role="status">
+          ✓ Đã lưu giờ học vào hồ sơ.
         </div>
       )}
     </Card>

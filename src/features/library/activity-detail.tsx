@@ -1,141 +1,83 @@
 import Link from "next/link";
-import { Badge, Card, Icon, MarkdownText } from "@/components/ui";
+import { Badge, Icon, MarkdownText } from "@/components/ui";
 import { modeMeta } from "@/lib/modes";
 import type { ActivityDetailContract } from "@/contracts/library";
-import {
-  getTopicMeta,
-  UNCATEGORIZED_TOPIC,
-  type TopicMeta,
-} from "@/lib/topics";
+import { getTopicMeta, UNCATEGORIZED_TOPIC } from "@/lib/topics";
 import { StartSessionCta } from "./start-session-cta";
-
-/**
- * Trang chi tiết bài trong Thư viện: badge kỹ năng/chủ đề/thời lượng,
- * mục tiêu, nguồn trích đoạn (reading), đề bài, số câu hỏi (listening),
- * trọng tâm góp ý và CTA Bắt đầu 30'/45'.
- * Server component — chỉ nhận dữ liệu đã lọc approved từ page.tsx.
- */
-export function ActivityDetail({
-  activity,
-  reviseParentId,
-}: {
+export function ActivityDetail({ activity, reviseParentId }: {
   activity: ActivityDetailContract;
-  /** Submission Bản 1 — mở từ gợi ý "làm Bản 2" (?revise=). */
   reviseParentId?: string;
 }) {
   const meta = modeMeta(activity.mode);
-  const topicMeta: TopicMeta = getTopicMeta(activity.topic);
-  const topicHref = `/library?topic=${encodeURIComponent(
-    activity.topic ?? UNCATEGORIZED_TOPIC
-  )}`;
-  const isListening = meta.skill === "listening";
+  const topicMeta = getTopicMeta(activity.topic);
+  const topicHref = `/library?topic=${encodeURIComponent(activity.topic ?? UNCATEGORIZED_TOPIC)}`;
+  return (<div className="space-y-5">
 
-  return (
-    <div>
-      {/* Quay lại đúng chủ đề của bài */}
-      <Link
-        href={topicHref}
-        className="mb-4 inline-flex min-h-11 items-center gap-1.5 text-sm font-medium text-text-muted hover:text-text"
-      >
-        <Icon name="arrow-left" className="h-4 w-4" />
-        Quay lại {topicMeta.name}
-      </Link>
+    <Link href={topicHref} className="inline-flex min-h-11 items-center gap-2 text-base font-medium text-text-secondary hover:text-primary-dark"><Icon name="arrow-left" className="h-4 w-4" />Về {topicMeta.name}</Link>
 
-      <Card padded className="p-5">
-        {/* Hàng badge: slot · kỹ năng, chủ đề, thời lượng, hình thức, số câu hỏi */}
-        <div className="mb-3 flex flex-wrap items-center gap-2">
-          <Badge tone={meta.tone}>
-            <Icon name={meta.icon} className="h-3.5 w-3.5" />
-            {activity.slot || activity.id} · {meta.shortLabel}
-          </Badge>
-          {meta.isIelts ? <Badge tone="neutral">IELTS</Badge> : null}
-          <Link
-            href={topicHref}
-            className="inline-flex min-h-11 items-center gap-1.5 rounded-full border border-border bg-surface-subtle px-3 py-0.5 text-xs font-medium text-slate-700 no-underline hover:border-primary/40"
-          >
-            <Icon name={topicMeta.iconName} className="h-3.5 w-3.5 text-primary-dark" />
-            {topicMeta.name}
-          </Link>
-          {activity.durationMinutes ? (
-            <Badge tone="neutral">
-              <Icon name="clock" className="h-3.5 w-3.5" />
-              {activity.durationMinutes} phút
-            </Badge>
-          ) : null}
-          <Badge tone="neutral">
-            <Icon
-              name={activity.output === "audio" ? "mic" : "pen-tool"}
-              className="h-3.5 w-3.5"
-            />
-            {activity.output === "audio"
-              ? "Ghi âm giọng nói"
-              : "Bài viết văn bản"}
-          </Badge>
-          {isListening && activity.questionCount ? (
-            <Badge tone="neutral">{activity.questionCount} câu hỏi</Badge>
-          ) : null}
-        </div>
+    <header>
+      <div className="mb-3 flex flex-wrap items-center gap-2 text-base text-text-secondary">
+        <Badge tone={meta.tone}>
+          <Icon name={meta.icon} className="h-4 w-4" />
+          {meta.label}
+        </Badge>
+        {meta.isIelts && <Badge tone="neutral">IELTS</Badge>}
+        <span>
+          {activity.slot || activity.id}
+        </span>
+        {activity.durationMinutes && <span>· {activity.durationMinutes} phút</span>}
+      </div>
+      <h1 className="break-words text-3xl font-semibold leading-snug tracking-tight text-text sm:text-4xl">
+        {activity.title}
+      </h1>
+      {activity.objective && <p className="mt-3 max-w-prose text-base leading-relaxed text-text-secondary">
+        {activity.objective}
+      </p>}
+    </header>
 
-        {/* Tiêu đề */}
-        <h1 className="m-0 mb-3 text-[1.375rem] font-bold leading-snug text-text">
-          {activity.title}
-        </h1>
+    <div className="grid items-start gap-6 lg:grid-cols-12">
 
-        {/* Mục tiêu bài học */}
-        {activity.objective ? (
-          <div className="mb-4 rounded-xl border-l-4 border-primary bg-surface-muted p-3.5">
-            <p className="m-0 mb-1 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-primary">
-              <Icon name="flag" className="h-3.5 w-3.5" />
-              Mục tiêu buổi học
-            </p>
-            <p className="m-0 text-[0.9375rem] leading-relaxed text-text">
-              {activity.objective}
-            </p>
-          </div>
-        ) : null}
-
-        {/* Ngữ cảnh nguồn trích đoạn (bài đọc sách) */}
-        {activity.sourceContext ? (
-          <div className="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 p-3.5">
-            <p className="m-0 mb-1 flex items-center gap-1.5 text-xs font-bold text-emerald-800">
-              <Icon name="book-open" className="h-3.5 w-3.5" />
-              Tài liệu nguồn trích đoạn
-            </p>
-            <p className="m-0 text-sm font-semibold text-emerald-900">
-              {activity.sourceContext.sourceTitle}
-            </p>
-            {activity.sourceContext.page ? (
-              <p className="m-0 mt-0.5 text-[0.8125rem] text-emerald-800">
-                Số trang tham khảo:{" "}
-                <strong>Trang {activity.sourceContext.page}</strong>
-              </p>
-            ) : null}
-          </div>
-        ) : null}
-
-        {/* Đề bài / yêu cầu chi tiết (không chứa đáp án) */}
-        {activity.promptText ? (
-          <div className="mb-4">
-            <h2 className="m-0 mb-2 flex items-center gap-1.5 text-base font-semibold text-text">
-              <Icon name="file-text" className="h-4 w-4" />
-              Đề bài &amp; Hướng dẫn
-            </h2>
-            <div className="whitespace-pre-line rounded-xl border border-border bg-surface p-4 text-[0.9375rem] leading-relaxed text-text-secondary">
-              <MarkdownText text={activity.promptText} />
-            </div>
-          </div>
-        ) : null}
-
-        {/* Trọng tâm góp ý của AI */}
-        {activity.feedbackGuide ? (
-          <div className="rounded-xl border border-amber-200 bg-amber-50 px-3.5 py-3 text-[0.8125rem] leading-relaxed text-amber-900">
-            <strong>Trọng tâm góp ý của AI:</strong> {activity.feedbackGuide}
-          </div>
-        ) : null}
-
-        {/* CTA tạo phiên — qua POST /api/v1/sessions */}
+      <aside aria-label="Bắt đầu bài học" className="rounded-xl border border-border bg-surface p-5 lg:order-2 lg:col-span-4 lg:sticky lg:top-24">
+        <h2 className="text-lg font-semibold text-text">
+          {reviseParentId ? "Làm bản sửa" : "Vào buổi học"}
+        </h2>
+        <p className="mt-2 text-base leading-relaxed text-text-secondary">
+          {activity.output === "audio" ? "Bạn sẽ ghi âm giọng nói trong bài này." : "Bạn sẽ trả lời bằng văn bản trong bài này."}
+          {meta.skill === "listening" && activity.questionCount ? ` Có ${activity.questionCount} câu hỏi nghe hiểu.` : ""}
+        </p>
         <StartSessionCta activityId={activity.id} parentId={reviseParentId} />
-      </Card>
+      </aside>
+
+      <article className="min-w-0 space-y-5 lg:col-span-8">
+
+        {activity.promptText && <section aria-labelledby="activity-prompt" className="rounded-xl border border-border bg-surface p-5 sm:p-7">
+          <h2 id="activity-prompt" className="mb-4 text-xl font-semibold text-text">Đề bài và hướng dẫn</h2>
+          <div className="max-w-prose text-base leading-relaxed text-text">
+            <MarkdownText text={activity.promptText} />
+          </div>
+        </section>}
+
+        {activity.sourceContext && <details className="rounded-xl border border-border bg-surface px-5">
+          <summary className="min-h-11 cursor-pointer py-4 text-base font-medium text-text">Nguồn học: {activity.sourceContext.sourceTitle}</summary>
+          <div className="space-y-2 pb-5 text-base leading-relaxed text-text-secondary">
+            {activity.sourceContext.page && <p>Trang tham khảo: {activity.sourceContext.page}</p>}
+            {activity.sourceContext.excerpt && <blockquote className="border-l-2 border-border pl-4">
+              {activity.sourceContext.excerpt}
+            </blockquote>}
+            <p>Đoạn y khoa được dùng để luyện ngôn ngữ.</p>
+          </div>
+        </details>}
+
+        {activity.feedbackGuide && <details className="rounded-xl border border-border bg-surface px-5">
+          <summary className="min-h-11 cursor-pointer py-4 text-base font-medium text-text">Trọng tâm góp ý</summary>
+          <p className="pb-5 text-base leading-relaxed text-text-secondary">
+            {activity.feedbackGuide}
+          </p>
+        </details>}
+
+      </article>
+
     </div>
-  );
+
+  </div>);
 }

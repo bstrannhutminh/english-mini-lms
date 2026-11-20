@@ -1,6 +1,8 @@
 "use client";
 
 import { useCallback, useState } from "react";
+import { apiFetch } from "@/lib/api-client";
+import { createSessionEventRequestSchema, createSessionEventResponseSchema } from "@/contracts/session";
 
 export type SessionEventKind = "hint" | "reveal" | "pause" | "resume" | "finish";
 
@@ -27,12 +29,13 @@ export function useSessionEvents(sessionId: string): SessionEvents {
     ): Promise<boolean> => {
       try {
         setPosting(true);
-        const res = await fetch(`/api/v1/sessions/${sessionId}/events`, {
+        const body = createSessionEventRequestSchema.parse({ kind, payload });
+        await apiFetch(`/api/v1/sessions/${sessionId}/events`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ kind, payload }),
-        });
-        return res.ok;
+          body: JSON.stringify(body),
+        }, createSessionEventResponseSchema);
+        return true;
       } catch (err) {
         console.error(`Lỗi khi ghi sự kiện "${kind}":`, err);
         return false;

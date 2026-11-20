@@ -7,6 +7,7 @@ import { updateSubmissionResponseSchema } from "@/contracts/submission";
 import { Button, Card, Icon, useToast } from "@/components/ui";
 import { StructuredBody } from "./structured-body";
 import type { SubmissionDetail } from "../types";
+import { modeSkill } from "@/lib/modes";
 
 interface SubmissionPanelProps {
   submission: SubmissionDetail;
@@ -21,7 +22,7 @@ interface SubmissionPanelProps {
 export function SubmissionPanel({ submission, activityMode }: SubmissionPanelProps) {
   const router = useRouter();
   const toast = useToast();
-  const isAudio = submission.modality === "audio" || activityMode === "speaking";
+  const isAudio = submission.modality === "audio" || modeSkill(activityMode) === "speaking";
 
   const initialText = submission.confirmedTranscript || submission.body || "";
   const [draft, setDraft] = useState(initialText);
@@ -59,20 +60,20 @@ export function SubmissionPanel({ submission, activityMode }: SubmissionPanelPro
       {submission.audioUrl ? (
         <Card className="mb-4">
           <div className="mb-2 flex items-center justify-between">
-            <p className="flex items-center gap-1.5 text-sm font-bold text-text">
+            <p className="flex items-center gap-1.5 text-base font-bold text-text">
               <Icon name="headphones" className="h-4 w-4 text-teal-700" />
               Bản ghi âm của bạn
             </p>
-            <span className="text-xs text-text-muted">
-              Bảo mật · Signed URL (10 phút)
+            <span className="text-base text-text-muted">
+              Âm thanh đã lưu
             </span>
           </div>
-          <audio controls src={submission.audioUrl} className="h-10 w-full" />
+          <audio controls src={submission.audioUrl} className="h-11 w-full" />
         </Card>
       ) : null}
 
       <Card className="mb-4">
-        <p className="mb-2.5 text-xs font-bold uppercase tracking-wide text-text-secondary">
+        <p className="mb-2.5 text-base font-bold uppercase tracking-wide text-text-secondary">
           {isAudio ? "Transcript bài nói" : "Nội dung bài nộp"}
         </p>
 
@@ -82,8 +83,9 @@ export function SubmissionPanel({ submission, activityMode }: SubmissionPanelPro
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
               rows={5}
+              disabled={saving}
               aria-label="Transcript đã xác nhận"
-              className="w-full rounded-lg border border-teal-600 px-3 py-2.5 text-sm leading-relaxed text-text outline-none focus:ring-2 focus:ring-teal-200"
+              className="w-full rounded-lg border border-teal-600 px-3 py-2.5 text-base leading-relaxed text-text outline-none focus:ring-2 focus:ring-teal-200"
             />
             <div className="mt-2 flex justify-end gap-2">
               <Button
@@ -109,7 +111,7 @@ export function SubmissionPanel({ submission, activityMode }: SubmissionPanelPro
             </div>
             {isAudio ? (
               <div className="mt-2.5 flex flex-wrap items-center justify-between gap-2">
-                <span className="text-xs text-text-muted">
+                <span className="text-base text-text-muted">
                   Bác sĩ có thể chỉnh sửa các thuật ngữ chuyên ngành AI nhận diện
                   chưa chuẩn.
                 </span>

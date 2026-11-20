@@ -1,11 +1,10 @@
 "use client";
 
 /**
- * Shared error screen (plain Tailwind — do NOT use components/ui here;
- * the UI kit belongs to another workstream). Renders a friendly Vietnamese
- * message with a retry action and a link back to "Hôm nay".
+ * Shared error boundary with a retry action and a link back to Hôm nay.
  */
 import Link from "next/link";
+import { Button, Icon } from "@/components/ui";
 
 interface RouteErrorScreenProps {
   title?: string;
@@ -26,41 +25,40 @@ export function RouteErrorScreen({
   retryHref,
 }: RouteErrorScreenProps) {
   return (
-    <div className="mx-auto flex min-h-[60vh] w-full max-w-md flex-col items-center justify-center px-4 py-12 text-center">
+    <div className="mx-auto flex min-h-[60vh] w-full max-w-lg flex-col items-center justify-center px-5 py-12 text-center">
       <div
-        className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-red-100 text-2xl"
+        className="mb-5 flex h-12 w-12 items-center justify-center text-red-700"
         aria-hidden
       >
-        ⚠️
+        <Icon name="alert-triangle" className="h-8 w-8" />
       </div>
-      <h1 className="text-lg font-bold text-slate-900">{title}</h1>
-      <p className="mt-2 text-sm leading-relaxed text-slate-500">{message}</p>
+      <h1 className="text-2xl font-semibold tracking-tight text-text">{title}</h1>
+      <p className="mt-3 text-base leading-relaxed text-text-secondary">{message}</p>
       {digest && (
-        <p className="mt-3 text-[11px] text-slate-400">
+        <p className="mt-4 break-all text-sm text-text-muted">
           Mã lỗi: <code className="font-mono">{digest}</code>
         </p>
       )}
       <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
         {reset && (
-          <button
-            type="button"
+          <Button
             onClick={reset}
-            className="rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700"
+            size="lg"
           >
             Thử lại
-          </button>
+          </Button>
         )}
         {!reset && retryHref && (
           <a
             href={retryHref}
-            className="rounded-xl bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-blue-700"
+            className="inline-flex min-h-12 items-center justify-center rounded-lg bg-primary px-5 py-3 text-base font-medium text-white transition-colors hover:bg-primary-dark"
           >
             Thử lại
           </a>
         )}
         <Link
           href="/today"
-          className="rounded-xl border border-slate-200 bg-white px-5 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+          className="inline-flex min-h-12 items-center justify-center rounded-lg border border-border-strong bg-surface px-5 py-3 text-base font-medium text-text-secondary transition-colors hover:bg-surface-subtle"
         >
           Về Hôm nay
         </Link>

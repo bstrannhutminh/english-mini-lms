@@ -126,4 +126,13 @@ describe("filterLibraryActivities", () => {
     });
     expect(res.map((a) => a.id)).toEqual(["R1"]);
   });
+
+  it("matches the visible topic name promised by search", () => {
+    expect(filterLibraryActivities(SAMPLE, { topic: null, skill: "all", status: "all", query: "email hoc thuat" }).map((activity) => activity.id)).toEqual(["W1"]);
+  });
+
+  it("keeps combined topic, query, skill and status scopes consistent", () => {
+    expect(filterLibraryActivities(SAMPLE, { topic: "luyen-ielts", skill: "listening", status: "completed", query: "hoi thao" }).map((activity) => activity.id)).toEqual(["ielts-L1"]);
+    expect(filterLibraryActivities(SAMPLE, { topic: "doc-sach-y-khoa", skill: "ielts", status: "all", query: "" })).toEqual([]);
+  });
 });
