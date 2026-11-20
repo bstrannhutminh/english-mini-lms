@@ -1,0 +1,332 @@
+[
+  {
+    "command": [
+      "open",
+      "file:///Volumes/SSD%20ME/AI4A/english-mini-lms/plans/261120-0013-lms-visual-refresh/design-proposal.html#today"
+    ],
+    "exitCode": 0,
+    "output": "✓ Hôm nay · English Mini LMS · Bản mẫu\n  file:///Volumes/SSD%20ME/AI4A/english-mini-lms/plans/261120-0013-lms-visual-refresh/design-proposal.html#today",
+    "error": ""
+  },
+  {
+    "command": [
+      "set",
+      "viewport",
+      "375",
+      "812"
+    ],
+    "exitCode": 0,
+    "output": "✓ Done",
+    "error": ""
+  },
+  {
+    "command": [
+      "eval",
+      "JSON.stringify({cta:document.querySelector(\".mission .primary\").getBoundingClientRect().toJSON(),navTop:document.querySelector(\".mobile-nav\").getBoundingClientRect().top,scrollWidth:document.documentElement.scrollWidth,viewport:innerWidth})"
+    ],
+    "exitCode": 0,
+    "output": "\"{\\\"cta\\\":{\\\"x\\\":37,\\\"y\\\":570.78125,\\\"width\\\":286,\\\"height\\\":50,\\\"top\\\":570.78125,\\\"right\\\":323,\\\"bottom\\\":620.78125,\\\"left\\\":37},\\\"navTop\\\":732,\\\"scrollWidth\\\":360,\\\"viewport\\\":375}\"",
+    "error": ""
+  },
+  {
+    "command": [
+      "click",
+      "[data-minutes=\"30\"]"
+    ],
+    "exitCode": 0,
+    "output": "✓ Done",
+    "error": ""
+  },
+  {
+    "command": [
+      "eval",
+      "JSON.stringify({target:document.querySelector(\"#plan-minutes\").textContent,durations:[...document.querySelectorAll(\"[data-plan-duration]\")].map(x=>x.textContent)})"
+    ],
+    "exitCode": 0,
+    "output": "\"{\\\"target\\\":\\\"30\\\",\\\"durations\\\":[\\\"3 phút\\\",\\\"15 phút\\\",\\\"10 phút\\\",\\\"2 phút\\\"]}\"",
+    "error": ""
+  },
+  {
+    "command": [
+      "click",
+      "[data-minutes=\"45\"]"
+    ],
+    "exitCode": 0,
+    "output": "✓ Done",
+    "error": ""
+  },
+  {
+    "command": [
+      "click",
+      "#about-open"
+    ],
+    "exitCode": 0,
+    "output": "✓ Done",
+    "error": ""
+  },
+  {
+    "command": [
+      "press",
+      "Tab"
+    ],
+    "exitCode": 0,
+    "output": "✓ Done",
+    "error": ""
+  },
+  {
+    "command": [
+      "eval",
+      "JSON.stringify({open:document.querySelector(\"#about-dialog\").open,focusInside:document.querySelector(\"#about-dialog\").contains(document.activeElement)})"
+    ],
+    "exitCode": 0,
+    "output": "\"{\\\"open\\\":true,\\\"focusInside\\\":false}\"",
+    "error": ""
+  },
+  {
+    "command": [
+      "screenshot",
+      "/Volumes/SSD ME/AI4A/english-mini-lms/plans/261120-0013-lms-visual-refresh/screenshots/states/375-overlay.png"
+    ],
+    "exitCode": 0,
+    "output": "✓ Screenshot saved to /Volumes/SSD ME/AI4A/english-mini-lms/plans/261120-0013-lms-visual-refresh/screenshots/states/375-overlay.png",
+    "error": ""
+  },
+  {
+    "command": [
+      "press",
+      "Escape"
+    ],
+    "exitCode": 0,
+    "output": "✓ Done",
+    "error": ""
+  },
+  {
+    "command": [
+      "eval",
+      "JSON.stringify({closed:!document.querySelector(\"#about-dialog\").open,focusRestored:document.activeElement.id===\"about-open\"})"
+    ],
+    "exitCode": 0,
+    "output": "\"{\\\"closed\\\":true,\\\"focusRestored\\\":true}\"",
+    "error": ""
+  },
+  {
+    "command": [
+      "click",
+      ".mission .primary"
+    ],
+    "exitCode": 0,
+    "output": "✓ Done",
+    "error": ""
+  },
+  {
+    "command": [
+      "fill",
+      "#email-draft",
+      "Hello conference committee"
+    ],
+    "exitCode": 0,
+    "output": "✓ Done",
+    "error": ""
+  },
+  {
+    "command": [
+      "click",
+      "#source-details summary"
+    ],
+    "exitCode": 0,
+    "output": "✓ Done",
+    "error": ""
+  },
+  {
+    "command": [
+      "eval",
+      "JSON.stringify({promptOpen:document.querySelector(\"#source-details\").open,draft:document.querySelector(\"#email-draft\").value,wordCount:document.querySelector(\"#word-count\").textContent,focusChromeHidden:getComputedStyle(document.querySelector(\".mobile-nav\")).display===\"none\"})"
+    ],
+    "exitCode": 0,
+    "output": "\"{\\\"promptOpen\\\":true,\\\"draft\\\":\\\"Hello conference committee\\\",\\\"wordCount\\\":\\\"3 từ · Mục tiêu 120–150\\\",\\\"focusChromeHidden\\\":true}\"",
+    "error": ""
+  },
+  {
+    "command": [
+      "click",
+      "#source-details summary"
+    ],
+    "exitCode": 0,
+    "output": "✓ Done",
+    "error": ""
+  },
+  {
+    "command": [
+      "click",
+      "#feedback-button"
+    ],
+    "exitCode": 0,
+    "output": "✓ Done",
+    "error": ""
+  },
+  {
+    "command": [
+      "eval",
+      "JSON.stringify({feedbackVisible:!document.querySelector(\"#feedback-sample\").hidden})"
+    ],
+    "exitCode": 0,
+    "output": "\"{\\\"feedbackVisible\\\":false}\"",
+    "error": ""
+  },
+  {
+    "command": [
+      "scrollintoview",
+      "#feedback-sample"
+    ],
+    "exitCode": 0,
+    "output": "✓ Done",
+    "error": ""
+  },
+  {
+    "command": [
+      "screenshot",
+      "/Volumes/SSD ME/AI4A/english-mini-lms/plans/261120-0013-lms-visual-refresh/screenshots/states/375-feedback.png"
+    ],
+    "exitCode": 0,
+    "output": "✓ Screenshot saved to /Volumes/SSD ME/AI4A/english-mini-lms/plans/261120-0013-lms-visual-refresh/screenshots/states/375-feedback.png",
+    "error": ""
+  },
+  {
+    "command": [
+      "click",
+      "#preview-error"
+    ],
+    "exitCode": 0,
+    "output": "✓ Done",
+    "error": ""
+  },
+  {
+    "command": [
+      "eval",
+      "JSON.stringify({errorVisible:!document.querySelector(\"#draft-error\").hidden,draftPreserved:document.querySelector(\"#email-draft\").value===\"Hello conference committee\"})"
+    ],
+    "exitCode": 0,
+    "output": "\"{\\\"errorVisible\\\":false,\\\"draftPreserved\\\":true}\"",
+    "error": ""
+  },
+  {
+    "command": [
+      "screenshot",
+      "/Volumes/SSD ME/AI4A/english-mini-lms/plans/261120-0013-lms-visual-refresh/screenshots/states/375-error.png"
+    ],
+    "exitCode": 0,
+    "output": "✓ Screenshot saved to /Volumes/SSD ME/AI4A/english-mini-lms/plans/261120-0013-lms-visual-refresh/screenshots/states/375-error.png",
+    "error": ""
+  },
+  {
+    "command": [
+      "click",
+      "#dismiss-error"
+    ],
+    "exitCode": 0,
+    "output": "✓ Done",
+    "error": ""
+  },
+  {
+    "command": [
+      "open",
+      "file:///Volumes/SSD%20ME/AI4A/english-mini-lms/plans/261120-0013-lms-visual-refresh/design-proposal.html#library"
+    ],
+    "exitCode": 0,
+    "output": "✓ Thư viện · English Mini LMS · Bản mẫu\n  file:///Volumes/SSD%20ME/AI4A/english-mini-lms/plans/261120-0013-lms-visual-refresh/design-proposal.html#library",
+    "error": ""
+  },
+  {
+    "command": [
+      "fill",
+      "#library-search",
+      "khongco"
+    ],
+    "exitCode": 0,
+    "output": "✓ Done",
+    "error": ""
+  },
+  {
+    "command": [
+      "eval",
+      "JSON.stringify({emptyVisible:!document.querySelector(\"#library-empty\").hidden,visibleRows:[...document.querySelectorAll(\".library-row\")].filter(x=>!x.hidden).length})"
+    ],
+    "exitCode": 0,
+    "output": "\"{\\\"emptyVisible\\\":true,\\\"visibleRows\\\":0}\"",
+    "error": ""
+  },
+  {
+    "command": [
+      "screenshot",
+      "/Volumes/SSD ME/AI4A/english-mini-lms/plans/261120-0013-lms-visual-refresh/screenshots/states/375-empty.png"
+    ],
+    "exitCode": 0,
+    "output": "✓ Screenshot saved to /Volumes/SSD ME/AI4A/english-mini-lms/plans/261120-0013-lms-visual-refresh/screenshots/states/375-empty.png",
+    "error": ""
+  },
+  {
+    "command": [
+      "click",
+      "#clear-search"
+    ],
+    "exitCode": 0,
+    "output": "✓ Done",
+    "error": ""
+  },
+  {
+    "command": [
+      "fill",
+      "#library-search",
+      "email"
+    ],
+    "exitCode": 0,
+    "output": "✓ Done",
+    "error": ""
+  },
+  {
+    "command": [
+      "eval",
+      "JSON.stringify({visibleRows:[...document.querySelectorAll(\".library-row\")].filter(x=>!x.hidden).length,query:document.querySelector(\"#library-search\").value})"
+    ],
+    "exitCode": 0,
+    "output": "\"{\\\"visibleRows\\\":1,\\\"query\\\":\\\"email\\\"}\"",
+    "error": ""
+  },
+  {
+    "command": [
+      "set",
+      "viewport",
+      "1440",
+      "900"
+    ],
+    "exitCode": 0,
+    "output": "✓ Done",
+    "error": ""
+  },
+  {
+    "command": [
+      "hover",
+      ".library-row:not([hidden]) .quiet-button"
+    ],
+    "exitCode": 0,
+    "output": "✓ Done",
+    "error": ""
+  },
+  {
+    "command": [
+      "screenshot",
+      "/Volumes/SSD ME/AI4A/english-mini-lms/plans/261120-0013-lms-visual-refresh/screenshots/states/1440-hover.png"
+    ],
+    "exitCode": 0,
+    "output": "✓ Screenshot saved to /Volumes/SSD ME/AI4A/english-mini-lms/plans/261120-0013-lms-visual-refresh/screenshots/states/1440-hover.png",
+    "error": ""
+  },
+  {
+    "command": [
+      "errors"
+    ],
+    "exitCode": 0,
+    "output": "",
+    "error": ""
+  }
+]

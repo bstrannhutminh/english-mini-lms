@@ -1,0 +1,23 @@
+[
+  {
+    "viewport": "375x812",
+    "screenshot": "/Volumes/SSD ME/AI4A/english-mini-lms/plans/261120-0013-lms-visual-refresh/screenshots/overlay/375x812.png",
+    "outline": [
+      "div.preview-bar \"Bản mẫu thiết kế · Dữ liệu minh họa Về b\" @ x0 y0 375x73",
+      "header.mobile-brand \"English Mini LMS\" @ x0 y73 375x65",
+      "div.shell \"Hôm nay Học một bài, đọc góp ý, thử viết\" @ x0 y138 375x1566",
+      "  main#main \"Hôm nay Học một bài, đọc góp ý, thử viết\" @ x0 y138 375x1566",
+      "    div.content \"Hôm nay Học một bài, đọc góp ý, thử viết\" @ x16 y162 343x1430",
+      "      section#screen-today.screen \"Hôm nay Học một bài, đọc góp ý, @ x16 y162 343x1294",
+      "      footer.review-footer \"Đề xuất giao diện · Chưa áp dụng vào ứ @ x16 y1456 343x136",
+      "nav.mobile-nav \"Hôm nay Thư viện Bài làm Sổ từ Tiến độ\" @ x0 y732 375x80",
+      "dialog#about-dialog \"Một bản mẫu để duyệt thiết kế Hôm nay,  @ x16 y171 343x470",
+      "  p \"Hôm nay, Thư viện và khung làm bài W1 có\" @ x37 y234 301x84",
+      "  p \"Đề W1 và các bài trong thư viện lấy từ n\" @ x37 y334 301x84",
+      "  p \"Nội dung anh gõ chỉ ở trong trang đang m\" @ x37 y434 301x112",
+      "  form \"Tiếp tục xem\" @ x37 y546 301x74"
+    ],
+    "findings": [],
+    "height": 1704
+  }
+]

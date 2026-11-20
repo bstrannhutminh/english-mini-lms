@@ -1,0 +1,50 @@
+[
+  {
+    "viewport": "375x812",
+    "screenshot": "/Volumes/SSD ME/AI4A/english-mini-lms/plans/261120-0013-lms-visual-refresh/screenshots/today/375x812.png",
+    "outline": [
+      "div.preview-bar \"Bản mẫu thiết kế · Dữ liệu minh họa Về b\" @ x0 y0 375x73",
+      "header.mobile-brand \"English Mini LMS\" @ x0 y73 375x65",
+      "div.shell \"Hôm nay Học một bài, đọc góp ý, thử viết\" @ x0 y138 375x1566",
+      "  main#main \"Hôm nay Học một bài, đọc góp ý, thử viết\" @ x0 y138 375x1566",
+      "    div.content \"Hôm nay Học một bài, đọc góp ý, thử viết\" @ x16 y162 343x1430",
+      "      section#screen-today.screen \"Hôm nay Học một bài, đọc góp ý, @ x16 y162 343x1294",
+      "      footer.review-footer \"Đề xuất giao diện · Chưa áp dụng vào ứ @ x16 y1456 343x136",
+      "nav.mobile-nav \"Hôm nay Thư viện Bài làm Sổ từ Tiến độ\" @ x0 y732 375x80"
+    ],
+    "findings": [],
+    "height": 1704
+  },
+  {
+    "viewport": "768x1024",
+    "screenshot": "/Volumes/SSD ME/AI4A/english-mini-lms/plans/261120-0013-lms-visual-refresh/screenshots/today/768x1024.png",
+    "outline": [
+      "div.preview-bar \"Bản mẫu thiết kế · Dữ liệu minh họa Về b\" @ x0 y0 768x61",
+      "header.mobile-brand \"English Mini LMS Không gian học của BS. @ x0 y61 768x65",
+      "div.shell \"BUỔI HỌC CỦA ANH MINH Hôm nay Học một bà\" @ x0 y126 768x1306",
+      "  main#main \"BUỔI HỌC CỦA ANH MINH Hôm nay Học một bà\" @ x0 y126 768x1306",
+      "    div.content \"BUỔI HỌC CỦA ANH MINH Hôm nay Học một bà\" @ x32 y166 704x1154",
+      "      section#screen-today.screen \"BUỔI HỌC CỦA ANH MINH Hôm nay H @ x32 y166 704x1078",
+      "      footer.review-footer \"Đề xuất giao diện · Chưa áp dụng vào ứ @ x32 y1244 704x76",
+      "nav.mobile-nav \"Hôm nay Thư viện Bài làm Sổ từ Tiến độ\" @ x0 y944 768x80"
+    ],
+    "findings": [],
+    "height": 1432
+  },
+  {
+    "viewport": "1440x900",
+    "screenshot": "/Volumes/SSD ME/AI4A/english-mini-lms/plans/261120-0013-lms-visual-refresh/screenshots/today/1440x900.png",
+    "outline": [
+      "div.preview-bar \"Bản mẫu thiết kế · Dữ liệu minh họa Về b\" @ x0 y0 1440x61",
+      "div.shell \"English Mini LMS Không gian học của anh \" @ x0 y61 1440x856",
+      "  aside.sidebar \"English Mini LMS Không gian học của anh \" @ x0 y61 232x856",
+      "    nav.nav-list \"Hôm nay Thư viện Bài làm Sổ từ Tiến độ\" @ x16 y203 199x282",
+      "  main#main \"BUỔI HỌC CỦA ANH MINH Hôm nay Học một bà\" @ x232 y61 1208x856",
+      "    div.content \"BUỔI HỌC CỦA ANH MINH Hôm nay Học một bà\" @ x276 y101 1120x723",
+      "      section#screen-today.screen \"BUỔI HỌC CỦA ANH MINH Hôm nay H @ x276 y101 1120x647",
+      "      footer.review-footer \"Đề xuất giao diện · Chưa áp dụng vào ứ @ x276 y748 1120x76"
+    ],
+    "findings": [],
+    "height": 917
+  }
+]

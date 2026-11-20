@@ -1,0 +1,18 @@
+[
+  {
+    "viewport": "375x812",
+    "screenshot": "/Volumes/SSD ME/AI4A/english-mini-lms/plans/261120-0013-lms-visual-refresh/screenshots/empty/375x812.png",
+    "outline": [
+      "div.preview-bar \"Bản mẫu thiết kế · Dữ liệu minh họa Về b\" @ x0 y0 375x73",
+      "header.mobile-brand \"English Mini LMS\" @ x0 y73 375x65",
+      "div.shell \"Nguồn học của anh Thư viện Chọn một bài \" @ x0 y138 375x959",
+      "  main#main \"Nguồn học của anh Thư viện Chọn một bài \" @ x0 y138 375x959",
+      "    div.content \"Nguồn học của anh Thư viện Chọn một bài \" @ x16 y162 343x823",
+      "      section#screen-library.screen \"Nguồn học của anh Thư viện Ch @ x16 y162 343x687",
+      "      footer.review-footer \"Đề xuất giao diện · Chưa áp dụng vào ứ @ x16 y849 343x136",
+      "nav.mobile-nav \"Hôm nay Thư viện Bài làm Sổ từ Tiến độ\" @ x0 y732 375x80"
+    ],
+    "findings": [],
+    "height": 1097
+  }
+]

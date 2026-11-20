@@ -1,0 +1,50 @@
+[
+  {
+    "viewport": "375x812",
+    "screenshot": "/Volumes/SSD ME/AI4A/english-mini-lms/plans/261120-0013-lms-visual-refresh/screenshots/library/375x812.png",
+    "outline": [
+      "div.preview-bar \"Bản mẫu thiết kế · Dữ liệu minh họa Về b\" @ x0 y0 375x73",
+      "header.mobile-brand \"English Mini LMS\" @ x0 y73 375x65",
+      "div.shell \"Nguồn học của anh Thư viện Chọn một bài \" @ x0 y138 375x1632",
+      "  main#main \"Nguồn học của anh Thư viện Chọn một bài \" @ x0 y138 375x1632",
+      "    div.content \"Nguồn học của anh Thư viện Chọn một bài \" @ x16 y162 343x1496",
+      "      section#screen-library.screen \"Nguồn học của anh Thư viện Ch @ x16 y162 343x1360",
+      "      footer.review-footer \"Đề xuất giao diện · Chưa áp dụng vào ứ @ x16 y1522 343x136",
+      "nav.mobile-nav \"Hôm nay Thư viện Bài làm Sổ từ Tiến độ\" @ x0 y732 375x80"
+    ],
+    "findings": [],
+    "height": 1770
+  },
+  {
+    "viewport": "768x1024",
+    "screenshot": "/Volumes/SSD ME/AI4A/english-mini-lms/plans/261120-0013-lms-visual-refresh/screenshots/library/768x1024.png",
+    "outline": [
+      "div.preview-bar \"Bản mẫu thiết kế · Dữ liệu minh họa Về b\" @ x0 y0 768x61",
+      "header.mobile-brand \"English Mini LMS Không gian học của BS. @ x0 y61 768x65",
+      "div.shell \"NGUỒN HỌC CỦA ANH Thư viện Chọn một bài \" @ x0 y126 768x1208",
+      "  main#main \"NGUỒN HỌC CỦA ANH Thư viện Chọn một bài \" @ x0 y126 768x1208",
+      "    div.content \"NGUỒN HỌC CỦA ANH Thư viện Chọn một bài \" @ x32 y166 704x1056",
+      "      section#screen-library.screen \"NGUỒN HỌC CỦA ANH Thư viện Ch @ x32 y166 704x980",
+      "      footer.review-footer \"Đề xuất giao diện · Chưa áp dụng vào ứ @ x32 y1146 704x76",
+      "nav.mobile-nav \"Hôm nay Thư viện Bài làm Sổ từ Tiến độ\" @ x0 y944 768x80"
+    ],
+    "findings": [],
+    "height": 1334
+  },
+  {
+    "viewport": "1440x900",
+    "screenshot": "/Volumes/SSD ME/AI4A/english-mini-lms/plans/261120-0013-lms-visual-refresh/screenshots/library/1440x900.png",
+    "outline": [
+      "div.preview-bar \"Bản mẫu thiết kế · Dữ liệu minh họa Về b\" @ x0 y0 1440x61",
+      "div.shell \"English Mini LMS Không gian học của anh \" @ x0 y61 1440x1072",
+      "  aside.sidebar \"English Mini LMS Không gian học của anh \" @ x0 y61 232x1072",
+      "    nav.nav-list \"Hôm nay Thư viện Bài làm Sổ từ Tiến độ\" @ x16 y203 199x282",
+      "  main#main \"NGUỒN HỌC CỦA ANH Thư viện Chọn một bài \" @ x232 y61 1208x1072",
+      "    div.content \"NGUỒN HỌC CỦA ANH Thư viện Chọn một bài \" @ x276 y101 1120x984",
+      "      section#screen-library.screen \"NGUỒN HỌC CỦA ANH Thư viện Ch @ x276 y101 1120x908",
+      "      footer.review-footer \"Đề xuất giao diện · Chưa áp dụng vào ứ @ x276 y1009 1120x76"
+    ],
+    "findings": [],
+    "height": 1133
+  }
+]

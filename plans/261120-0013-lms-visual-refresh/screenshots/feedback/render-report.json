@@ -1,0 +1,30 @@
+[
+  {
+    "viewport": "375x812",
+    "screenshot": "/Volumes/SSD ME/AI4A/english-mini-lms/plans/261120-0013-lms-visual-refresh/screenshots/feedback/375x812.png",
+    "outline": [
+      "div.preview-bar \"Bản mẫu thiết kế · Dữ liệu minh họa Về b\" @ x0 y0 375x73",
+      "div.shell \"Về Hôm nay Email xin tham dự hội nghị Vi\" @ x0 y73 375x1948",
+      "  main#main \"Về Hôm nay Email xin tham dự hội nghị Vi\" @ x0 y73 375x1948",
+      "    div.content \"Về Hôm nay Email xin tham dự hội nghị Vi\" @ x16 y97 343x1812",
+      "      section#screen-session.screen \"Về Hôm nay Email xin tham dự  @ x16 y97 343x1676",
+      "      footer.review-footer \"Đề xuất giao diện · Chưa áp dụng vào ứ @ x16 y1773 343x136"
+    ],
+    "findings": [],
+    "height": 2021
+  },
+  {
+    "viewport": "1440x900",
+    "screenshot": "/Volumes/SSD ME/AI4A/english-mini-lms/plans/261120-0013-lms-visual-refresh/screenshots/feedback/1440x900.png",
+    "outline": [
+      "div.preview-bar \"Bản mẫu thiết kế · Dữ liệu minh họa Về b\" @ x0 y0 1440x61",
+      "div.shell \"Về Hôm nay Email xin tham dự hội nghị Vi\" @ x0 y61 1440x1518",
+      "  main#main \"Về Hôm nay Email xin tham dự hội nghị Vi\" @ x0 y61 1440x1518",
+      "    div.content \"Về Hôm nay Email xin tham dự hội nghị Vi\" @ x160 y101 1120x1430",
+      "      section#screen-session.screen \"Về Hôm nay Email xin tham dự  @ x160 y101 1120x1354",
+      "      footer.review-footer \"Đề xuất giao diện · Chưa áp dụng vào ứ @ x160 y1455 1120x76"
+    ],
+    "findings": [],
+    "height": 1579
+  }
+]
