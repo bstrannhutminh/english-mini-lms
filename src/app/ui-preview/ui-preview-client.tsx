@@ -13,10 +13,15 @@ import {
   ConfirmDialog,
   EmptyState,
   Icon,
+  MeterBar,
   Modal,
+  ProgressRing,
+  SegmentedControl,
   Skeleton,
   SkeletonText,
+  SkillTile,
   Spinner,
+  StatTile,
   Tabs,
   ToastProvider,
   useToast,
@@ -61,6 +66,7 @@ export function UiPreviewClient() {
   const [dangerOpen, setDangerOpen] = useState(false);
   const [tab, setTab] = useState("all");
   const [pill, setPill] = useState("due");
+  const [segment, setSegment] = useState("prompt");
 
   return (
     <ToastProvider>
@@ -128,6 +134,83 @@ export function UiPreviewClient() {
           </p>
         </Section>
 
+        <Section title="SkillTile — ô icon kỹ năng (màu theo MODE_META)">
+          <div className="flex flex-wrap items-end gap-3">
+            {ACTIVITY_MODES.map((mode) => (
+              <div key={mode} className="flex flex-col items-center gap-1">
+                <SkillTile mode={mode} />
+                <span className="text-xs text-text-muted">{modeMeta(mode).shortLabel}</span>
+              </div>
+            ))}
+          </div>
+          <div className="flex items-center gap-3">
+            <SkillTile mode="writing" size="sm" />
+            <SkillTile mode="writing" size="md" />
+            <SkillTile mode="writing" size="lg" />
+            <span className="text-xs text-text-muted">sm / md / lg</span>
+          </div>
+        </Section>
+
+        <Section title="StatTile — ô số liệu">
+          <div className="grid max-w-2xl grid-cols-3 divide-x divide-border rounded-2xl border border-border bg-surface py-4 [&>div]:px-4">
+            <StatTile label="Bài đã làm" value={24} icon="layers" />
+            <StatTile label="Chuỗi ngày" value={7} icon="clock" iconClass="bg-amber-50 text-amber-700" />
+            <StatTile label="Ẩn icon mobile" value={12} icon="check-circle" iconClass="bg-emerald-50 text-emerald-700" hideIconOnMobile />
+          </div>
+        </Section>
+
+        <Section title="ProgressRing — vòng tiến trình">
+          <div className="flex items-center gap-6">
+            <ProgressRing value={2} max={4} label="2 trên 4 bước">
+              <span className="text-sm font-bold text-text">2/4</span>
+            </ProgressRing>
+            <ProgressRing value={75} label="75 phần trăm" size={72}>
+              <span className="text-base font-bold text-text">75%</span>
+            </ProgressRing>
+            <ProgressRing value={30} label="30 phần trăm" toneClass="text-amber-500" />
+          </div>
+        </Section>
+
+        <Section title="SegmentedControl — chọn một">
+          <SegmentedControl
+            ariaLabel="Demo phần phiên học"
+            value={segment}
+            onChange={setSegment}
+            options={[
+              { value: "prompt", label: "Đề bài" },
+              { value: "answer", label: "Bài làm" },
+            ]}
+          />
+          <SegmentedControl
+            ariaLabel="Demo full width"
+            value={segment}
+            onChange={setSegment}
+            fullWidth
+            className="max-w-sm"
+            options={[
+              { value: "prompt", label: "Đề bài" },
+              { value: "answer", label: "Bài làm" },
+            ]}
+          />
+        </Section>
+
+        <Section title="MeterBar — thanh đo điểm/tỉ lệ">
+          <div className="max-w-sm space-y-4">
+            <div>
+              <MeterBar percent={70} />
+              <p className="mt-1 text-xs text-text-muted">Đơn đoạn 70%</p>
+            </div>
+            <div>
+              <MeterBar percent={55} secondaryPercent={25} />
+              <p className="mt-1 text-xs text-text-muted">Hai đoạn: 55% tự làm + 25% có hỗ trợ</p>
+            </div>
+            <div>
+              <MeterBar percent={40} fillClass="fill-amber-400" className="h-2" />
+              <p className="mt-1 text-xs text-text-muted">Màu tuỳ chọn + h-2</p>
+            </div>
+          </div>
+        </Section>
+
         <Section title="Card">
           <Card>
             <CardHeader
@@ -139,9 +222,14 @@ export function UiPreviewClient() {
               Nội dung card. <code>padded=false</code> để tự chia vùng.
             </p>
           </Card>
-          <Card interactive className="mt-3">
-            <p className="text-sm font-medium">Card interactive — hover đổi bóng/viền.</p>
-          </Card>
+          <div className="mt-3 grid gap-3 sm:grid-cols-2">
+            <Card elevated>
+              <p className="text-sm font-medium">Card elevated — bóng shadow-card.</p>
+            </Card>
+            <Card interactive>
+              <p className="text-sm font-medium">Card interactive — hover đổi bóng/viền.</p>
+            </Card>
+          </div>
         </Section>
 
         <Section title="Modal & ConfirmDialog">

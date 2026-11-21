@@ -1,133 +1,75 @@
 "use client";
 
-import { Badge, Card, Icon } from "@/components/ui";
+import { Badge, Icon } from "@/components/ui";
+import { cn } from "@/lib/utils";
 import { ObservationCard } from "./observation-card";
-import { TOP_PRIORITY_COUNT } from "./priority-observations";
+import { PracticeScoresCard } from "./practice-scores-card";
+import { PriorityObservations, TOP_PRIORITY_COUNT } from "./priority-observations";
 import type { MyWorkFeedback } from "../types";
 
 interface FeedbackPanelProps {
   feedback: MyWorkFeedback;
   /** Nguồn gắn cho nút "Lưu cụm từ" (tiêu đề bài học). */
   sourceRef?: string;
-  /** Index observation đã gắn cờ cục bộ (state hoist từ view để Top-3 chia sẻ). */
+  /** Index observation đã gắn cờ cục bộ. */
   flaggedIndexes: Record<number, boolean>;
   onFlagged: (index: number) => void;
+  /** Nhãn khối bản gốc theo kỹ năng ("Câu bạn đã viết/nói/dịch"). */
+  originalLabel?: string;
 }
 
 /**
- * Cột nhận xét AI (bên phải desktop): phát âm → điểm luyện tập → điểm sáng →
- * các góp ý CÒN LẠI (Top-3 đã nằm ở khu vực ưu tiên phía trên) → hành động
- * kế tiếp → giới hạn đánh giá.
+ * Toàn bộ nhận xét AI theo thứ tự đọc: (cờ rà soát) → phát âm → điểm ước tính
+ * luyện tập + giới hạn → N điểm cần sửa trước → góp ý còn lại → điểm sáng.
  */
-export function FeedbackPanel({
-  feedback,
-  sourceRef,
-  flaggedIndexes,
-  onFlagged,
-}: FeedbackPanelProps) {
+export function FeedbackPanel({ feedback, sourceRef, flaggedIndexes, onFlagged, originalLabel }: FeedbackPanelProps) {
   const restObservations = feedback.observations.slice(TOP_PRIORITY_COUNT);
-  const isUnderReview = feedback.reviewState === "under_review";
+  const pronunciation = feedback.pronunciation;
+  const assessed = pronunciation?.status === "assessed";
 
   return (
-    <div>
-      {isUnderReview ? (
-        <div className="mb-4 flex items-center gap-2 rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-base text-amber-900">
-          <Icon name="flag" className="h-4 w-4 shrink-0" />
-          <span>
-            Bài nộp này có nhận xét đang được gắn cờ{" "}
-            <strong>Under Review</strong> để quản trị viên rà soát lại.
-          </span>
-        </div>
+    <div className="space-y-6">
+      {feedback.reviewState === "under_review" ? (
+        <p className="flex items-start gap-2.5 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-base leading-relaxed text-amber-900">
+          <Icon name="flag" className="mt-1 h-4 w-4 shrink-0" />
+          <span>Nhận xét của bài này đã được gắn cờ và đang chờ quản trị viên rà soát lại.</span>
+        </p>
       ) : null}
 
-      {feedback.pronunciation ? (
-        <Card
-          className={`mb-4 ${
-            feedback.pronunciation.status === "assessed"
-              ? "border-emerald-200 bg-emerald-50"
-              : "border-red-200 bg-red-50"
-          }`}
+      {pronunciation ? (
+        <section
+          aria-labelledby="pronunciation-title"
+          className={cn("rounded-2xl border p-5 sm:p-6", assessed ? "border-emerald-200 bg-emerald-50/60" : "border-amber-200 bg-amber-50/60")}
         >
-          <div className="mb-1.5 flex items-center justify-between gap-2">
-            <p
-              className={`text-base font-bold ${
-                feedback.pronunciation.status === "assessed"
-                  ? "text-emerald-900"
-                  : "text-red-900"
-              }`}
-            >
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h2 id="pronunciation-title" className="flex items-center gap-2 text-lg font-semibold text-text">
+              <Icon name="mic" className="h-5 w-5 text-skill-speaking" />
               Đánh giá phát âm
-            </p>
-            <Badge tone={feedback.pronunciation.status === "assessed" ? "success" : "error"}>
-              {feedback.pronunciation.status === "assessed"
-                ? "Đã phân tích âm thanh"
-                : "Không thể đánh giá âm thanh"}
+            </h2>
+            <Badge tone={assessed ? "success" : "warning"}>
+              {assessed ? "Đã phân tích âm thanh" : "Không thể đánh giá âm thanh"}
             </Badge>
           </div>
-          <p
-            className={`text-base leading-relaxed ${
-              feedback.pronunciation.status === "assessed"
-                ? "text-emerald-800"
-                : "text-red-800"
-            }`}
-          >
-            {feedback.pronunciation.notes}
-          </p>
-        </Card>
+          <p className="mt-2 text-base leading-relaxed text-text-secondary">{pronunciation.notes}</p>
+        </section>
       ) : null}
 
-      {feedback.scores.length > 0 ? (
-        <Card className="mb-4">
-          <p className="mb-3 text-base font-bold uppercase tracking-wide text-text-secondary">
-            Điểm ước tính luyện tập
-          </p>
-          <div className="grid grid-cols-[repeat(auto-fit,minmax(160px,1fr))] gap-2.5">
-            {feedback.scores.map((sc, i) => (
-              <div
-                key={i}
-                className="rounded-xl border border-border bg-surface-muted p-3"
-              >
-                <div className="flex items-center justify-between gap-2">
-                  <span className="text-base font-semibold text-text">{sc.dimension}</span>
-                  <span
-                    className={`text-lg font-extrabold ${
-                      sc.value >= 7 ? "text-emerald-600" : "text-primary-dark"
-                    }`}
-                  >
-                    {sc.value}/10
-                  </span>
-                </div>
-                {sc.note ? (
-                  <p className="mt-1 text-base text-text-muted">{sc.note}</p>
-                ) : null}
-              </div>
-            ))}
-          </div>
-        </Card>
-      ) : null}
+      <PracticeScoresCard scores={feedback.scores} limitations={feedback.limitations} />
 
-      {feedback.strengths.length > 0 ? (
-        <Card className="mb-4 border-emerald-200 bg-emerald-50">
-          <p className="mb-2 flex items-center gap-1.5 text-base font-bold text-emerald-900">
-            <Icon name="sparkles" className="h-4 w-4" />
-            Điểm sáng đã làm tốt
-          </p>
-          <ul className="m-0 list-disc pl-5 text-base leading-relaxed text-emerald-800">
-            {feedback.strengths.map((s, i) => (
-              <li key={i} className="mb-1">
-                {s}
-              </li>
-            ))}
-          </ul>
-        </Card>
-      ) : null}
+      <PriorityObservations
+        feedback={feedback}
+        sourceRef={sourceRef}
+        flaggedIndexes={flaggedIndexes}
+        onFlagged={onFlagged}
+        originalLabel={originalLabel}
+      />
 
       {restObservations.length > 0 ? (
-        <div className="mb-4">
-          <h2 className="mb-3 text-base font-bold text-text">
+        <section aria-labelledby="rest-observations-title">
+          <h2 id="rest-observations-title" className="text-lg font-semibold text-text">
             Các góp ý còn lại ({restObservations.length})
           </h2>
-          <div className="flex flex-col gap-3">
+          <div className="mt-3 space-y-4">
             {restObservations.map((obs, i) => {
               const realIndex = i + TOP_PRIORITY_COUNT;
               return (
@@ -139,17 +81,29 @@ export function FeedbackPanel({
                   sourceRef={sourceRef}
                   locallyFlagged={Boolean(flaggedIndexes[realIndex])}
                   onFlagged={onFlagged}
+                  originalLabel={originalLabel}
                 />
               );
             })}
           </div>
-        </div>
+        </section>
       ) : null}
 
-      {feedback.limitations ? (
-        <div className="rounded-lg border border-border bg-surface-muted px-3.5 py-3 text-base leading-relaxed text-text-muted">
-          <strong>Lưu ý:</strong> {feedback.limitations}
-        </div>
+      {feedback.strengths.length > 0 ? (
+        <section aria-labelledby="strengths-title" className="rounded-2xl border border-border bg-surface p-5 sm:p-6">
+          <h2 id="strengths-title" className="flex items-center gap-2 text-lg font-semibold text-text">
+            <Icon name="sparkles" className="h-5 w-5 text-emerald-700" />
+            Điểm sáng đã làm tốt
+          </h2>
+          <ul className="mt-3 space-y-2.5">
+            {feedback.strengths.map((strength, i) => (
+              <li key={i} className="flex items-start gap-2.5 text-base leading-relaxed text-text-secondary">
+                <Icon name="check-circle" className="mt-1 h-4 w-4 shrink-0 text-emerald-600" />
+                <span className="min-w-0 break-words">{strength}</span>
+              </li>
+            ))}
+          </ul>
+        </section>
       ) : null}
     </div>
   );

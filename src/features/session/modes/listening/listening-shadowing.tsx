@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Button } from "@/components/ui";
+import { Button, Icon, Spinner } from "@/components/ui";
 import type { SpeakingFeedback } from "@/contracts/submission";
 import type { CaptureHelpers, SessionTranscriptSegment } from "../types";
 import {
@@ -67,7 +67,7 @@ export function ListeningShadowing({
 
   if (segments.length === 0) {
     return (
-      <div className="rounded-xl border border-slate-200 bg-white p-4 text-base text-slate-600">
+      <div className="rounded-2xl border border-border bg-surface p-4 text-base leading-relaxed text-text-secondary sm:p-5">
         Đoạn nghe này chưa có transcript nên chưa luyện Shadowing được. Bạn vẫn
         có thể nghe lại video và tự nhại theo.
       </div>
@@ -76,23 +76,23 @@ export function ListeningShadowing({
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="rounded-xl border border-slate-200 bg-white p-4">
-        <div className="mb-1 text-base font-extrabold text-slate-900">
-          Luyện Shadowing từng câu
-        </div>
-        <p className="m-0 text-base leading-relaxed text-slate-600">
-          Bấm <strong>▶ Nghe mẫu</strong> để nghe diễn giả phát âm, sau đó bấm{" "}
-          <strong>Thu âm luyện câu này</strong> để nhại lại (Shadowing). AI sẽ so
+      <section className="rounded-2xl border border-border bg-surface p-4 shadow-card sm:p-6">
+        <p className="eyebrow">Chặng 3</p>
+        <h2 className="text-lg font-semibold text-text">Luyện Shadowing từng câu</h2>
+        <p className="mt-2 text-base leading-relaxed text-text-secondary">
+          Bấm <strong>Nghe mẫu</strong> để nghe diễn giả phát âm, sau đó bấm{" "}
+          <strong>Thu âm luyện câu này</strong> để nhại lại (Shadowing). AI sẽ
           góp ý dựa trên bản ghi âm và câu mẫu. Kiểm tra phần giới hạn đánh giá của từng kết quả.
         </p>
-      </div>
+      </section>
 
       {error && (
         <div
           role="alert"
-          className="rounded-lg border border-red-200 bg-red-50 px-3.5 py-3 text-base text-red-600"
+          className="flex items-start gap-2.5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-base text-red-800"
         >
-          ⚠️ {error}
+          <Icon name="alert-triangle" className="mt-1 h-4 w-4 shrink-0" />
+          <span>{error}</span>
         </div>
       )}
 
@@ -102,45 +102,48 @@ export function ListeningShadowing({
         const result = results[idx];
 
         return (
-          <div
+          <article
             key={idx}
-            className={`rounded-xl border bg-white p-4 ${
+            className={`rounded-2xl border bg-surface p-4 sm:p-5 ${
               isOpen ? "border-primary" : "border-border"
             }`}
           >
-            <div className="mb-2.5 flex items-start justify-between gap-2.5">
-              <span className="rounded bg-slate-200 px-1.5 py-0.5 text-base font-bold text-slate-700">
-                Câu {idx + 1} ({seg.startSeconds}s - {seg.endSeconds}s)
-              </span>
+            <div className="mb-2 flex items-center justify-between gap-3">
+              <p className="eyebrow tabular-nums">
+                Câu {idx + 1} · {seg.startSeconds}s–{seg.endSeconds}s
+              </p>
               <button
                 type="button"
                 onClick={() => onSeek(seg.startSeconds)}
-                className="inline-flex min-h-11 items-center rounded-lg border border-border bg-surface px-3 text-base font-medium text-primary-dark hover:bg-primary-soft"
+                className="pressable inline-flex min-h-11 shrink-0 cursor-pointer items-center gap-2 rounded-xl border border-border bg-surface px-3 text-base font-medium text-primary-dark hover:bg-primary-soft"
               >
-                ▶ Nghe mẫu
+                <Icon name="play" className="h-3.5 w-3.5" />
+                Nghe mẫu
               </button>
             </div>
 
-            <div
+            <p
               {...capture.selectHandlers(seg.text, `${sourceRef} · câu ${seg.startSeconds}–${seg.endSeconds}s`, "video")}
-              className="mb-3 text-base font-semibold leading-relaxed text-slate-900"
+              className="mb-4 max-w-[65ch] text-base font-medium leading-relaxed text-text"
             >
               &ldquo;{seg.text}&rdquo;
-            </div>
+            </p>
 
             {isOpen ? (
-              <div className="mt-2.5 rounded-lg border border-slate-300 bg-slate-50 p-3">
-                <div className="mb-2.5 flex items-center justify-between">
-                  <span className="text-base font-bold text-slate-700">
-                    🎙️ Ghi âm Shadowing câu {idx + 1}:
+              <div className="rounded-xl bg-surface-muted p-3 sm:p-4">
+                <div className="mb-2 flex items-center justify-between gap-2">
+                  <span className="flex items-center gap-2 text-base font-semibold text-text">
+                    <Icon name="mic" className="h-4 w-4 text-skill-speaking" />
+                    Ghi âm Shadowing câu {idx + 1}
                   </span>
                   <button
                     type="button"
                     onClick={() => setOpenIndex(null)}
                     disabled={evaluatingIndex !== null}
-                    className="inline-flex min-h-11 min-w-11 items-center justify-center text-base text-text-secondary hover:text-text disabled:opacity-60"
+                    className="inline-flex min-h-11 min-w-11 cursor-pointer items-center justify-center gap-1.5 rounded-lg text-base text-text-secondary hover:text-text disabled:cursor-not-allowed disabled:opacity-60"
                   >
-                    Đóng ✕
+                    Đóng
+                    <Icon name="x" className="h-4 w-4" />
                   </button>
                 </div>
 
@@ -152,19 +155,21 @@ export function ListeningShadowing({
                 />
 
                 {isEvaluating && (
-                  <div className="mt-2 text-center text-base font-semibold text-blue-600">
-                    ⏳ AI đang lắng nghe và đánh giá phát âm của bạn...
+                  <div role="status" className="mt-3 flex items-center justify-center gap-2.5 text-base font-medium text-primary-dark">
+                    <Spinner size="sm" label="Đang chấm" />
+                    AI đang lắng nghe và đánh giá phát âm của bạn...
                   </div>
                 )}
               </div>
             ) : (
               <Button variant="outline" disabled={evaluatingIndex !== null} onClick={() => setOpenIndex(idx)}>
-                🎙️ Thu âm luyện câu này
+                <Icon name="mic" className="h-4 w-4" />
+                Thu âm luyện câu này
               </Button>
             )}
 
             {result && <ShadowingFeedback result={result} />}
-          </div>
+          </article>
         );
       })}
     </div>

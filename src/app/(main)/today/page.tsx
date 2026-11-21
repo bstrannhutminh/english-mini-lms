@@ -6,6 +6,12 @@ import {
   resolveDefaultTargetMinutes,
 } from "@/features/onboarding/onboarding-presets";
 import TodayView from "@/features/today/today-view";
+import { buildTodayGreeting } from "@/features/today/today-greeting";
+import { getTodayRecommendation } from "@/server/today/service";
+import {
+  todayRecommendationSchema,
+  type TodayRecommendationContract,
+} from "@/contracts/today";
 
 export const dynamic = "force-dynamic";
 
@@ -42,10 +48,26 @@ export default async function TodayPage({ searchParams }: TodayPageProps) {
 
   const initialTargetMinutes = resolveDefaultTargetMinutes(learner.preferences);
 
+  // Render sẵn gợi ý hôm nay ở server → HTML đầu đã có bài học và nút bắt đầu.
+  // Lỗi ở đây không chặn trang: client tự gọi /api/v1/today và hiện nút Thử lại.
+  let initialData: TodayRecommendationContract | null = null;
+  try {
+    initialData = todayRecommendationSchema.parse(
+      await getTodayRecommendation(learner.id, initialTargetMinutes)
+    );
+  } catch (error) {
+    console.error("TodayPage: getTodayRecommendation failed:", error);
+  }
+
+  const { greeting, dateLabel } = buildTodayGreeting();
+
   return (
     <TodayView
       initialTargetMinutes={initialTargetMinutes}
+      initialData={initialData}
       displayName={learner.displayName || "Bác sĩ Minh"}
+      greeting={greeting}
+      dateLabel={dateLabel}
     />
   );
 }

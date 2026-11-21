@@ -1,0 +1,5 @@
+/* Programmatic step focus announces the new content without outlining the full
+ * form. Interactive controls retain the shared visible keyboard focus ring. */
+.step:focus-visible {
+  outline: none;
+}

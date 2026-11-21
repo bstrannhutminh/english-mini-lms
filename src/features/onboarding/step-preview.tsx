@@ -9,40 +9,40 @@ export function StepPreview({ draft }: StepPreviewProps) {
   return (<div className="space-y-6">
 
     <div>
-      <h2 className="text-2xl font-semibold tracking-tight text-text">Xem lại trước khi vào học</h2>
+      <h1 className="text-2xl font-semibold leading-tight tracking-tight text-text sm:text-3xl">Xem lại trước khi vào học</h1>
       <p className="mt-2 text-base leading-relaxed text-text-secondary">Thiết lập sẽ được lưu khi bạn chọn “Lưu và vào học”. Có thể quay lại từng bước để chỉnh.</p>
     </div>
 
-    <dl className="divide-y divide-border-subtle">
-      <div className="py-3">
+    <dl className="grid gap-x-6 sm:grid-cols-2">
+      <div className="border-b border-border py-4">
         <dt className="text-base text-text-secondary">Tên hiển thị</dt>
         <dd className="mt-1 break-words text-base font-medium text-text">
           {draft.displayName.trim() || "Bác sĩ Minh"}
         </dd>
       </div>
-      <div className="py-3">
+      <div className="border-b border-border py-4">
         <dt className="text-base text-text-secondary">Nhịp học</dt>
         <dd className="mt-1 text-base font-medium text-text">{draft.targetMinutesDefault} phút{draft.preferredStudyTime ? ` · ${draft.preferredStudyTime}` : " · Chưa chọn giờ"}</dd>
       </div>
-      <div className="py-3">
+      <div className="border-b border-border py-4">
         <dt className="text-base text-text-secondary">Mục tiêu ưu tiên</dt>
         <dd className="mt-1 text-base leading-relaxed text-text">
           {draft.priorities.length ? draft.priorities.join("; ") : "Chưa chọn"}
         </dd>
       </div>
-      <div className="py-3">
+      <div className="border-b border-border py-4">
         <dt className="text-base text-text-secondary">Gợi ý kỹ năng khởi đầu</dt>
         <dd className="mt-1 text-base font-medium text-primary-dark">
           {summary.focusSkillLabel}
         </dd>
       </div>
-      <div className="py-3">
+      <div className="border-b border-border py-4">
         <dt className="text-base text-text-secondary">IELTS</dt>
         <dd className="mt-1 text-base text-text">
           {summary.ieltsLabel}
         </dd>
       </div>
-      <div className="py-3">
+      <div className="border-b border-border py-4">
         <dt className="text-base text-text-secondary">Sách hoặc tài liệu</dt>
         <dd className="mt-1 text-base text-text">
           {draft.currentBook.trim() || "Chưa chọn"}
@@ -50,7 +50,7 @@ export function StepPreview({ draft }: StepPreviewProps) {
       </div>
     </dl>
 
-    <section className="rounded-xl border border-border bg-surface-muted p-4">
+    <section className="border-t border-border pt-6">
       <h3 className="text-lg font-semibold text-text">Một buổi {draft.targetMinutesDefault} phút</h3>
       <ol className="mt-3 divide-y divide-border">
         {loopSteps.map((item, index) => <li key={item.title} className="flex items-center justify-between gap-3 py-3 text-base">

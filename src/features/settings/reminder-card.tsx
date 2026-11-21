@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Card, CardHeader } from "@/components/ui";
+import { Card, CardHeader, Icon } from "@/components/ui";
 
 interface ReminderCardProps {
   enabled: boolean;
@@ -45,22 +45,22 @@ export function ReminderCard({ enabled, time, saving, onSave }: ReminderCardProp
       />
 
       {enabled && (
-        <div className="flex items-center justify-between border-t border-slate-100 pt-3">
-          <span className="text-base text-text-secondary">Giờ học:</span>
+        <div className="flex items-center justify-between gap-3 border-t border-border pt-4">
+          <span className="text-base text-text-secondary">Giờ học</span>
           <input
             type="time"
             value={time}
             disabled={saving}
             aria-label="Giờ học hằng ngày"
             onChange={(e) => void save(enabled, e.target.value)}
-            className="min-h-11 rounded-lg border border-border-strong px-2.5 py-1 text-base focus:ring-1 focus:ring-primary"
+            className="min-h-11 rounded-xl border border-border-strong bg-surface px-3 py-1 text-base tabular-nums text-text"
           />
         </div>
       )}
 
       {savedTick && (
-        <div className="text-base font-medium text-emerald-600" role="status">
-          ✓ Đã lưu giờ học vào hồ sơ.
+        <div className="flex items-center gap-2 text-base font-medium text-emerald-700" role="status">
+          <Icon name="check-circle" className="h-4 w-4" />Đã lưu giờ học vào hồ sơ.
         </div>
       )}
     </Card>

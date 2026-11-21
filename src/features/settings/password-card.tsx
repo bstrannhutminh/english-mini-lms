@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { Button, Card, CardHeader } from "@/components/ui";
+import { Button, Card, CardHeader, Icon } from "@/components/ui";
 import { PasswordInput } from "@/features/auth/password-input";
 
 /** Đổi mật khẩu qua supabase.auth.updateUser (client session hiện tại). */
@@ -64,25 +64,27 @@ export function PasswordCard() {
         title="Mật khẩu"
         description="Đổi mật khẩu đăng nhập LMS cho tài khoản này"
       />
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={changing}
-            onClick={() => {
-              setOpen((v) => !v);
-              setMessage(null);
-            }}
-          >
-            {open ? "Đóng lại" : "Đổi mật khẩu"}
-          </Button>
+      <Button
+        variant="outline"
+        disabled={changing}
+        aria-expanded={open}
+        className="w-full sm:w-auto"
+        onClick={() => {
+          setOpen((v) => !v);
+          setMessage(null);
+        }}
+      >
+        <Icon name={open ? "x" : "lock"} className="h-4 w-4" />
+        {open ? "Đóng lại" : "Đổi mật khẩu"}
+      </Button>
 
       {message && (
         <div
           role={message.type === "error" ? "alert" : "status"}
           className={`rounded-xl border p-3 text-base ${
             message.type === "success"
-              ? "border-teal-200 bg-teal-50 text-teal-800"
-              : "border-red-200 bg-red-50 text-red-700"
+              ? "border-emerald-200 bg-emerald-50 text-emerald-800"
+              : "border-red-200 bg-red-50 text-red-800"
           }`}
         >
           {message.text}
@@ -92,13 +94,13 @@ export function PasswordCard() {
       {open && (
         <form
           onSubmit={handleSubmit}
-          className="space-y-3 border-t border-slate-100 pt-3"
+          className="space-y-3 border-t border-border pt-4"
         >
           <fieldset disabled={changing} className="space-y-3">
           <div>
             <label
               htmlFor="new-pwd"
-              className="mb-1 block text-base font-medium text-slate-700"
+              className="mb-1 block text-base font-medium text-text"
             >
               Mật khẩu mới (tối thiểu 6 ký tự)
             </label>
@@ -113,7 +115,7 @@ export function PasswordCard() {
           <div>
             <label
               htmlFor="confirm-pwd"
-              className="mb-1 block text-base font-medium text-slate-700"
+              className="mb-1 block text-base font-medium text-text"
             >
               Xác nhận mật khẩu mới
             </label>

@@ -82,6 +82,15 @@ export const planStepSchema = z.object({
 });
 export type PlanStep = z.infer<typeof planStepSchema>;
 
+/** Một ngày trong dải 7 ngày gần nhất (buildWeekActivity — server/today/streak.ts). */
+export const weekDayActivitySchema = z.object({
+  date: z.string(),
+  label: z.string(),
+  studied: z.boolean(),
+  isToday: z.boolean(),
+});
+export type WeekDayActivityContract = z.infer<typeof weekDayActivitySchema>;
+
 export const todayRecommendationSchema = z.object({
   learnerName: z.string(),
   baselineStatus: z.string(),
@@ -96,5 +105,9 @@ export const todayRecommendationSchema = z.object({
   inProgressSession: inProgressSessionSchema.nullable(),
   /** Kế hoạch phiên 4 bước suy ra từ dữ liệu hôm nay. */
   dailyPlan: z.array(planStepSchema),
+  /** Nhịp 7 ngày gần nhất — trường bổ sung, mặc định rỗng cho client/snapshot cũ. */
+  weekActivity: z.array(weekDayActivitySchema).optional().default([]),
+  /** Tổng phút học chủ động 7 ngày gần nhất. */
+  weekMinutes: z.number().int().optional().default(0),
 });
 export type TodayRecommendationContract = z.infer<typeof todayRecommendationSchema>;

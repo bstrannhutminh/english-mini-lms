@@ -5,12 +5,13 @@ import { z } from "zod";
 import { apiFetch, ApiClientError } from "@/lib/api-client";
 import { modeMeta } from "@/lib/modes";
 import {
-  Badge,
   Button,
   Card,
   CardHeader,
   ConfirmDialog,
   EmptyState,
+  Icon,
+  SkillTile,
   useToast,
 } from "@/components/ui";
 import type { SettingsSubmission } from "@/contracts/settings";
@@ -68,39 +69,36 @@ export function SubmissionsCard({ submissions, onDeleted }: SubmissionsCardProps
           description="Bài bạn nộp trong các phiên học sẽ xuất hiện ở đây."
         />
       ) : (
-        <div className="max-h-72 divide-y divide-slate-100 overflow-y-auto pr-1">
+        <div className="max-h-80 divide-y divide-border overflow-y-auto pr-1">
           {submissions.map((sub) => (
             <div
               key={sub.id}
               className="flex items-center justify-between gap-3 py-3 text-base"
             >
+              <SkillTile mode={sub.activityMode} size="sm" />
               <div className="min-w-0 flex-1">
-                <p className="truncate font-medium text-slate-800">
+                <p className="truncate font-medium text-text">
                   {sub.activityTitle}
                 </p>
-                <p className="mt-0.5 flex items-center gap-2 text-base text-slate-500">
-                  <Badge tone={modeMeta(sub.activityMode).tone}>
-                    {modeMeta(sub.activityMode).label}
-                  </Badge>
-                  <span>
-                    {new Date(sub.createdAt).toLocaleDateString("vi-VN", {
-                      day: "2-digit",
-                      month: "2-digit",
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
-                  </span>
-                  {sub.mediaId && (
-                    <Badge tone="neutral">🎙️ Audio</Badge>
-                  )}
+                <p className="truncate text-sm text-text-muted">
+                  {modeMeta(sub.activityMode).shortLabel} ·{" "}
+                  {new Date(sub.createdAt).toLocaleDateString("vi-VN", {
+                    day: "2-digit",
+                    month: "2-digit",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
+                  {sub.mediaId && " · Có âm thanh"}
                 </p>
               </div>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => setPendingId(sub.id)}
-                className="shrink-0 text-red-600 hover:bg-red-50 hover:text-red-700"
+                aria-label={`Xoá bài “${sub.activityTitle}”`}
+                className="shrink-0 text-red-700 hover:bg-red-50 hover:text-red-800"
               >
+                <Icon name="trash" className="h-4 w-4" />
                 Xoá
               </Button>
             </div>

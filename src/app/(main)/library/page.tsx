@@ -42,21 +42,15 @@ export default async function LibraryPage({ searchParams }: LibraryPageProps) {
       };
     }
   }
-  return (<PageContainer size="wide">
-
-    <header className="mb-6">
-
-      <h1 className="m-0 mb-2 text-3xl font-semibold tracking-tight text-text sm:text-4xl">
-        Thư viện
-      </h1>
-
-      <p className="m-0 text-base leading-relaxed text-text-secondary">
-        Chọn một bài phù hợp với thời gian và kỹ năng muốn luyện.
-      </p>
-
-    </header>
-
-    <LibraryExplorer topics={topics} activities={activities} initialTopic={initialTopic} suggestion={suggestion} />
-
-  </PageContainer>);
+  return (
+    <PageContainer size="wide">
+      <header className="mb-4 sm:mb-6">
+        <h1 className="text-2xl font-semibold tracking-tight text-text sm:text-3xl">Thư viện</h1>
+        <p className="mt-1 hidden text-base leading-relaxed text-text-secondary sm:block">
+          Chọn một bài phù hợp với thời gian và kỹ năng muốn luyện.
+        </p>
+      </header>
+      <LibraryExplorer topics={topics} activities={activities} initialTopic={initialTopic} suggestion={suggestion} />
+    </PageContainer>
+  );
 }

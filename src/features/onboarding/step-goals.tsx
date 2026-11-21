@@ -16,15 +16,15 @@ export function StepGoals({ draft, onChange }: StepGoalsProps) {
   return (<div className="space-y-6">
 
     <div>
-      <h2 className="text-2xl font-semibold tracking-tight text-text">Bạn muốn dùng tiếng Anh để làm gì?</h2>
+      <h1 className="text-2xl font-semibold leading-tight tracking-tight text-text sm:text-3xl">Bạn muốn dùng tiếng Anh để làm gì?</h1>
       <p className="mt-2 text-base leading-relaxed text-text-secondary">Chọn những mục tiêu muốn tập trung trước. Có thể đổi trong hồ sơ sau này.</p>
     </div>
 
     <fieldset className="space-y-3">
       <legend className="mb-3 text-base font-medium text-text">Mục tiêu ưu tiên · có thể chọn nhiều</legend>
-      <div className="space-y-2">
+      <div className="grid gap-3 sm:grid-cols-2">
         {PRIORITY_CARDS.map((card) => {
-          const active = draft.priorities.includes(card.value); return <button key={card.value} type="button" onClick={() => togglePriority(card.value)} aria-pressed={active} className={cn("flex min-h-14 w-full cursor-pointer items-start gap-3 rounded-xl border p-4 text-left transition", active ? "border-primary bg-surface-muted" : "border-border bg-surface hover:border-primary")}>
+          const active = draft.priorities.includes(card.value); return <button key={card.value} type="button" onClick={() => togglePriority(card.value)} aria-pressed={active} className={cn("flex min-h-14 w-full cursor-pointer items-start gap-3 rounded-xl border p-4 text-left transition-colors", active ? "border-primary bg-surface-muted" : "border-border bg-surface hover:border-primary")}>
             <Icon name={card.icon} className="mt-1 h-5 w-5 shrink-0 text-primary-dark" />
             <span className="min-w-0 flex-1">
               <span className="block text-base font-medium text-text">

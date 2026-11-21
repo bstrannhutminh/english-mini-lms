@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useToast } from "@/components/ui";
 import type { VocabularyItem } from "@/contracts/vocabulary";
 import { patchVocabulary } from "./api";
-import { isDueNow, isMastered } from "./mastery";
+import { isMastered } from "./mastery";
 import { VocabItemSummary } from "./vocab-item-summary";
 import { VocabItemEditor } from "./vocab-item-editor";
 
@@ -37,7 +37,6 @@ export function VocabItemCard({
   const [toggling, setToggling] = useState(false);
 
   const mastered = isMastered(item.masteryLevel);
-  const due = isDueNow(item);
 
   // Lưu "Câu của tôi" (my_attempt) — PATCH, lỗi → toast tiếng Việt
   async function handleSaveAttempt() {
@@ -80,7 +79,7 @@ export function VocabItemCard({
   }
 
   return (
-    <article data-tour={tourTarget} className={`overflow-hidden rounded-xl border bg-surface ${due ? "border-amber-200" : "border-border"}`}>
+    <article data-tour={tourTarget} className={`rounded-2xl border bg-surface transition-[border-color,box-shadow] ${expanded ? "border-teal-200 shadow-card" : "border-border hover:border-border-strong"}`}>
       <VocabItemSummary item={item} expanded={expanded} onToggle={onToggleExpand} />
       {expanded && <VocabItemEditor item={item} attemptText={attemptText} saving={saving} saved={savedFlash}
         toggling={toggling} mastered={mastered} onTextChange={setAttemptText} onSave={handleSaveAttempt} onToggleMastered={handleToggleMastered} />}

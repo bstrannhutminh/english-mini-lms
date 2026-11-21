@@ -36,8 +36,8 @@ export function FlagButton({
 
   if (flagged) {
     return (
-      <span className="inline-flex items-center gap-1 rounded-md border border-amber-200 bg-amber-50 px-2 py-0.5 text-base font-semibold text-amber-800">
-        <Icon name="flag" className="h-3 w-3" />
+      <span className="inline-flex min-h-11 items-center gap-1.5 text-base font-medium text-amber-800">
+        <Icon name="flag" className="h-4 w-4" />
         Đã gắn cờ để rà soát
       </span>
     );
@@ -81,9 +81,9 @@ export function FlagButton({
         type="button"
         onClick={() => setOpen(true)}
         title="Bấm nếu bạn thấy nhận xét của AI chưa chuẩn xác hoặc máy móc"
-        className="inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-lg px-3 py-2 text-base text-text-secondary transition hover:bg-amber-50 hover:text-amber-900"
+        className="pressable -ml-2 inline-flex min-h-11 cursor-pointer items-center gap-1.5 rounded-lg px-2 text-base text-text-muted hover:bg-amber-50 hover:text-amber-900 sm:ml-0"
       >
-        <Icon name="flag" className="h-3 w-3" />
+        <Icon name="flag" className="h-4 w-4" />
         Tôi không đồng ý
       </button>
 

@@ -145,6 +145,21 @@ export async function getSubmissionWithFeedback(submissionId: string, learnerId:
 
   const current = await submissionBundle(sub);
 
+  // Bản sửa mới nhất làm TỪ bài này (append-only: bản sửa là submission mới
+  // có parent_id). Có rồi thì màn góp ý mời "Mở Bản N" thay vì sửa lại từ đầu.
+  const [latestChild] = await db
+    .select({ id: submissions.id, revision: submissions.revision })
+    .from(submissions)
+    .where(
+      and(
+        eq(submissions.parentId, sub.id),
+        eq(submissions.learnerId, sub.learnerId),
+        isNull(submissions.deletedAt)
+      )
+    )
+    .orderBy(desc(submissions.submittedAt))
+    .limit(1);
+
   // Nếu là bản sửa (có parentId) → lấy luôn Bản 1 + feedback Bản 1 để so sánh
   let parentSubmissionData = null;
   if (sub.parentId) {
@@ -178,5 +193,7 @@ export async function getSubmissionWithFeedback(submissionId: string, learnerId:
     // eslint-disable-next-line @typescript-eslint/no-explicit-any -- JSONB: shape khác nhau theo skill; view tự thu hẹp (trước đây cũng là any)
     feedback: current.feedback as any,
     parent: parentSubmissionData,
+    /** Bản sửa mới nhất của bài này (nếu đã có) — { id, revision }. */
+    latestRevision: latestChild ?? null,
   };
 }

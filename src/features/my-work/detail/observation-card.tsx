@@ -1,25 +1,30 @@
 "use client";
 
 import { Badge, Icon } from "@/components/ui";
+import { feedbackCategoryLabel } from "@/lib/feedback-labels";
+import { cn } from "@/lib/utils";
 import { FlagButton } from "./flag-button";
 import { SavePhraseButton } from "./save-phrase-button";
 import type { FeedbackObservation } from "../types";
 
 interface ObservationCardProps {
   obs: FeedbackObservation;
-  /** Index trong mảng observations gốc (server đánh dấu cờ theo index này). */
+  /** Index thật trong feedback.observations (dùng cho API gắn cờ). */
   index: number;
   feedbackId?: string;
-  /** Nguồn để gắn vào cụm từ lưu Sổ từ (vd. tiêu đề bài học). */
   sourceRef?: string;
-  /** Đã gắn cờ cục bộ sau khi POST thành công. */
   locallyFlagged?: boolean;
   onFlagged?: (index: number) => void;
-  /** Kiểu nhỏ gọn cho khu vực Top-3 ưu tiên. */
-  compact?: boolean;
+  /** Nhãn khối bản gốc theo kỹ năng, mặc định "Câu bạn đã viết". */
+  originalLabel?: string;
 }
 
-/** Một điểm góp ý: vị trí → câu gốc → vấn đề → cách sửa → ví dụ → thử thách. */
+/**
+ * Một góp ý của AI, đọc theo thứ tự: bản gốc (đỏ nhạt) → cách sửa + câu mẫu
+ * (xanh nhạt) → vì sao → lời mời thử lại. Luôn hiện đủ 6 trường invariant
+ * (location, original, issue, suggestion, example, retry_prompt); hành động phụ
+ * (gắn cờ, lưu cụm từ) nằm ở chân thẻ.
+ */
 export function ObservationCard({
   obs,
   index,
@@ -27,60 +32,77 @@ export function ObservationCard({
   sourceRef,
   locallyFlagged = false,
   onFlagged,
-  compact = false,
+  originalLabel = "Câu bạn đã viết",
 }: ObservationCardProps) {
   const isFlagged = locallyFlagged || Boolean(obs.flagged);
 
   return (
-    <div
-      className={`rounded-xl border bg-surface  ${
-        isFlagged ? "border-amber-300" : "border-border"
-      } ${compact ? "p-3.5" : "p-4"}`}
-    >
-      {/* Vị trí + category + hành động (flag / lưu cụm từ) */}
-      <div className="mb-2 flex flex-wrap items-center justify-between gap-1.5">
-        <div className="flex flex-wrap items-center gap-1.5">
-          <span className="inline-flex items-center gap-1 rounded-md bg-amber-100 px-2 py-0.5 text-base font-bold text-amber-900">
-            <Icon name="search" className="h-3 w-3" />
-            {obs.location}
-          </span>
-          {obs.category ? <Badge tone="info">{obs.category}</Badge> : null}
+    <article className={cn("rounded-2xl border bg-surface p-5 sm:p-6", isFlagged ? "border-amber-300" : "border-border")}>
+      <header className="flex flex-wrap items-center gap-x-2.5 gap-y-2">
+        <span
+          aria-label={`Góp ý số ${index + 1}`}
+          className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary-soft text-base font-semibold tabular-nums text-primary-dark"
+        >
+          {index + 1}
+        </span>
+        <Badge tone="neutral">{feedbackCategoryLabel(obs.category)}</Badge>
+        <span className="min-w-0 break-words text-base font-medium text-text-secondary">{obs.location}</span>
+      </header>
+
+      <div className="mt-4 grid items-stretch gap-2 md:grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] md:gap-3">
+        <div className="min-w-0 rounded-xl border border-red-100 bg-red-50/60 px-4 py-3.5">
+          <p className="eyebrow text-red-800">{originalLabel}</p>
+          <blockquote className="mt-1.5 break-words text-base leading-relaxed text-text">
+            &ldquo;{obs.original}&rdquo;
+          </blockquote>
         </div>
-        <div className="flex flex-wrap items-center gap-1.5">
-          <FlagButton
-            feedbackId={feedbackId}
-            observationIndex={index}
-            flagged={isFlagged}
-            onFlagged={onFlagged}
-          />
+
+        <div aria-hidden="true" className="flex items-center justify-center text-text-muted">
+          <Icon name="arrow-right" className="h-5 w-5 rotate-90 md:rotate-0" />
+        </div>
+
+        <div className="min-w-0 rounded-xl border border-emerald-100 bg-emerald-50/60 px-4 py-3.5">
+          <p className="eyebrow text-emerald-800">Cách sửa</p>
+          <p className="mt-1.5 break-words text-base leading-relaxed text-text">{obs.suggestion}</p>
           {obs.example ? (
-            <SavePhraseButton text={obs.example} sentence={obs.example} sourceRef={`${sourceRef || "Góp ý"} · ${obs.location} · câu mẫu đề xuất`} sourceType="feedback" />
+            <>
+              <p className="eyebrow mt-3 text-emerald-800">Câu mẫu</p>
+              <p className="mt-1.5 break-words text-base font-medium leading-relaxed text-text">
+                &ldquo;{obs.example}&rdquo;
+              </p>
+            </>
           ) : null}
         </div>
       </div>
 
-      <div className="mb-2.5 rounded-md border-l-2 border-rose-400 bg-rose-50 px-3 py-2 text-base italic text-rose-900">
-        &quot;{obs.original}&quot;
-      </div>
-
-      <p className="mb-1.5 text-base text-text">
-        <strong>Vấn đề:</strong> {obs.issue}
+      <p className="mt-4 text-base leading-relaxed text-text-secondary">
+        <span className="font-semibold text-text">Vì sao cần sửa: </span>
+        {obs.issue}
       </p>
-      <p className="mb-2.5 text-base text-emerald-800">
-        <strong>Cách sửa:</strong> {obs.suggestion}
-      </p>
-
-      {obs.example ? (
-        <div className="mb-2.5 rounded-md border-l-2 border-emerald-500 bg-emerald-50 px-3 py-2 text-base text-emerald-900">
-          <strong>Câu mẫu đề xuất:</strong> &quot;{obs.example}&quot;
-        </div>
-      ) : null}
 
       {obs.retry_prompt ? (
-        <div className="rounded-md border border-dashed border-slate-300 bg-surface-muted px-3 py-2 text-base text-text-secondary">
-          <strong>Thử thách bản sửa:</strong> {obs.retry_prompt}
+        <div className="mt-4 flex items-start gap-3 rounded-xl bg-primary-soft px-4 py-3.5">
+          <Icon name="refresh" className="mt-0.5 h-5 w-5 shrink-0 text-primary-dark" />
+          <p className="min-w-0 text-base leading-relaxed text-text">
+            <span className="font-semibold text-primary-dark">Thử lại: </span>
+            {obs.retry_prompt}
+          </p>
         </div>
       ) : null}
-    </div>
+
+      {feedbackId || obs.example ? (
+        <footer className="-mb-2 mt-4 flex flex-wrap items-center justify-between gap-x-1 border-t border-border pt-2 sm:justify-end sm:gap-x-2">
+          <FlagButton feedbackId={feedbackId} observationIndex={index} flagged={isFlagged} onFlagged={onFlagged} />
+          {obs.example ? (
+            <SavePhraseButton
+              text={obs.example}
+              sentence={obs.example}
+              sourceRef={`${sourceRef || "Góp ý"} · ${obs.location} · câu mẫu đề xuất`}
+              sourceType="feedback"
+            />
+          ) : null}
+        </footer>
+      ) : null}
+    </article>
   );
 }

@@ -2,13 +2,15 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { EmptyState, useToast } from "@/components/ui";
+import { Button, EmptyState, Icon, Skeleton, useToast } from "@/components/ui";
+import { PageContainer } from "@/components/layout";
 import type { ReviewVocabItem, SubmitReviewResponse } from "@/contracts/vocabulary";
 import type { ReviewOutcome } from "@/server/vocabulary/schedule";
 import { fetchReviewItems, submitWrittenReview } from "./api";
 import { ReviewCard, type ResponseMode } from "./review-card";
 import { ReviewResultPanel } from "./review-result-panel";
 import { ReviewSummary, type CompletedReview } from "./review-summary";
+import { ReviewNothingDue } from "./review-nothing-due";
 
 /**
  * ReviewSession — ôn viết câu (micro-challenge, Gemini chấm).
@@ -97,70 +99,31 @@ export function ReviewSession() {
 
   if (loading) {
     return (
-      <div className="max-w-xl mx-auto px-4 py-12 text-center">
-        <div className="animate-spin text-3xl mb-3">⏳</div>
-        <p className="text-base text-slate-500 font-medium">
-          Đang kiểm tra từ vựng đến hạn ôn tập...
-        </p>
-      </div>
+      <PageContainer size="narrow" className="space-y-4">
+        <p role="status" className="sr-only">Đang kiểm tra từ vựng đến hạn ôn tập...</p>
+        <Skeleton className="h-11 w-full rounded-xl" />
+        <Skeleton className="h-96 w-full rounded-2xl" />
+      </PageContainer>
     );
   }
 
   if (loadError) {
     return (
-      <div className="max-w-xl mx-auto px-4 py-12">
+      <PageContainer size="narrow">
         <EmptyState
           icon="alert-triangle"
           title="Không tải được từ đến hạn ôn"
           description={loadError}
-          action={
-            <button
-              onClick={handleRetry}
-              className="inline-flex min-h-11 items-center rounded-xl bg-primary px-4 text-base font-semibold text-white  transition hover:bg-primary-dark"
-            >
-              Thử lại 🔄
-            </button>
-          }
+          className="rounded-2xl border border-border bg-surface"
+          action={<Button onClick={handleRetry}><Icon name="refresh" className="h-4 w-4" />Thử lại</Button>}
         />
-      </div>
+      </PageContainer>
     );
   }
 
   // Không có từ nào đến hạn
   if (items.length === 0) {
-    return (
-      <div className="max-w-xl mx-auto px-4 py-10 space-y-6">
-        <div className="bg-white rounded-xl border border-slate-200 p-8 text-center  space-y-4">
-          <div className="w-16 h-16 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center text-3xl mx-auto">
-            ✨
-          </div>
-          <div>
-            <h2 className="text-lg font-semibold text-slate-900">
-              Tuyệt vời! Bạn không còn từ nào đến hạn ôn hôm nay
-            </h2>
-            <p className="text-base text-slate-600 mt-2 max-w-sm mx-auto leading-relaxed">
-              Các từ vựng trong Sổ từ đã được xếp lịch Spaced Repetition
-              (1 → 3 → 7 → 14 → 30 ngày). Hãy quay lại vào ngày mai hoặc thêm
-              từ mới từ bài đọc y khoa.
-            </p>
-          </div>
-          <div className="pt-2 flex flex-col sm:flex-row justify-center gap-3">
-            <Link
-              href="/today"
-              className="bg-primary hover:bg-primary-dark text-white font-semibold px-5 py-2.5 rounded-xl text-base transition "
-            >
-              Về trang Hôm nay
-            </Link>
-            <Link
-              href="/vocab"
-              className="border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold px-5 py-2.5 rounded-xl text-base transition"
-            >
-              Mở Sổ từ vựng
-            </Link>
-          </div>
-        </div>
-      </div>
-    );
+    return <ReviewNothingDue />;
   }
 
   // Đã hoàn thành tất cả từ trong phiên ôn
@@ -169,18 +132,21 @@ export function ReviewSession() {
   }
 
   return (
-    <div className="max-w-xl mx-auto px-4 py-6 space-y-6">
+    <PageContainer size="narrow" className="space-y-4">
       {/* Header thanh tiến trình */}
-      <div className="flex items-center justify-between">
-        <Link
-          href="/today"
-          className="text-base text-slate-500 hover:text-slate-800 flex items-center gap-1 font-medium transition"
-        >
-          ← Quay lại Hôm nay
-        </Link>
-        <span className="text-base font-semibold text-blue-600 bg-blue-50 px-2.5 py-1 rounded-full border border-blue-100">
-          Từ {currentIndex + 1} / {items.length}
-        </span>
+      <div className="space-y-2">
+        <div className="flex items-center justify-between gap-3">
+          <Link
+            href="/today"
+            className="pressable -ml-2 inline-flex min-h-11 items-center gap-2 rounded-lg px-2 text-base font-medium text-text-secondary no-underline hover:text-primary-dark"
+          >
+            <Icon name="arrow-left" className="h-4 w-4" />Quay lại Hôm nay
+          </Link>
+          <span className="text-sm font-medium tabular-nums text-text-secondary">
+            Từ {currentIndex + 1} / {items.length}
+          </span>
+        </div>
+        <progress aria-label="Tiến trình ôn từ" value={currentIndex + (reviewResult ? 1 : 0)} max={items.length} className="studio-progress h-2 rounded-full" />
       </div>
 
       {reviewResult ? (
@@ -201,6 +167,6 @@ export function ReviewSession() {
           onSubmit={handleSubmitReview}
         />
       )}
-    </div>
+    </PageContainer>
   );
 }

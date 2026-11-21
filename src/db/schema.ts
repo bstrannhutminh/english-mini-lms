@@ -349,6 +349,7 @@ export const vocabularyVault = pgTable("vocabulary_vault", {
   sourceType: text("source_type"), // book | video | article
   sourceRef: text("source_ref"), // page number, video timestamp, etc.
   myAttempt: text("my_attempt"), // learner's own sentence
+  imageUrl: text("image_url"), // ảnh minh hoạ flashcard (remote URL, nullable)
   masteryLevel: integer("mastery_level").notNull().default(0),
   dueAt: timestamp("due_at", { withTimezone: true })
     .notNull()

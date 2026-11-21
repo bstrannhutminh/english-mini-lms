@@ -105,6 +105,14 @@ export async function createVocabulary(learnerId: string, input: CreateVocabular
  * "mastered" = mastery_level >= MASTERY_MAX (4).
  * Trả về contract VocabularyItem (Date → ISO string).
  */
+/** Đếm số mục đến hạn ôn — dùng cho badge điều hướng, không tải cả danh sách. */
+export async function countDueVocabulary(learnerId: string): Promise<number> {
+  return db.$count(
+    vocabularyVault,
+    and(eq(vocabularyVault.learnerId, learnerId), lte(vocabularyVault.dueAt, new Date()))
+  );
+}
+
 export async function getLearnerVocabulary(
   learnerId: string,
   filter?: "all" | "due" | "mastered"

@@ -1,7 +1,7 @@
 "use client";
 
 import { ConfirmDialog } from "@/components/ui";
-import { useState } from "react";
+import { useState, type CSSProperties } from "react";
 import type {
   ModePlugin,
   SessionData,
@@ -12,11 +12,16 @@ import { HintBar } from "./hint-bar";
 import { ActionBar } from "./action-bar";
 import { ShellOverlays } from "./shell-overlays";
 import { useSessionController } from "./use-session-controller";
+import { SessionHintSlotProvider } from "./session-hint-slot";
+import { useMeasuredHeight } from "./use-measured-height";
 
 /**
- * Khung phiên học dùng chung ở chế độ Tập trung (Focus Mode):
- * header sticky + xác nhận thoát, đồng hồ bền bỉ qua sessionStorage, tự lưu nháp,
- * thang gợi ý, cảnh báo mất mạng, Smart Capture, phím tắt, thanh hành động dính đáy.
+ * Khung phiên học dùng chung ở chế độ Tập trung (Learning Studio):
+ * thanh ứng dụng tràn ngang + vạch tiến độ thời gian, xác nhận thoát, đồng hồ bền
+ * bỉ qua sessionStorage, tự lưu nháp, thang gợi ý (đưa qua slot cho panel đặt
+ * dưới công tắc Đề bài/Bài làm), cảnh báo mất mạng, Smart Capture, phím tắt,
+ * thanh hành động dính đáy. Chiều cao header/thanh đáy được đo và phát qua
+ * biến CSS --studio-header / --studio-action cho các phần tử sticky.
  */
 export function SessionShell({
   plugin,
@@ -27,7 +32,8 @@ export function SessionShell({
   isIelts: boolean;
   data: SessionData;
 }) {
-  const [actionSpace, setActionSpace] = useState(160);
+  const [actionSpace, setActionSpace] = useState(96);
+  const header = useMeasuredHeight<HTMLElement>(60);
   const {
     state,
     setState,
@@ -64,11 +70,29 @@ export function SessionShell({
     description: "Đang phân tích bài làm theo rubric. Quá trình mất khoảng 15–30 giây.",
   };
 
-  return (
-    <div
-      className="mx-auto w-full max-w-[1200px] px-4 pt-0 sm:px-6"
-      style={{ paddingBottom: hideActionBar ? 40 : actionSpace + 24 }}
+  const targetSeconds = Math.max(1, data.targetMinutes * 60);
+  const elapsedRatio = 1 - Math.min(1, timer.secondsRemaining / targetSeconds);
+  const bottomSpace = hideActionBar ? 0 : actionSpace;
+  const studioVars = {
+    "--studio-header": `${header.height}px`,
+    "--studio-action": `${bottomSpace}px`,
+    paddingBottom: bottomSpace + (hideActionBar ? 40 : 24),
+  } as CSSProperties;
+
+  const hintSlot = HintContent && !submissionResult ? (
+    <HintBar
+      label={plugin.hintLabel ?? "Xin gợi ý"}
+      shown={hintShown}
+      loading={hintLoading}
+      error={hintError}
+      onRequest={handleRequestHint}
     >
+      <HintContent data={data} />
+    </HintBar>
+  ) : null;
+
+  return (
+    <div className="min-h-dvh" style={studioVars}>
       <ShellOverlays
         isSubmitting={isSubmitting}
         submitTitle={overlayCopy.title}
@@ -98,6 +122,7 @@ export function SessionShell({
       />
 
       <ShellHeader
+        headerRef={header.ref}
         title={data.activity.title}
         skill={plugin.skill}
         isIelts={isIelts}
@@ -105,6 +130,7 @@ export function SessionShell({
         timerFormatted={timer.formatted}
         timerActive={timer.isActive}
         isLowTime={timer.secondsRemaining < 300}
+        elapsedRatio={elapsedRatio}
         onToggleTimer={timer.toggle}
         onRequestExit={onRequestExit}
         saveStatus={{
@@ -115,29 +141,21 @@ export function SessionShell({
         }}
       />
 
-      <OfflineBanner isOnline={isOnline} onRetrySave={handleSaveDraft} />
+      <div className="mx-auto w-full max-w-[1240px] px-4 sm:px-6 lg:pt-6">
+        <OfflineBanner isOnline={isOnline} onRetrySave={handleSaveDraft} />
 
-      {HintContent && !submissionResult && (
-        <HintBar
-          label={plugin.hintLabel ?? "Xin gợi ý"}
-          shown={hintShown}
-          loading={hintLoading}
-          error={hintError}
-          onRequest={handleRequestHint}
-        >
-          <HintContent data={data} />
-        </HintBar>
-      )}
-
-      <plugin.Panel
-        data={data}
-        state={state}
-        setState={setState}
-        busy={isSubmitting}
-        postEvent={postEvent}
-        capture={capture.helpers}
-        submission={submissionResult}
-      />
+        <SessionHintSlotProvider value={hintSlot}>
+          <plugin.Panel
+            data={data}
+            state={state}
+            setState={setState}
+            busy={isSubmitting}
+            postEvent={postEvent}
+            capture={capture.helpers}
+            submission={submissionResult}
+          />
+        </SessionHintSlotProvider>
+      </div>
 
       {!hideActionBar && (
         <ActionBar

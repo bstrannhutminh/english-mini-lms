@@ -29,7 +29,7 @@ export function PageContainer({
   return (
     <div
       className={cn(
-        "mx-auto w-full",
+        "page-enter mx-auto w-full",
         SIZE_CLASSES[size],
         padded && "px-5 py-6 sm:px-6 sm:py-8 lg:px-8 lg:py-10",
         className

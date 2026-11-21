@@ -1,50 +1,58 @@
 "use client";
 
-import { Button, Card, Spinner } from "@/components/ui";
+import { Button, Icon, Spinner } from "@/components/ui";
 import { useAssessmentPolling } from "./use-assessment-polling";
 
 interface PendingStateProps {
   status: string; // "queued" | "processing"
 }
 
+/** Những phần sẽ xuất hiện khi chấm xong — để người học biết mình đang chờ gì. */
+const UPCOMING = ["Điểm ước tính luyện tập", "Các điểm cần sửa trước", "Việc cần làm ở bản tiếp theo"];
+
 /**
- * Banner "chờ chấm" — tự cập nhật (poll router.refresh 6s) khi assessment
+ * Thẻ "đang chấm" — tự cập nhật (poll router.refresh 6s) khi assessment
  * đang queued/processing. Hết ~5 phút mà chưa xong → báo chậm + nút làm mới tay.
  */
 export function PendingState({ status }: PendingStateProps) {
   const { polling, timedOut, refresh } = useAssessmentPolling(status);
 
   return (
-    <Card className="mb-4 flex flex-wrap items-center justify-between gap-3 border-emerald-200 bg-emerald-50">
+    <section aria-live="polite" className="rounded-2xl border border-teal-200 bg-surface p-5 shadow-card sm:p-6">
       <div className="flex items-center gap-3">
-        <Spinner size="md" label="Đang chờ chấm" className="text-emerald-700" />
-        <div>
-          <p className="text-base font-bold text-emerald-900">
-            Đang chờ chấm điểm từ AI…
-          </p>
-          <p className="mt-0.5 text-base text-emerald-800">
-            {status === "queued"
-              ? "Bài nộp đã vào hàng đợi xử lý của hệ thống."
-              : "Gemini đang phân tích bài làm và chấm điểm theo rubric."}
-            {polling ? " Trang sẽ tự cập nhật vài giây một lần." : ""}
-          </p>
-          {timedOut ? (
-            <p className="mt-1 text-base font-medium text-amber-800">
-              Việc chấm đang lâu hơn bình thường — bạn có thể làm mới tay hoặc
-              quay lại sau.
-            </p>
-          ) : null}
-        </div>
+        <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary-soft text-primary-dark">
+          {timedOut ? <Icon name="clock" className="h-5 w-5" /> : <Spinner size="md" label="Đang chờ chấm" />}
+        </span>
+        <h2 className="min-w-0 text-lg font-semibold leading-snug text-text">
+          {timedOut ? "Việc chấm đang lâu hơn bình thường" : "AI đang chấm bài của bạn"}
+        </h2>
       </div>
 
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={refresh}
-        className="border-emerald-300 bg-white text-emerald-800 hover:bg-emerald-100"
-      >
-        Làm mới kết quả
-      </Button>
-    </Card>
+      <div className="mt-3 sm:pl-[52px]">
+        <p className="text-base leading-relaxed text-text-secondary">
+          {status === "queued"
+            ? "Bài nộp đã được lưu và đang trong hàng đợi chấm."
+            : "Bài nộp đã được lưu, Gemini đang phân tích bài làm theo rubric."}{" "}
+          {polling
+            ? "Trang sẽ tự cập nhật vài giây một lần — bạn không cần bấm gì."
+            : "Bạn có thể làm mới tay hoặc quay lại sau; bài nộp vẫn được giữ nguyên."}
+        </p>
+
+        <p className="eyebrow mt-4">Khi chấm xong bạn sẽ thấy</p>
+        <ul className="mt-1.5 flex flex-col gap-x-8 gap-y-1 text-base text-text-secondary sm:flex-row sm:flex-wrap">
+          {UPCOMING.map((item) => (
+            <li key={item} className="flex items-center gap-2.5">
+              <span aria-hidden="true" className="h-1.5 w-1.5 shrink-0 rounded-full bg-teal-200" />
+              {item}
+            </li>
+          ))}
+        </ul>
+
+        <Button variant="outline" onClick={refresh} className="mt-4">
+          <Icon name="refresh" className="h-4 w-4" />
+          Làm mới kết quả
+        </Button>
+      </div>
+    </section>
   );
 }

@@ -1,0 +1,5 @@
+33|49|Here's one flu virus particle. On the inside is the virus' RNA, and on the outside are lots and lots of hemagglutinin proteins. Hemagglutinin attaches to a receptor on a human cell and fuses the viral and human membranes, starting the infection.
+49|64|Hemagglutinin is also one of the things your immune system recognizes and reacts to the most. To understand how this works, think of hemagglutinin as a bust of 19th century French Emperor Napoleon Bonaparte. Croissant!
+64|74|If you show Napoleon to an immune system and say, "remember him," the immune system will mostly focus on his head. And the same is true for the real hemagglutinin.
+74|84|One way the immune system remembers things is by physically interacting with them. Think of it as making plaster molds of parts of the head: we call these molds antibodies.
+84|95|The antibodies float around your bloodstream for a while and then can diminish, but blueprints on how to make them are stored in specialized memory cells, waiting for future Napoleons to invade.

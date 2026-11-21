@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { eq } from "drizzle-orm";
 import { db } from "@/db";
 import { learners } from "@/db/schema";
@@ -33,8 +34,14 @@ async function findLearnerByUserId(userId: string): Promise<CurrentLearner | nul
  * Lấy thông tin learner hiện tại từ Supabase Auth session.
  * Tự động tạo bản ghi learners nếu người dùng mới đăng nhập lần đầu.
  * Hỗ trợ dev bypass khi bật biến DEV_BYPASS_AUTH=true.
+ *
+ * Bọc bằng React `cache()`: trong một lượt render server, layout và page cùng
+ * gọi hàm này nhưng chỉ tốn 1 lần `auth.getUser()` + 1 truy vấn learners.
+ * Ngoài render (route handler, test) `cache` gọi thẳng, không giữ kết quả.
  */
-export async function getCurrentLearner(): Promise<CurrentLearner | null> {
+export const getCurrentLearner = cache(loadCurrentLearner);
+
+async function loadCurrentLearner(): Promise<CurrentLearner | null> {
   const supabase = await createClient();
   const {
     data: { user },

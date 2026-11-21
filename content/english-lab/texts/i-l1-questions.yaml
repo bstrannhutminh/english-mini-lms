@@ -1,0 +1,50 @@
+# Bộ câu hỏi nghe hiểu cho bài I-L1 (IELTS Listening Part 2 — độc thoại TED-Ed về vắc-xin cúm phổ quát)
+# Đáp án bị khóa đến khi nộp bài (answer_reveal: after_submit)
+
+title: "Nghe hiểu: Hemagglutinin và cách hệ miễn dịch ghi nhớ virus cúm"
+segment_id: "seg-i-l1"
+questions:
+  - id: "q1"
+    prompt: "According to the talk, what role does hemagglutinin play in influenza infection?"
+    options:
+      - id: "A"
+        text: "It breaks down the human cell membrane so the virus can enter the nucleus directly."
+      - id: "B"
+        text: "It attaches to a receptor on a human cell and fuses the viral and cell membranes, starting the infection."
+      - id: "C"
+        text: "It copies viral RNA and produces new virus particles in the blood."
+      - id: "D"
+        text: "It prevents immune recognition by disguising the virus as a human cell."
+    correct_option_id: "B"
+    explanation: "Ở mốc giây 41–49 (00:41), người kể giải thích: 'Hemagglutinin attaches to a receptor on a human cell and fuses the viral and human membranes, starting the infection.'"
+    timestamp_reference: 44
+
+  - id: "q2"
+    prompt: "Why does the narrator compare hemagglutinin to a bust of Napoleon?"
+    options:
+      - id: "A"
+        text: "Because hemagglutinin resembles Napoleon's hat under a microscope."
+      - id: "B"
+        text: "Because both continually change shape over time."
+      - id: "C"
+        text: "Because the immune system mainly focuses on hemagglutinin's 'head', just as it would focus on the head of a bust of Napoleon."
+      - id: "D"
+        text: "Because Napoleon was the first person to discover this protein in the nineteenth century."
+    correct_option_id: "C"
+    explanation: "Ở mốc giây 64–74 (01:04), người kể nói: 'If you show Napoleon to an immune system and say, \"remember him,\" the immune system will mostly focus on his head. And the same is true for the real hemagglutinin.'"
+    timestamp_reference: 66
+
+  - id: "q3"
+    prompt: "According to the talk, how does the immune system remember the virus to respond to a later infection?"
+    options:
+      - id: "A"
+        text: "It keeps the same number of antibodies circulating in the blood forever."
+      - id: "B"
+        text: "It makes 'plaster molds' of parts of hemagglutinin's head, called antibodies, and stores the blueprints for making them in specialized memory cells."
+      - id: "C"
+        text: "It destroys every virus at the first exposure, so no memory is needed."
+      - id: "D"
+        text: "It copies viral RNA into memory cells to recognize the virus in the future."
+    correct_option_id: "B"
+    explanation: "Ở mốc giây 78–92 (01:18), người kể giải thích: 'Think of it as making plaster molds of parts of the head: we call these molds antibodies... blueprints on how to make them are stored in specialized memory cells.'"
+    timestamp_reference: 83

@@ -34,6 +34,7 @@ export async function getDueVocabularyForReview(
       originalSentence: vocabularyVault.originalSentence,
       sourceRef: vocabularyVault.sourceRef,
       myAttempt: vocabularyVault.myAttempt,
+      imageUrl: vocabularyVault.imageUrl,
       masteryLevel: vocabularyVault.masteryLevel,
       dueAt: vocabularyVault.dueAt,
     })
@@ -61,6 +62,7 @@ export async function getDueVocabularyForReview(
         originalSentence: vocabularyVault.originalSentence,
         sourceRef: vocabularyVault.sourceRef,
         myAttempt: vocabularyVault.myAttempt,
+        imageUrl: vocabularyVault.imageUrl,
         masteryLevel: vocabularyVault.masteryLevel,
         dueAt: vocabularyVault.dueAt,
       })

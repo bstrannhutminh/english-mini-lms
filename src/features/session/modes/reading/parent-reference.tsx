@@ -2,6 +2,11 @@
 
 import type { WritingFeedback } from "@/server/providers/gemini/types";
 import type { CaptureHelpers, SessionParentData } from "../types";
+import {
+  RevisionFixList,
+  RevisionReferenceCard,
+  RevisionSection,
+} from "../../shared/revision-reference-card";
 import { parseReadingPayload } from "./state";
 
 /**
@@ -29,55 +34,29 @@ export function ReadingParentReference({
     parent.mainIdea ||
     parentData.submission.body ||
     "";
+  const { id, revision } = parentData.submission;
 
   return (
-    <div className="mb-4 overflow-hidden rounded-xl border border-orange-200 bg-white">
-      <button
-        type="button"
-        onClick={onToggle}
-        className="flex min-h-[48px] w-full items-center justify-between bg-orange-50 px-4 py-3 text-left text-base font-semibold text-orange-700"
-      >
-        <span>
-          📖 Đối chiếu Bản {parentData.submission.revision} và các lỗi cần sửa (
-          {open ? "Thu gọn" : "Mở rộng"})
-        </span>
-        <span>{open ? "▲" : "▼"}</span>
-      </button>
-
-      {open && (
-        <div className="p-3.5 text-base">
-          <div
-            {...capture.selectHandlers(parentText, `${sourceRef} · bài nộp ${parentData.submission.id} · bản ${parentData.submission.revision}`, "text")}
-            className="mb-3 whitespace-pre-wrap rounded-lg border border-slate-200 bg-slate-50 p-3 leading-relaxed text-slate-700"
-          >
-            {parentText}
-          </div>
-
-          {feedback?.observations && feedback.observations.length > 0 && (
-            <div>
-              <div className="mb-1.5 font-semibold text-orange-800">
-                Các điểm cần tập trung sửa từ bản trước:
-              </div>
-              <div className="flex flex-col gap-1.5">
-                {feedback.observations.map((obs, idx) => (
-                  <div
-                    key={idx}
-                    className="rounded-md border border-amber-200 bg-amber-50 px-2.5 py-2 text-base"
-                  >
-                    <span className="font-semibold text-amber-700">
-                      {obs.location}:
-                    </span>{" "}
-                    <span className="text-amber-900">{obs.issue}</span> →{" "}
-                    <span className="font-medium text-emerald-700">
-                      {obs.suggestion}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
+    <RevisionReferenceCard
+      revision={revision}
+      open={open}
+      onToggle={onToggle}
+      fullFeedbackHref={`/my-work/${id}`}
+    >
+      {feedback?.observations && feedback.observations.length > 0 && (
+        <RevisionSection label="Điểm cần tập trung sửa từ bản trước">
+          <RevisionFixList items={feedback.observations} />
+        </RevisionSection>
       )}
-    </div>
+
+      <RevisionSection label={`Bản dịch ở bản ${revision}`}>
+        <div
+          {...capture.selectHandlers(parentText, `${sourceRef} · bài nộp ${id} · bản ${revision}`, "text")}
+          className="max-w-[65ch] whitespace-pre-wrap rounded-xl bg-surface-muted p-4 text-base leading-relaxed text-text-secondary"
+        >
+          {parentText}
+        </div>
+      </RevisionSection>
+    </RevisionReferenceCard>
   );
 }

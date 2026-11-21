@@ -8,13 +8,13 @@ import type { NextRequest } from "next/server";
 import { getCurrentLearner, type CurrentLearner } from "@/server/auth";
 import { apiError } from "./api-error";
 import { mapServiceError } from "./map-service-error";
-import type { LearnerHandlerArgs } from "./with-learner";
+import type { HttpRouteHandler, LearnerHandlerArgs } from "./with-learner";
 
 export function withAdmin<TParams = unknown>(
   handler: (
     args: LearnerHandlerArgs<TParams>
   ) => Promise<Response> | Response
-) {
+): HttpRouteHandler<TParams> {
   return async function wrappedRoute(
     req: NextRequest,
     routeCtx?: { params?: Promise<TParams> }

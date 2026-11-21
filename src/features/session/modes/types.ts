@@ -163,7 +163,11 @@ export interface ModePlugin {
   buildSubmission: (state: ModeState) => SubmissionInput;
   /** Nội dung lưu nháp định kỳ; trả "" khi chưa có gì để lưu. */
   buildDraft: (state: ModeState) => string;
-  /** Nội dung hiển thị sau khi bấm "Xin gợi ý" (đã ghi event hint). */
+  /**
+   * Nội dung hiển thị sau khi bấm "Xin gợi ý" (đã ghi event hint). Shell đưa
+   * HintBar qua slot (shell/session-hint-slot) — Panel dùng SessionColumns sẽ
+   * tự đặt nó dưới công tắc Đề bài/Bài làm.
+   */
   Hint?: ComponentType<{ data: SessionData }>;
   /** Nhãn nút gợi ý, ví dụ "Xin gợi ý dàn bài". */
   hintLabel?: string;

@@ -1,7 +1,8 @@
 import Link from "next/link";
-import { Badge, Icon } from "@/components/ui";
+import { Icon, SkillTile } from "@/components/ui";
 import { modeMeta } from "@/lib/modes";
 import type { SubmissionListItem } from "@/contracts/submission";
+import { formatSubmittedAt } from "@/lib/format-submitted-at";
 import { AssessmentStatusBadge } from "./assessment-status-badge";
 import type { RevisionInfo } from "../revision-chain";
 
@@ -10,74 +11,56 @@ interface SubmissionCardProps {
   revision: RevisionInfo;
 }
 
-function formatSubmittedAt(value: string): string {
-  const d = new Date(value);
-  const hh = String(d.getHours()).padStart(2, "0");
-  const mm = String(d.getMinutes()).padStart(2, "0");
-  return `${hh}:${mm} · ${d.toLocaleDateString("vi-VN")}`;
-}
-
-/** Thẻ 1 bài nộp trong danh sách — link tới trang chi tiết /my-work/[id]. */
+/**
+ * Một bài nộp trong danh sách — cả thẻ là MỘT link tới trang góp ý.
+ * Dòng meta: slot · Bản n · độc lập/có hỗ trợ · thời gian; hàng cuối: trạng
+ * thái chấm + gợi ý chuỗi bản sửa (mọi dữ kiện lấy từ dữ liệu, không suy diễn).
+ */
 export function SubmissionCard({ item, revision }: SubmissionCardProps) {
   const meta = modeMeta(item.activityMode);
+  const versionLabel = `Bản ${revision.position}${revision.chainLength > 1 ? `/${revision.chainLength}` : ""}`;
+  const submittedAt = formatSubmittedAt(item.submittedAt);
+  const chainHint = revision.childId
+    ? `Đã có Bản ${revision.position + 1} mới hơn`
+    : revision.parentId
+      ? `Sửa từ Bản ${revision.position - 1}`
+      : null;
 
   return (
     <Link
       href={`/my-work/${item.id}`}
-      className="group block rounded-xl border border-border bg-surface p-5 no-underline transition hover:border-primary hover:bg-primary-soft/30"
+      className="card-lift pressable group flex items-start gap-3.5 rounded-2xl border border-border bg-surface p-4 sm:gap-4 sm:p-5"
     >
-      {/* Hàng meta: mode chip + IELTS + Bản n/m + assisted + trạng thái chấm */}
-      <div className="mb-2.5 flex flex-wrap items-center justify-between gap-2">
-        <div className="flex flex-wrap items-center gap-1.5">
-          <span
-            className={`inline-flex items-center gap-1 rounded-md border px-2.5 py-0.5 text-base font-bold ${meta.badgeClass}`}
-          >
-            <Icon name={meta.icon} className="h-3.5 w-3.5" />
-            {item.activitySlot ? `${item.activitySlot} · ` : ""}
-            {meta.shortLabel}
+      <SkillTile mode={item.activityMode} size="md" />
+      <div className="min-w-0 flex-1">
+        <p className="eyebrow">
+          {meta.shortLabel}
+          {meta.isIelts ? " · IELTS luyện tập" : ""}
+        </p>
+        <h2 className="mt-0.5 break-words text-lg font-semibold leading-snug text-text group-hover:text-primary-dark">
+          {item.activityTitle}
+        </h2>
+        <p className="mt-1 text-sm leading-6 text-text-secondary">
+          {item.activitySlot ? `${item.activitySlot} · ` : ""}
+          {versionLabel} · {item.assisted ? "Có hỗ trợ" : "Tự làm độc lập"}
+          {/* ≥sm: thời gian nằm cùng dòng meta; mobile: xuống hàng trạng thái để không gãy dòng */}
+          <span className="hidden sm:inline">
+            {" · "}
+            <time dateTime={item.submittedAt}>{submittedAt}</time>
           </span>
-          {meta.isIelts ? <Badge tone="neutral">IELTS</Badge> : null}
-
-          <Badge tone="neutral">
-            Bản {revision.position}
-            {revision.chainLength > 1 ? `/${revision.chainLength}` : ""}
-          </Badge>
-          {revision.childId ? (
-            <Badge tone="info" title="Đã có bản sửa mới hơn">
-              đã sửa → Bản {revision.position + 1}
-            </Badge>
+        </p>
+        <div className="mt-2.5 flex flex-wrap items-center justify-between gap-x-3 gap-y-1.5 sm:justify-start">
+          <AssessmentStatusBadge status={item.assessmentStatus} />
+          <time dateTime={item.submittedAt} className="text-sm text-text-muted sm:hidden">{submittedAt}</time>
+          {chainHint ? (
+            <span className="inline-flex items-center gap-1.5 text-sm text-text-muted">
+              <Icon name="layers" className="h-4 w-4" />
+              {chainHint}
+            </span>
           ) : null}
-          {revision.parentId ? (
-            <Badge tone="neutral" title="Bản sửa từ bản trước">
-              ← sửa từ Bản {revision.position - 1}
-            </Badge>
-          ) : null}
-
-          {item.assisted ? (
-            <Badge tone="warning" title="Bài có dùng gợi ý/đáp án trước khi nộp">
-              Có hỗ trợ
-            </Badge>
-          ) : (
-            <Badge tone="success" title="Bài làm không dùng gợi ý">
-              Độc lập
-            </Badge>
-          )}
         </div>
-
-        <AssessmentStatusBadge status={item.assessmentStatus} />
       </div>
-
-      <h2 className="mb-3 break-words text-lg font-semibold leading-snug text-text transition group-hover:text-primary-dark">
-        {item.activityTitle}
-      </h2>
-
-      <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-3 text-base text-text-secondary">
-        <span>Nộp lúc {formatSubmittedAt(item.submittedAt)}</span>
-        <span className="flex items-center gap-1 font-semibold text-teal-700 transition-transform group-hover:translate-x-0.5">
-          Xem bài làm & nhận xét
-          <Icon name="arrow-right" className="h-3.5 w-3.5" />
-        </span>
-      </div>
+      <Icon name="chevron-right" className="mt-3 hidden h-5 w-5 shrink-0 sm:block text-text-muted transition-transform group-hover:translate-x-0.5 group-hover:text-primary-dark" />
     </Link>
   );
 }

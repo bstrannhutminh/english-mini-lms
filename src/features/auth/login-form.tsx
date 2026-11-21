@@ -32,19 +32,25 @@ export function LoginForm({ initialError, showBrowserHint }: LoginFormProps) {
   const [error, setError] = useState<string | null>(initialError ?? null);
 
   return (
-    <div className="flex min-h-dvh items-center justify-center bg-surface-muted px-5 py-10 sm:px-6">
-      <div className="w-full max-w-md rounded-xl border border-border bg-surface p-6 sm:p-8">
-        <div className="mb-8 text-left">
-          <div className="mb-5 flex h-11 w-11 items-center justify-center rounded-lg bg-primary text-base font-semibold tracking-wide text-white">
-            MD
-          </div>
-          <h1 className="text-2xl font-semibold tracking-tight text-text">
-            English Mini LMS
-          </h1>
-          <p className="mt-2 text-base leading-relaxed text-text-secondary">
-            Không gian học tiếng Anh cá nhân, 30–45 phút mỗi ngày.
-          </p>
+    <main className="grid min-h-dvh bg-surface-muted lg:grid-cols-2">
+      <aside className="hidden flex-col justify-between border-r border-border bg-surface-subtle p-12 lg:flex xl:p-16" aria-label="Không gian học cá nhân">
+        <p className="flex items-center gap-3 text-base font-semibold text-primary-dark">
+          <Icon name="book-open" className="h-6 w-6" />English Mini LMS
+        </p>
+        <div className="my-12 max-w-lg">
+          <p className="text-base font-medium text-primary-dark">30–45 phút dành cho chính mình</p>
+          <h2 className="mt-5 text-5xl font-semibold leading-tight tracking-tight text-text">Tiếng Anh cho những điều bạn muốn làm.</h2>
+          <p className="mt-6 max-w-prose text-lg leading-relaxed text-text-secondary">Từ giao tiếp công việc đến đọc tài liệu y khoa. Luyện một bài, xem góp ý, rồi thử lại theo nhịp của bạn.</p>
         </div>
+        <p className="border-t border-border pt-6 text-base text-text-secondary">Nghe · Nói · Đọc · Viết</p>
+      </aside>
+      <div className="flex min-w-0 items-center justify-center px-5 py-10 sm:px-8 lg:px-12">
+        <div className="w-full max-w-md">
+          <header className="mb-8 text-left">
+            <p className="mb-5 flex items-center gap-2 text-base font-medium text-primary-dark lg:hidden"><Icon name="book-open" className="h-5 w-5" />English Mini LMS</p>
+            <h1 className="text-3xl font-semibold tracking-tight text-text">Trở lại góc học tập</h1>
+            <p className="mt-2 text-base leading-relaxed text-text-secondary">Đăng nhập để tiếp tục bài học của bạn.</p>
+          </header>
 
         {error && (
           <div
@@ -103,7 +109,8 @@ export function LoginForm({ initialError, showBrowserHint }: LoginFormProps) {
             <BrowserHint />
           </>
         )}
+        </div>
       </div>
-    </div>
+    </main>
   );
 }

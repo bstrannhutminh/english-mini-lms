@@ -6,22 +6,25 @@ export interface CardProps extends HTMLAttributes<HTMLDivElement> {
   padded?: boolean;
   /** Thẻ bấm được: hover nhấn + con trỏ (dùng kèm role/tabIndex của caller). */
   interactive?: boolean;
+  /** Thêm bóng nhẹ cho thẻ chính của trang (mặc định phẳng). */
+  elevated?: boolean;
 }
 
-/** Khung thẻ nhẹ: nền trắng, đường mảnh và bo 12px. */
+/** Khung thẻ nhẹ: nền trắng, đường mảnh và bo 16px. */
 export function Card({
   padded = true,
   interactive = false,
+  elevated = false,
   className,
   ...rest
 }: CardProps) {
   return (
     <div
       className={cn(
-        "rounded-xl border border-border bg-surface",
+        "rounded-2xl border border-border bg-surface",
         padded && "p-5 sm:p-6",
-        interactive &&
-          "cursor-pointer transition-colors hover:border-border-strong hover:bg-surface-muted",
+        elevated && "shadow-card",
+        interactive && "card-lift cursor-pointer",
         className
       )}
       {...rest}

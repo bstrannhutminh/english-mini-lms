@@ -13,7 +13,7 @@ interface MobileTopBarProps {
  */
 export function MobileTopBar({ user }: MobileTopBarProps) {
   return (
-    <header className="fixed inset-x-0 top-0 z-(--z-nav) flex h-(--topbar-height) items-center justify-between border-b border-border bg-surface px-5 pt-[env(safe-area-inset-top,0px)] lg:hidden">
+    <header className="fixed inset-x-0 top-0 z-(--z-nav) flex h-(--topbar-height) items-center justify-between border-b border-border bg-surface/95 px-5 backdrop-blur-md pt-[env(safe-area-inset-top,0px)] lg:hidden">
       <Link
         href="/today"
         aria-label="English Mini LMS — về Hôm nay"

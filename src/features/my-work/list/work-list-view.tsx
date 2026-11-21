@@ -3,43 +3,20 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import type { SubmissionListItem } from "@/contracts/submission";
-import { modeSkill, SKILL_INFO, type Skill } from "@/lib/modes";
-import {
-  Button,
-  EmptyState,
-  Icon,
-  Skeleton,
-  Tabs,
-} from "@/components/ui";
+import { modeSkill } from "@/lib/modes";
+import { PageContainer } from "@/components/layout";
+import { Button, EmptyState, Icon } from "@/components/ui";
 import { getRevisionInfo } from "../revision-chain";
 import { SubmissionCard } from "./submission-card";
+import { SubmissionListSkeleton } from "./submission-list-skeleton";
 import { useSubmissionList } from "./use-submission-list";
-
-type ModeFilter = "all" | Skill;
-type StatusFilter =
-  | "all"
-  | "feedback_ready"
-  | "processing"
-  | "not_assessed"
-  | "needs_input"
-  | "failed";
-
-const MODE_TABS = [
-  { value: "all" as ModeFilter, label: "Tất cả kỹ năng" },
-  { value: "writing" as ModeFilter, label: SKILL_INFO.writing.shortLabel },
-  { value: "reading" as ModeFilter, label: SKILL_INFO.reading.shortLabel },
-  { value: "speaking" as ModeFilter, label: SKILL_INFO.speaking.shortLabel },
-  { value: "listening" as ModeFilter, label: SKILL_INFO.listening.shortLabel },
-];
-
-const STATUS_TABS: { value: StatusFilter; label: string }[] = [
-  { value: "all", label: "Tất cả trạng thái" },
-  { value: "feedback_ready", label: "Có góp ý" },
-  { value: "processing", label: "Đang chấm" },
-  { value: "not_assessed", label: "Chưa chấm" },
-  { value: "needs_input", label: "Đã gắn cờ" },
-  { value: "failed", label: "Lỗi chấm" },
-];
+import {
+  MODE_FILTERS,
+  STATUS_FILTERS,
+  WorkListFilters,
+  type ModeFilter,
+  type StatusFilter,
+} from "./work-list-filters";
 
 function matchesStatus(item: SubmissionListItem, filter: StatusFilter): boolean {
   if (filter === "all") return true;
@@ -49,9 +26,14 @@ function matchesStatus(item: SubmissionListItem, filter: StatusFilter): boolean 
   return item.assessmentStatus === filter;
 }
 
-/** /my-work — danh sách bài nộp: bản đầu – trạng thái – chuỗi bản sửa. */
-export function WorkListView() {
-  const { submissions, loading, error, handleRetry } = useSubmissionList();
+export interface WorkListViewProps {
+  /** Danh sách server render sẵn — có thì không có skeleton/fetch lần đầu. */
+  initialData?: SubmissionListItem[];
+}
+
+/** /my-work — danh sách bài nộp: kỹ năng – trạng thái chấm – chuỗi bản sửa. */
+export function WorkListView({ initialData }: WorkListViewProps) {
+  const { submissions, loading, error, handleRetry } = useSubmissionList(initialData);
   const [modeFilter, setModeFilter] = useState<ModeFilter>("all");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
 
@@ -66,63 +48,44 @@ export function WorkListView() {
     [submissions, modeFilter, statusFilter]
   );
 
-  const modeTabs = MODE_TABS.map((t) => ({
-    value: t.value,
-    label: t.label,
+  const modeOptions = MODE_FILTERS.map((option) => ({
+    ...option,
     count:
-      t.value === "all"
+      option.value === "all"
         ? submissions.length
-        : submissions.filter((s) => modeSkill(s.activityMode) === t.value).length,
+        : submissions.filter((s) => modeSkill(s.activityMode) === option.value).length,
   }));
 
+  // Chỉ hiện chip trạng thái đang có bài (và chip đang chọn) để hàng lọc gọn.
+  const statusOptions = STATUS_FILTERS.map((option) => ({
+    ...option,
+    count: submissions.filter((s) => matchesStatus(s, option.value)).length,
+  })).filter((option) => option.value === "all" || option.count > 0 || option.value === statusFilter);
+
+  const isEmpty = submissions.length === 0;
+
   return (
-    <div className="mx-auto w-full max-w-5xl px-4 pb-12 pt-6 sm:px-6">
-      <header className="mb-6">
-        <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight text-text">
-          <Icon name="file-text" className="h-6 w-6 text-teal-700" />
-          Bài của tôi
-        </h1>
-        <p className="mt-1 text-base text-text-secondary">
-          Xem lại tất cả bài tập đã nộp, trạng thái chấm của AI và lịch sử sửa bài.
+    <PageContainer className="space-y-5">
+      <header>
+        <h1 className="text-2xl font-semibold tracking-tight text-text sm:text-3xl">Bài của tôi</h1>
+        <p className="mt-1 text-base leading-relaxed text-text-secondary">
+          Mở lại bài đã nộp để đọc góp ý và sửa thành bản tốt hơn.
         </p>
       </header>
 
-      {/* Bộ lọc: kỹ năng (gộp IELTS vào skill gốc) + trạng thái chấm */}
-      <div className="mb-6 space-y-3 border-b border-border pb-5">
-        <Tabs
-          variant="underline"
-          aria-label="Lọc theo kỹ năng"
-          tabs={modeTabs}
-          value={modeFilter}
-          onValueChange={(v) => setModeFilter(v as ModeFilter)}
-          className="max-w-full overflow-x-auto"
+      {!isEmpty ? (
+        <WorkListFilters
+          modeOptions={modeOptions}
+          statusOptions={statusOptions}
+          mode={modeFilter}
+          status={statusFilter}
+          onModeChange={setModeFilter}
+          onStatusChange={setStatusFilter}
         />
-        <div className="flex flex-wrap items-center gap-2 border-t border-slate-100 pt-2 text-base text-text-secondary">
-          <span className="font-medium">Trạng thái chấm:</span>
-          {STATUS_TABS.map((st) => (
-            <button
-              key={st.value}
-              type="button"
-              onClick={() => setStatusFilter(st.value)}
-              aria-pressed={statusFilter === st.value}
-              className={`min-h-11 cursor-pointer rounded-lg px-3 py-1 text-base font-medium transition ${
-                statusFilter === st.value
-                  ? "border border-primary bg-primary-soft text-primary-dark"
-                  : "border border-border bg-surface text-text-secondary hover:bg-surface-muted"
-              }`}
-            >
-              {st.label}
-            </button>
-          ))}
-        </div>
-      </div>
+      ) : null}
 
       {loading ? (
-        <div className="space-y-3" aria-label="Đang tải danh sách bài làm">
-          {[0, 1, 2].map((i) => (
-            <Skeleton key={i} className="h-28 w-full rounded-xl" />
-          ))}
-        </div>
+        <SubmissionListSkeleton />
       ) : error ? (
         <EmptyState
           icon="alert-triangle"
@@ -138,38 +101,39 @@ export function WorkListView() {
       ) : filtered.length === 0 ? (
         <EmptyState
           icon="file-text"
-          title={
-            submissions.length === 0
-              ? "Bạn chưa có bài nộp nào"
-              : "Không tìm thấy bài nộp phù hợp bộ lọc"
-          }
+          title={isEmpty ? "Bạn chưa có bài nộp nào" : "Không có bài nộp nào khớp bộ lọc"}
           description={
-            submissions.length === 0
-              ? "Hãy vào Thư viện để bắt đầu bài tập đầu tiên và nhận phản hồi chi tiết từ AI."
-              : "Hãy thử đổi bộ lọc kỹ năng hoặc trạng thái chấm để xem các bài khác."
+            isEmpty
+              ? "Làm bài đầu tiên trong Thư viện để nhận góp ý chi tiết từ AI — bài nộp sẽ xuất hiện tại đây."
+              : "Thử đổi kỹ năng hoặc trạng thái chấm để xem các bài khác."
           }
           action={
-            submissions.length === 0 ? (
-              <Link href="/library" className="inline-flex min-h-11">
-                <Button>Khám phá Thư viện bài học</Button>
+            isEmpty ? (
+              <Link href="/library" className="pressable inline-flex min-h-12 items-center gap-2 rounded-xl bg-primary px-5 text-base font-medium text-white shadow-card hover:bg-primary-dark">
+                Mở Thư viện bài học
+                <Icon name="arrow-right" className="h-4 w-4" />
               </Link>
-            ) : <Button variant="outline" onClick={() => { setModeFilter("all"); setStatusFilter("all"); }}>Xoá bộ lọc</Button>
+            ) : (
+              <Button variant="outline" onClick={() => { setModeFilter("all"); setStatusFilter("all"); }}>
+                Xoá bộ lọc
+              </Button>
+            )
           }
         />
       ) : (
         <>
-        <p role="status" className="mb-4 text-base text-text-secondary">{filtered.length} bài nộp phù hợp</p>
-        <div className="space-y-3">
-          {filtered.map((item) => (
-            <SubmissionCard
-              key={item.id}
-              item={item}
-              revision={getRevisionInfo(item, submissions)}
-            />
-          ))}
-        </div>
+          <p role="status" className="text-sm text-text-muted">
+            {filtered.length === submissions.length
+              ? `${submissions.length} bài nộp · mới nhất trước`
+              : `${filtered.length}/${submissions.length} bài nộp khớp bộ lọc`}
+          </p>
+          <div className="stagger grid items-start gap-3 lg:grid-cols-2 lg:gap-4">
+            {filtered.map((item) => (
+              <SubmissionCard key={item.id} item={item} revision={getRevisionInfo(item, submissions)} />
+            ))}
+          </div>
         </>
       )}
-    </div>
+    </PageContainer>
   );
 }

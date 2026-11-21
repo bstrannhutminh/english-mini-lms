@@ -16,4 +16,15 @@ describe("reading passage Markdown rendering", () => {
     expect(html).toContain("&lt;script&gt;unsafe&lt;/script&gt;");
     expect(html).not.toContain("<script>");
   });
+  it("renders a standalone image block with a safe internal src", () => {
+    const html = renderToStaticMarkup(createElement(MarkdownText, { text: "Some text.\n\n![Chart](/ielts/i-w2-chart.png)\n\nMore text." }));
+    expect(html).toContain("<img");
+    expect(html).toContain('src="/ielts/i-w2-chart.png"');
+    expect(html).toContain('alt="Chart"');
+  });
+  it("keeps an image with an unsafe src as raw text", () => {
+    const html = renderToStaticMarkup(createElement(MarkdownText, { text: "![X](javascript:alert(1))" }));
+    expect(html).not.toContain("<img");
+    expect(html).toContain("![X](javascript:alert(1))");
+  });
 });

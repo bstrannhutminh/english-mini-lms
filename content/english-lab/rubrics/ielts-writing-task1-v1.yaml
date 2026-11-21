@@ -1,0 +1,20 @@
+id: ielts-writing-task1-v1
+title: "IELTS Writing Task 1 Rubric (Academic)"
+description: "Tiêu chí đánh giá IELTS Writing Task 1 (Academic) theo 4 tiêu chí công khai của IELTS"
+dimensions:
+  - key: task_achievement
+    name: "Task Achievement"
+    weight: 0.25
+    description: "Đáp ứng đúng yêu cầu đề: có overview rõ ràng, chọn và mô tả đầy đủ các đặc điểm chính của biểu đồ, số liệu chính xác, đủ ít nhất 150 từ."
+  - key: coherence_cohesion
+    name: "Coherence and Cohesion"
+    weight: 0.25
+    description: "Bài viết mạch lạc, đoạn văn tổ chức hợp lý (mở bài – overview – thân bài), dùng từ nối và từ thay thế phù hợp, ý liên kết chặt chẽ."
+  - key: lexical_resource
+    name: "Lexical Resource"
+    weight: 0.25
+    description: "Từ vựng đa dạng và chính xác cho dạng miêu tả biểu đồ: từ chỉ xu hướng, so sánh, tỉ lệ; dùng collocation tự nhiên, ít lỗi chính tả/từ vựng."
+  - key: grammatical_range_accuracy
+    name: "Grammatical Range and Accuracy"
+    weight: 0.25
+    description: "Đa dạng cấu trúc câu (câu phức, câu so sánh, mệnh đề quan hệ), ngữ pháp chính xác, dùng đúng thì quá khứ cho số liệu trong quá khứ."

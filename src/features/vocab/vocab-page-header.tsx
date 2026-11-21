@@ -1,42 +1,22 @@
-import Link from "next/link";
-import { Icon } from "@/components/ui";
+import { StatTile } from "@/components/ui";
 
-/** Vocabulary context and the two existing review entry points. */
-export function VocabPageHeader() {
+/** Đầu trang Sổ từ: tiêu đề + 3 con số nhìn nhanh (tổng, đến hạn, đã thuộc). */
+export function VocabPageHeader({ totalCount, dueCount, masteredCount }: {
+  totalCount: number;
+  dueCount: number;
+  masteredCount: number;
+}) {
   return (
-    <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-      <div>
-        <div className="flex items-center gap-2.5">
-          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-teal-200/80 bg-teal-50 text-primary-dark">
-            <Icon name="bookmark" className="h-4.5 w-4.5" />
-          </span>
-          <h1 className="text-xl font-semibold tracking-tight text-text sm:text-2xl">
-            Sổ từ
-          </h1>
-        </div>
-        <p className="mt-1 pl-11.5 text-base text-text-secondary">
-          Lưu theo ngữ cảnh thực tế · Ôn ngắt quãng 1–3–7–14–30 ngày
-        </p>
+    <header className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between lg:gap-8">
+      <div className="min-w-0">
+        <h1 className="text-2xl font-semibold tracking-tight text-text sm:text-3xl">Sổ từ</h1>
+        <p className="mt-1 hidden max-w-prose text-base leading-relaxed text-text-secondary sm:block">Những cụm từ bạn đã gặp, cùng câu gốc và cách dùng của riêng bạn.</p>
       </div>
-
-      <div className="flex flex-wrap items-center gap-2">
-        <Link
-          href="/vocab/flashcards"
-          data-tour="vocab-flashcards"
-          className="inline-flex min-h-11 cursor-pointer items-center gap-1.5 rounded-xl border border-border bg-surface px-4 text-base font-medium text-text no-underline  transition hover:bg-surface-muted"
-        >
-          <Icon name="cards" className="h-4 w-4" />
-          <span>Ôn Flashcard</span>
-        </Link>
-        <Link
-          href="/vocab/review"
-          data-tour="vocab-review"
-          className="inline-flex min-h-11 cursor-pointer items-center gap-1.5 rounded-xl border border-primary/40 bg-teal-50/70 px-4 text-base font-semibold text-primary-dark no-underline transition hover:bg-teal-100/70"
-        >
-          <Icon name="sparkles" className="h-4 w-4" />
-          <span>Thử thách đặt câu</span>
-        </Link>
+      <div role="group" aria-label="Tổng quan sổ từ" className="grid shrink-0 grid-cols-[1.3fr_1fr_1fr] divide-x divide-border rounded-2xl border border-border bg-surface py-3 sm:grid-cols-3 sm:py-4 [&>div]:px-3 sm:[&>div]:px-5">
+        <StatTile label="Tổng số cụm từ" value={totalCount} icon="layers" hideIconOnMobile />
+        <StatTile label="Đến hạn ôn" value={dueCount} icon="clock" iconClass="bg-amber-50 text-amber-700" hideIconOnMobile />
+        <StatTile label="Đã thuộc" value={masteredCount} icon="check-circle" iconClass="bg-emerald-50 text-emerald-700" hideIconOnMobile />
       </div>
-    </div>
+    </header>
   );
 }

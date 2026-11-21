@@ -21,6 +21,8 @@ import { ListeningLessonHeader } from "./listening-lesson-header";
  * Vùng làm bài mode Nghe & Shadowing với tiến trình 3 chặng rõ ràng:
  * 1. Nghe & Trả lời → 2. Đối chiếu đáp án & Transcript → 3. Shadowing từng câu.
  * Invariant transcript: chỉ render segments server trả sau reveal/nộp bài.
+ * Mobile giữ bố cục xếp chồng: video luôn có trên trang, thanh điều khiển
+ * (phát/nghe lại/tốc độ) dính dưới header khi cuộn xuống câu hỏi.
  */
 export function ListeningPanel(props: ModePanelProps) {
   const { data, busy, postEvent, capture, submission } = props;
@@ -62,7 +64,7 @@ export function ListeningPanel(props: ModePanelProps) {
 
   if (!listening) {
     return (
-      <div className="flex items-start gap-2.5 rounded-xl border border-amber-200 bg-amber-50 p-5 text-base text-amber-900">
+      <div className="mt-4 flex items-start gap-2.5 rounded-2xl border border-amber-200 bg-amber-50 p-5 text-base text-amber-900 lg:mt-0">
         <Icon name="alert-triangle" className="mt-0.5 h-5 w-5 shrink-0" />
         <span>
           <strong>Chưa thể mở bài nghe.</strong> Bài này chưa có dữ liệu đoạn
@@ -108,17 +110,21 @@ export function ListeningPanel(props: ModePanelProps) {
     }));
   }
 
+  // Mobile ("stack"): các khối dưới đây là phần tử trực tiếp của cột chung nên
+  // `order-*` quyết định thứ tự (đầu bài → video → điều khiển dính → câu hỏi →
+  // transcript); desktop: cột trái dính, khoảng cách bằng lg:mb-5.
   const left = (
     <>
       <ListeningLessonHeader
         activity={data.activity}
         submission={submission}
         currentStage={currentStage}
+        className="order-1 lg:mb-5"
       />
 
       {!listening.videoUrl && (
-        <div className="mb-3 flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3.5 py-2.5 text-base text-amber-900">
-          <Icon name="alert-triangle" className="mt-0.5 h-4 w-4 shrink-0" />
+        <div className="order-2 flex items-start gap-2.5 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-base text-amber-900 lg:mb-5">
+          <Icon name="alert-triangle" className="mt-1 h-4 w-4 shrink-0" />
           <span>
             <strong>Chưa có video nguồn.</strong> Hãy báo quản trị bổ sung video đã duyệt cho bài này.
           </span>
@@ -131,9 +137,11 @@ export function ListeningPanel(props: ModePanelProps) {
         endSeconds={listening.endSeconds}
         seekTo={seekTo}
         controlRef={playerControlRef}
+        className="order-2"
+        controlsClassName="sticky top-(--studio-header) z-10 order-2 -mx-4 -mt-4 bg-surface-muted px-4 pb-2 sm:-mx-6 sm:px-6 lg:static lg:mx-0 lg:mb-3 lg:mt-0 lg:bg-transparent lg:p-0"
       />}
 
-      <p className="mb-4 hidden text-base text-text-muted lg:block">
+      <p className="hidden text-sm leading-6 text-text-muted lg:mb-5 lg:block">
         Phím tắt:{" "}
         <kbd className="rounded border border-border bg-surface px-1.5 py-0.5">
           Space
@@ -159,6 +167,7 @@ export function ListeningPanel(props: ModePanelProps) {
           onSeek={handleSeek}
           capture={capture}
           sourceRef={sourceRef}
+          className="order-4"
         />
       )}
     </>
@@ -186,5 +195,5 @@ export function ListeningPanel(props: ModePanelProps) {
     />
   );
 
-  return <SessionColumns left={left} right={right} />;
+  return <SessionColumns left={left} right={right} mobileLayout="stack" />;
 }

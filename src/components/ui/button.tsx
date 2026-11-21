@@ -13,7 +13,7 @@ export type ButtonSize = "sm" | "md" | "lg" | "icon";
 
 const VARIANT_CLASSES: Record<ButtonVariant, string> = {
   primary:
-    "bg-primary text-white hover:bg-primary-dark active:bg-teal-800 disabled:bg-surface-subtle disabled:text-text-muted",
+    "bg-primary text-white shadow-card hover:bg-primary-dark active:bg-teal-800 disabled:bg-surface-subtle disabled:text-text-muted disabled:shadow-none",
   secondary:
     "bg-text text-white hover:bg-slate-800 active:bg-slate-950 disabled:bg-surface-subtle disabled:text-text-muted",
   outline:
@@ -63,7 +63,7 @@ export function Button({
       disabled={disabled || loading}
       aria-busy={loading || undefined}
       className={cn(
-        "inline-flex cursor-pointer items-center justify-center gap-2 font-medium transition-colors select-none",
+        "pressable inline-flex cursor-pointer items-center justify-center gap-2 font-medium select-none",
         "disabled:cursor-not-allowed",
         VARIANT_CLASSES[variant],
         SIZE_CLASSES[size],

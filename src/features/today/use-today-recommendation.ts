@@ -1,8 +1,12 @@
 "use client";
 
 /**
- * useTodayRecommendation — fetch GET /api/v1/today qua apiFetch +
- * todayRecommendationSchema (contract khóa wire shape camelCase).
+ * useTodayRecommendation — dữ liệu màn Hôm nay.
+ * - `initialData` do server render sẵn (page.tsx) → lần vẽ đầu có ngay bài học,
+ *   không fetch lặp, không nháy skeleton.
+ * - Đổi 30/45 hoặc Thử lại → fetch GET /api/v1/today qua apiFetch +
+ *   todayRecommendationSchema. Khi đổi thời lượng, dữ liệu cũ được giữ trên
+ *   màn hình (loading = true) cho tới khi có dữ liệu mới.
  * Trả { data, loading, error, targetMinutes, selectTargetMinutes, retry }.
  */
 import { useCallback, useEffect, useState } from "react";
@@ -21,18 +25,31 @@ export interface TodayRecommendationState {
   retry: () => void;
 }
 
+/**
+ * Phần thuần của nhánh `initialData` (tách ra để unit test, không cần React):
+ * lượt render đầu (requestId = 0) chỉ fetch khi KHÔNG có dữ liệu server;
+ * mọi lần đổi 30/45 hay Thử lại (requestId > 0) đều fetch lại.
+ */
+export function shouldFetchOnMount(requestId: number, hasServerData: boolean): boolean {
+  return !(requestId === 0 && hasServerData);
+}
+
 export function useTodayRecommendation(
-  initialTargetMinutes: 30 | 45
+  initialTargetMinutes: 30 | 45,
+  initialData: TodayRecommendationContract | null = null
 ): TodayRecommendationState {
   const [targetMinutes, setTargetMinutes] = useState<30 | 45>(
     initialTargetMinutes
   );
-  const [data, setData] = useState<TodayRecommendationContract | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [data, setData] = useState<TodayRecommendationContract | null>(initialData);
+  const [loading, setLoading] = useState(initialData === null);
   const [error, setError] = useState<string | null>(null);
-  const [reloadTick, setReloadTick] = useState(0);
+  // 0 = lượt đầu (đã có dữ liệu server nếu initialData); mỗi lần đổi/thử lại +1.
+  const [requestId, setRequestId] = useState(0);
+  const hasServerData = initialData !== null;
 
   useEffect(() => {
+    if (!shouldFetchOnMount(requestId, hasServerData)) return;
     let active = true;
 
     apiFetch(
@@ -50,6 +67,7 @@ export function useTodayRecommendation(
       .catch((err: unknown) => {
         console.error("Lỗi tải gợi ý học tập:", err);
         if (active) {
+          setData(null);
           setError(
             err instanceof Error
               ? err.message
@@ -62,15 +80,15 @@ export function useTodayRecommendation(
     return () => {
       active = false;
     };
-  }, [targetMinutes, reloadTick]);
+  }, [targetMinutes, requestId, hasServerData]);
 
   const selectTargetMinutes = useCallback(
     (mins: 30 | 45) => {
       if (mins !== targetMinutes) {
         setLoading(true);
-        setData(null);
         setError(null);
         setTargetMinutes(mins);
+        setRequestId((id) => id + 1);
       }
     },
     [targetMinutes]
@@ -80,7 +98,7 @@ export function useTodayRecommendation(
     setLoading(true);
     setData(null);
     setError(null);
-    setReloadTick((c) => c + 1);
+    setRequestId((id) => id + 1);
   }, []);
 
   return { data, loading, error, targetMinutes, selectTargetMinutes, retry };

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Icon } from "@/components/ui";
+import { Button, Icon } from "@/components/ui";
 import type { HistoryItem } from "./use-flashcard-deck";
 
 interface DeckSummaryProps {
@@ -9,6 +9,8 @@ interface DeckSummaryProps {
   onReviewIncorrectOnly: () => void;
   onSpeak: (phrase: string) => void;
 }
+
+const SECONDARY_LINK = "pressable inline-flex min-h-12 flex-1 items-center justify-center gap-2 rounded-xl border border-border-strong bg-surface px-3 text-center text-base font-medium text-text-secondary no-underline hover:bg-surface-subtle hover:text-text";
 
 /** Màn tổng kết sau khi hết bộ thẻ (kết quả đã lưu SRS). */
 export function DeckSummary({
@@ -21,38 +23,40 @@ export function DeckSummary({
   const unmasteredList = history.filter((h) => h.result === "dont_know");
 
   return (
-    <div className="mx-auto w-full max-w-md px-4 py-6 flex flex-col items-center justify-center min-h-[calc(100vh-120px)] animate-fade-in">
-      <div className="w-full bg-white rounded-xl p-6 sm:p-8  border border-slate-100 text-center">
-        <Icon name="check-circle" className="mx-auto mb-3 h-7 w-7 text-primary" />
-        <h2 className="text-2xl font-semibold text-slate-900 tracking-tight">
+    <div className="mx-auto w-full max-w-md animate-fade-in py-2 sm:py-6">
+      <div className="hero-wash w-full rounded-2xl border border-border p-5 text-center shadow-card sm:p-8">
+        <span aria-hidden="true" className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary-soft text-primary-dark">
+          <Icon name="check-circle" className="h-7 w-7" />
+        </span>
+        <h2 className="text-2xl font-semibold tracking-tight text-text">
           Hoàn thành bộ thẻ!
         </h2>
-        <p className="text-base text-slate-500 mt-1">
+        <p className="mt-1 text-base leading-relaxed text-text-secondary">
           Kết quả đã được cập nhật vào thuật toán lặp lại ngắt quãng (Spaced Repetition).
         </p>
 
         {/* Chỉ số kết quả */}
-        <div className="grid grid-cols-2 gap-3 my-6">
-          <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 flex flex-col items-center">
-            <span className="text-base font-semibold text-emerald-800 uppercase tracking-wider">
-              Đã thuộc ✓
+        <div className="my-6 grid grid-cols-2 gap-3">
+          <div className="flex flex-col items-center rounded-xl border border-emerald-200 bg-emerald-50 p-4">
+            <span className="inline-flex items-center gap-1 text-sm font-semibold text-emerald-800">
+              <Icon name="check" className="h-4 w-4" />Đã thuộc
             </span>
-            <span className="text-3xl font-semibold text-emerald-600 mt-1">
+            <span className="mt-1 text-3xl font-semibold tabular-nums text-emerald-700">
               {knowCount}
             </span>
-            <span className="text-base text-emerald-700 mt-0.5">
+            <span className="mt-0.5 text-sm text-emerald-800">
               Tăng khoảng cách ôn
             </span>
           </div>
 
-          <div className="bg-rose-50 border border-rose-200 rounded-xl p-4 flex flex-col items-center">
-            <span className="text-base font-semibold text-rose-800 uppercase tracking-wider">
-              Chưa thuộc ✗
+          <div className="flex flex-col items-center rounded-xl border border-amber-200 bg-amber-50 p-4">
+            <span className="inline-flex items-center gap-1 text-sm font-semibold text-amber-900">
+              <Icon name="refresh" className="h-4 w-4" />Chưa thuộc
             </span>
-            <span className="text-3xl font-semibold text-rose-600 mt-1">
+            <span className="mt-1 text-3xl font-semibold tabular-nums text-amber-800">
               {dontKnowCount}
             </span>
-            <span className="text-base text-rose-700 mt-0.5">
+            <span className="mt-0.5 text-sm text-amber-900">
               Ôn lại vào ngày mai
             </span>
           </div>
@@ -60,36 +64,36 @@ export function DeckSummary({
 
         {/* Danh sách các từ chưa thuộc */}
         {unmasteredList.length > 0 && (
-          <div className="text-left mb-6">
-            <h3 className="text-base font-semibold text-slate-700 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-              <span>📝</span> Các từ cần củng cố ({unmasteredList.length})
+          <div className="mb-6 text-left">
+            <h3 className="eyebrow mb-1">
+              Các từ cần củng cố ({unmasteredList.length})
             </h3>
-            <div className="max-h-48 overflow-y-auto space-y-2 pr-1 divide-y divide-slate-100">
+            <div className="max-h-56 divide-y divide-border overflow-y-auto pr-1">
               {unmasteredList.map(({ item }) => (
                 <div
                   key={item.id}
-                  className="pt-2 flex items-start justify-between gap-2"
+                  className="flex items-center justify-between gap-2 py-2"
                 >
-                  <div>
-                    <div className="text-base font-semibold text-slate-900 flex items-center gap-1.5">
-                      <span>{item.phrase}</span>
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-baseline gap-x-2 text-base font-semibold text-text">
+                      <span className="break-words">{item.phrase}</span>
                       {item.ipa && (
-                        <span className="text-base font-mono text-slate-400 font-normal">
+                        <span className="break-all font-mono text-sm font-normal text-text-muted">
                           {item.ipa}
                         </span>
                       )}
                     </div>
-                    <p className="text-base text-slate-600 line-clamp-1 mt-0.5">
+                    <p className="line-clamp-1 text-base text-text-secondary">
                       {item.contextMeaning || "Chưa có nghĩa ngữ cảnh"}
                     </p>
                   </div>
                   <button
                     onClick={() => onSpeak(item.phrase)}
-                    className="p-1 text-slate-400 hover:text-blue-600 text-base transition"
+                    className="pressable inline-flex h-11 w-11 shrink-0 cursor-pointer items-center justify-center rounded-xl text-primary-dark hover:bg-primary-soft"
                     title="Nghe phát âm"
                     aria-label="Phát âm"
                   >
-                    🔊
+                    <Icon name="volume" className="h-5 w-5" />
                   </button>
                 </div>
               ))}
@@ -98,35 +102,23 @@ export function DeckSummary({
         )}
 
         {/* Hành động chuyển hướng */}
-        <div className="space-y-2.5">
+        <div className="space-y-3">
           {unmasteredList.length > 0 && (
-            <button
-              onClick={onReviewIncorrectOnly}
-              className="w-full py-3.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl transition  flex items-center justify-center gap-2 cursor-pointer"
-            >
-              <span>🔁</span> Ôn lại {unmasteredList.length} từ chưa thuộc
-            </button>
+            <Button size="lg" fullWidth onClick={onReviewIncorrectOnly} className="min-h-13 font-semibold">
+              <Icon name="refresh" className="h-5 w-5" />Ôn lại {unmasteredList.length} từ chưa thuộc
+            </Button>
           )}
 
-          <Link
-            href="/vocab/review"
-            className="w-full py-3 px-4 bg-amber-500 hover:bg-amber-600 text-white font-semibold rounded-xl transition  flex items-center justify-center gap-2 text-base"
-          >
-            <span>💡</span> Luyện sâu qua Micro-challenge (AI chấm)
+          <Link href="/vocab/review" className={`${SECONDARY_LINK} w-full`}>
+            <Icon name="lightbulb" className="h-5 w-5 shrink-0 text-amber-600" />Luyện sâu qua Micro-challenge (AI chấm)
           </Link>
 
-          <div className="flex gap-2 pt-1">
-            <Link
-              href="/vocab"
-              className="flex-1 py-2.5 px-3 border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold rounded-xl text-center text-base transition"
-            >
-              📚 Sổ từ vựng
+          <div className="flex gap-3">
+            <Link href="/vocab" className={SECONDARY_LINK}>
+              <Icon name="pen" className="h-4 w-4 shrink-0" />Sổ từ vựng
             </Link>
-            <Link
-              href="/today"
-              className="flex-1 py-2.5 px-3 border border-slate-200 hover:bg-slate-50 text-slate-700 font-semibold rounded-xl text-center text-base transition"
-            >
-              🏠 Trang chủ hôm nay
+            <Link href="/today" className={SECONDARY_LINK}>
+              <Icon name="home" className="h-4 w-4 shrink-0" />Hôm nay
             </Link>
           </div>
         </div>
@@ -150,13 +142,15 @@ export function DeckSaveFailed({
   onAbandon,
 }: DeckSaveFailedProps) {
   return (
-    <div className="mx-auto w-full max-w-md px-4 py-6 flex flex-col items-center justify-center min-h-[calc(100vh-120px)] animate-fade-in">
-      <div className="w-full bg-white rounded-xl p-6 sm:p-8  border border-rose-200 text-center">
-        <div className="text-5xl mb-3">⚠️</div>
-        <h2 className="text-2xl font-semibold text-rose-700 tracking-tight">
+    <div className="mx-auto w-full max-w-md animate-fade-in py-2 sm:py-6">
+      <div className="w-full rounded-2xl border border-red-200 bg-surface p-5 text-center shadow-card sm:p-8">
+        <span aria-hidden="true" className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-red-50 text-red-700">
+          <Icon name="alert-triangle" className="h-7 w-7" />
+        </span>
+        <h2 className="text-2xl font-semibold tracking-tight text-red-800">
           Lưu kết quả thất bại
         </h2>
-        <p className="text-base text-slate-600 mt-2 leading-relaxed">
+        <p className="mt-2 text-base leading-relaxed text-text-secondary">
           Không thể lưu kết quả {batchCount} từ vừa ôn tập vào hệ thống (có thể
           do lỗi kết nối mạng). Hãy kiểm tra mạng và bấm Thử lại.
         </p>
@@ -165,13 +159,14 @@ export function DeckSaveFailed({
           <button
             onClick={onRetry}
             disabled={saving}
-            className="w-full py-3.5 px-4 bg-primary hover:bg-primary-dark active:bg-primary-dark text-white font-semibold text-base rounded-xl  shadow-blue-500/30 transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+            className="pressable flex min-h-13 w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-primary px-4 text-base font-semibold text-white hover:bg-primary-dark disabled:cursor-not-allowed disabled:opacity-50"
           >
-            {saving ? "Đang thử lại..." : "🔄 Thử lại ngay"}
+            {!saving && <Icon name="refresh" className="h-5 w-5" />}
+            {saving ? "Đang thử lại..." : "Thử lại ngay"}
           </button>
           <button
             onClick={onAbandon}
-            className="w-full py-2.5 px-4 text-base font-semibold text-slate-500 hover:text-slate-700 transition cursor-pointer"
+            className="pressable min-h-11 w-full cursor-pointer rounded-xl px-4 text-base font-medium text-text-secondary hover:bg-surface-subtle hover:text-text"
           >
             Bỏ qua và quay về Kho từ vựng
           </button>

@@ -1,79 +1,64 @@
-"use client";
-
-import { Icon, type IconName } from "@/components/ui";
+import { Card, StatTile } from "@/components/ui";
 import type { ProgressSummaryContract } from "@/contracts/progress";
 
 export interface ProgressStatCardsProps {
   summary: ProgressSummaryContract;
 }
 
-function StatCard({
-  icon,
-  label,
-  value,
-  hint,
-  accentClass = "text-text",
-}: {
-  icon: IconName;
-  label: string;
-  value: string;
-  hint: string;
-  accentClass?: string;
-}) {
-  return (
-    <div className="rounded-xl border border-border bg-surface p-4 ">
-      <div className="flex items-center justify-between gap-2">
-        <span className="text-base font-semibold uppercase tracking-wider text-text-muted">
-          {label}
-        </span>
-        <Icon name={icon} className="h-4 w-4 text-primary/80" />
-      </div>
-      <div
-        className={`mt-1.5 text-2xl font-extrabold tabular-nums sm:text-3xl ${accentClass}`}
-      >
-        {value}
-      </div>
-      <span className="text-base text-text-secondary">{hint}</span>
-    </div>
-  );
-}
+/** Trên mobile (2 cột hẹp) icon nằm trên chữ để nhãn không bị gãy dòng. */
+const TILE_LAYOUT = "max-sm:flex-col max-sm:items-start max-sm:gap-2.5";
 
-/** 4 thẻ chỉ số tiến độ đồng bộ bảng màu Medical Clean (Teal/Slate/Emerald). */
+/** Hàng 4 ô số liệu bằng chứng: phiên 7 ngày, phút thực học, tỉ lệ độc lập, từ đã thuộc. */
 export function ProgressStatCards({ summary }: ProgressStatCardsProps) {
   const totalSubs = summary.totalSubmissions || 0;
   const independentPct =
-    totalSubs > 0
-      ? Math.round((summary.independentCount / totalSubs) * 100)
-      : 0;
+    totalSubs > 0 ? Math.round((summary.independentCount / totalSubs) * 100) : null;
 
   return (
-    <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 sm:gap-4">
-      <StatCard
-        icon="calendar"
-        label="Phiên 7 ngày qua"
-        value={String(summary.sessionsThisWeek)}
-        hint="phiên học thực tế"
-      />
-      <StatCard
-        icon="clock"
-        label="Phút thực học"
-        value={`${summary.actualStudyMinutes}′`}
-        hint="tổng thời gian tập trung"
-        accentClass="text-primary-dark"
-      />
-      <StatCard
-        icon="check-circle"
-        label="Tự làm độc lập"
-        value={`${independentPct}%`}
-        hint={`${summary.independentCount} độc lập · ${summary.assistedCount} có hỗ trợ`}
-        accentClass="text-emerald-700"
-      />
-      <StatCard
-        icon="bookmark"
-        label="Từ đã thuộc"
-        value={String(summary.masteredVocabCount)}
-        hint={`trên ${summary.totalVocabCount} từ trong sổ`}
-      />
+    <div role="group" aria-label="Tổng quan tiến độ" className="grid grid-cols-2 gap-3 lg:grid-cols-4 lg:gap-4">
+      <Card padded={false} className="p-4 sm:p-5">
+        <StatTile
+          icon="calendar"
+          label="Phiên 7 ngày qua"
+          value={summary.sessionsThisWeek}
+          hint="phiên học"
+          className={TILE_LAYOUT}
+        />
+      </Card>
+      <Card padded={false} className="p-4 sm:p-5">
+        <StatTile
+          icon="clock"
+          iconClass="bg-sky-50 text-sky-700"
+          label="Phút thực học"
+          value={summary.actualStudyMinutes}
+          hint="phút tập trung"
+          className={TILE_LAYOUT}
+        />
+      </Card>
+      <Card padded={false} className="p-4 sm:p-5">
+        <StatTile
+          icon="check-circle"
+          iconClass="bg-emerald-50 text-emerald-700"
+          label="Tự làm độc lập"
+          value={independentPct === null ? "—" : `${independentPct}%`}
+          hint={
+            totalSubs > 0
+              ? `${summary.independentCount}/${totalSubs} bài nộp`
+              : "chưa có bài nộp"
+          }
+          className={TILE_LAYOUT}
+        />
+      </Card>
+      <Card padded={false} className="p-4 sm:p-5">
+        <StatTile
+          icon="bookmark"
+          iconClass="bg-amber-50 text-amber-700"
+          label="Từ đã thuộc"
+          value={summary.masteredVocabCount}
+          hint={`trên ${summary.totalVocabCount} từ trong sổ`}
+          className={TILE_LAYOUT}
+        />
+      </Card>
     </div>
   );
 }

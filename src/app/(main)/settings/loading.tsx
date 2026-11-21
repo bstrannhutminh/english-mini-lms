@@ -1,5 +1,6 @@
-import { LoadingScreen } from "@/app/_shared/loading-screen";
+import { SettingsSkeleton } from "@/features/settings/settings-skeleton";
 
-export default function SegmentLoading() {
-  return <LoadingScreen />;
+/** Khung xương đúng bố cục Cài đặt trong lúc tải dữ liệu. */
+export default function SettingsLoading() {
+  return <SettingsSkeleton />;
 }

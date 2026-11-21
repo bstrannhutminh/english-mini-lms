@@ -22,17 +22,22 @@ Trạng thái: `not_ready` (chưa có nguồn/quyền) · `draft` · `approved`.
 | W2 | Tóm tắt 1 đoạn sách bằng tiếng Anh | writing | 80–100 từ | Gắn R1/R2 | luyện | not_ready |
 | W3 | Trả lời email đồng nghiệp nước ngoài | writing | 100–150 từ | Đề tự soạn | luyện | not_ready |
 | W4 | Email (biến thể) | writing | Tương đương W1 | Đề tự soạn | endline | not_ready |
-| I-L1 | IELTS Listening Part 2 | ielts-listening | Đề mẫu có quyền dùng | Đề + audio + đáp án | luyện | not_ready |
-| I-L2 | IELTS Listening Part 3 | ielts-listening | — | như trên | luyện | not_ready |
-| I-R1 ⭐ | IELTS Reading passage 1 | ielts-reading | Đề mẫu (Cambridge/IDP official sample) | Đề + đáp án | luyện | not_ready |
-| I-R2 | IELTS Reading passage 2 | ielts-reading | — | như trên | luyện | not_ready |
-| I-W1 ⭐ | IELTS Writing Task 2 | ielts-writing | Đề mẫu + rubric band descriptors công khai | Đề + rubric có nguồn | luyện | not_ready |
-| I-W2 | IELTS Writing Task 1 | ielts-writing | Academic/General theo anh Minh chọn | Đề + rubric | luyện | not_ready |
-| I-S1 | IELTS Speaking Part 2 | ielts-speaking | Cue card | Cue card + rubric | luyện | not_ready |
-| I-S2 | IELTS Speaking Part 3 | ielts-speaking | — | như trên | luyện | not_ready |
+| I-L1 | IELTS Listening Part 2 | ielts-listening | Đề mẫu có quyền dùng | Đề + audio + đáp án | luyện | approved |
+| I-L2 | IELTS Listening Part 3 | ielts-listening | — | như trên | luyện | approved |
+| I-R1 ⭐ | IELTS Reading passage 1 | ielts-reading | Đề mẫu (Cambridge/IDP official sample) | Đề + đáp án | luyện | approved |
+| I-R2 | IELTS Reading passage 2 | ielts-reading | — | như trên | luyện | approved |
+| I-W1 ⭐ | IELTS Writing Task 2 | ielts-writing | Đề mẫu + rubric band descriptors công khai | Đề + rubric có nguồn | luyện | approved |
+| I-W2 | IELTS Writing Task 1 | ielts-writing | Academic/General theo anh Minh chọn | Đề + rubric | luyện | approved |
+| I-S1 | IELTS Speaking Part 2 | ielts-speaking | Cue card | Cue card + rubric | luyện | approved |
+| I-S2 | IELTS Speaking Part 3 | ielts-speaking | — | như trên | luyện | approved |
 
 ## Ghi chú
 
 - baseline/endline phải **tương đương nhưng khác nội dung**; không dùng lại cùng đề.
-- IELTS: chưa chốt Academic/General → I-W2 để trống đến khi anh Minh chọn.
+- IELTS: đã chốt Academic (2026-11-20) — I-W2 là Task 1 miêu tả biểu đồ (số liệu minh họa tự soạn).
 - Hai PDF y khoa (sổ tay siêu âm, NYSORA) anh Minh đang có được dùng để luyện ngôn ngữ cá nhân; không copy nguyên trang vào repo, chỉ trích đoạn ngắn + số trang.
+
+## Cập nhật 2026-11-20
+
+- 8 slot IELTS đã có nội dung và được duyệt (review_state: approved): I-L1/I-L2 dùng video YouTube công khai có phụ đề đã xác minh (TED-Ed, Big Think); I-R1/I-R2, I-W1/I-W2, I-S1/I-S2 là bài luyện tự soạn (không phải đề thi chính thức).
+- Sổ từ bổ sung 60 từ vựng IELTS Academic band 8.0+ (6 chủ đề) trong `scripts/seed.ts`.

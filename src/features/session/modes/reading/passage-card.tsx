@@ -7,11 +7,11 @@ import type { CaptureHelpers, SessionSegment } from "../types";
 
 type FontScale = "base" | "lg" | "xl";
 
-const FONT_SCALE_OPTIONS: Array<{ key: FontScale; label: string; cls: string }> =
+const FONT_SCALE_OPTIONS: Array<{ key: FontScale; label: string; name: string; cls: string }> =
   [
-    { key: "base", label: "A-", cls: "text-base leading-[1.75]" },
-    { key: "lg", label: "A", cls: "text-[17px] leading-[1.8]" },
-    { key: "xl", label: "A+", cls: "text-[19px] leading-[1.85]" },
+    { key: "base", label: "A-", name: "Cỡ chữ nhỏ", cls: "text-base leading-[1.75]" },
+    { key: "lg", label: "A", name: "Cỡ chữ vừa", cls: "text-[17px] leading-[1.8]" },
+    { key: "xl", label: "A+", name: "Cỡ chữ lớn", cls: "text-[19px] leading-[1.85]" },
   ];
 
 /**
@@ -34,69 +34,59 @@ export function PassageCard({
     FONT_SCALE_OPTIONS[0];
 
   return (
-    <div className="mb-4 overflow-hidden rounded-xl border border-border bg-surface ">
+    <section className="mt-4 overflow-hidden rounded-2xl border border-border bg-surface shadow-card lg:mt-5">
       {/* Header: nguồn + trang + nút cỡ chữ */}
-      <div className="border-b border-border bg-surface-muted px-4 py-3">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <div className="flex items-center gap-2">
-            <Icon name="book-open" className="h-4 w-4 text-skill-reading" />
-            <span className="text-base font-bold tracking-wider text-text uppercase">
-              Đoạn văn bản gốc
-            </span>
-            {segment.page != null && (
-              <span className="rounded-md border border-skill-reading-border bg-skill-reading-soft px-2 py-0.5 text-base font-semibold text-skill-reading">
-                Trang {segment.page}
-              </span>
-            )}
-          </div>
-
-          <div
-            role="group"
-            aria-label="Điều chỉnh cỡ chữ đoạn văn"
-            className="inline-flex rounded-lg border border-border bg-surface p-0.5"
-          >
-            {FONT_SCALE_OPTIONS.map((opt) => (
-              <button
-                key={opt.key}
-                type="button"
-                onClick={() => setFontScale(opt.key)}
-                aria-pressed={fontScale === opt.key}
-                className={cn(
-                  "min-h-11 min-w-11 cursor-pointer rounded-md px-2 text-base font-semibold transition",
-                  fontScale === opt.key
-                    ? "bg-primary text-white"
-                    : "text-text-secondary hover:text-text"
-                )}
-              >
-                {opt.label}
-              </button>
-            ))}
-          </div>
+      <div className="flex items-center justify-between gap-3 border-b border-border px-5 py-3 sm:px-6">
+        <div className="min-w-0">
+          <p className="eyebrow">
+            Đoạn văn bản gốc{segment.page != null ? ` · Trang ${segment.page}` : ""}
+          </p>
+          {segment.sourceTitle && (
+            <p className="mt-0.5 text-sm italic leading-5 text-text-secondary">{segment.sourceTitle}</p>
+          )}
         </div>
 
-        {segment.sourceTitle && (
-          <div className="mt-1 text-base italic text-text-muted">
-            {segment.sourceTitle}
-          </div>
-        )}
-      </div>
-
-      {/* Gợi ý 1-Click Smart Capture */}
-      <div className="flex items-start gap-2 border-b border-emerald-100 bg-emerald-50/70 px-4 py-2.5 text-base leading-snug text-emerald-900">
-        <Icon name="lightbulb" className="mt-0.5 h-4 w-4 shrink-0 text-emerald-700" />
-        <span>
-          <strong>Sổ từ vựng:</strong> bôi đen từ hoặc cụm thuật ngữ bất kỳ để
-          tra nghĩa chuyên ngành và bấm <em>&ldquo;Lưu vào sổ&rdquo;</em> 1 chạm.
-        </span>
+        <div
+          role="group"
+          aria-label="Điều chỉnh cỡ chữ đoạn văn"
+          className="inline-flex shrink-0 rounded-xl bg-surface-subtle p-1"
+        >
+          {FONT_SCALE_OPTIONS.map((opt) => (
+            <button
+              key={opt.key}
+              type="button"
+              onClick={() => setFontScale(opt.key)}
+              aria-pressed={fontScale === opt.key}
+              aria-label={opt.name}
+              className={cn(
+                "pressable min-h-11 min-w-11 cursor-pointer rounded-lg px-2 text-base font-semibold",
+                fontScale === opt.key
+                  ? "bg-surface text-primary-dark shadow-card ring-1 ring-inset ring-border"
+                  : "text-text-secondary hover:text-text"
+              )}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Nội dung đoạn văn — render Markdown sạch & gắn capture handlers */}
       <div
         {...capture.selectHandlers(segment.textContent ?? "", sourceRef, "book")}
-        className={cn("max-w-prose px-5 py-6 text-text", activeScale.cls)}
+        className={cn("max-w-[65ch] px-5 py-5 text-text sm:px-6 sm:py-6 [&>p+p]:mt-4", activeScale.cls)}
       >
         <MarkdownText text={segment.textContent ?? ""} />
       </div>
-    </div>
+
+      {/* Gợi ý 1-Click Smart Capture */}
+      <p className="flex items-start gap-2 border-t border-border bg-surface-muted px-5 py-3 text-sm leading-5 text-text-secondary sm:px-6">
+        <Icon name="bookmark" className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+        <span>
+          <strong className="font-semibold text-text">Sổ từ vựng:</strong> bôi đen từ hoặc cụm thuật ngữ bất kỳ để
+          tra nghĩa chuyên ngành và bấm <em>&ldquo;Lưu vào sổ&rdquo;</em> 1 chạm.
+        </span>
+      </p>
+    </section>
   );
 }

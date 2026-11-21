@@ -1,20 +1,27 @@
 "use client";
 import { usePathname, useSearchParams } from "next/navigation";
-import { EmptyState } from "@/components/ui";
+import { Button, EmptyState, Icon } from "@/components/ui";
 import type { ActivityListItemContract, TopicSummary } from "@/contracts/library";
 import { UNCATEGORIZED_TOPIC } from "@/lib/topics";
-import { ActivityCard } from "./activity-card";
+import { ActivityGrid } from "./activity-grid";
 import { SuggestionsStrip, type Suggestion } from "./suggestions-strip";
 import { TopicFilterStrip } from "./topic-filter-strip";
 import { LibraryFilterBar } from "./library-filter-bar";
+import { LibraryStatusSelect } from "./library-status-select";
 import { filterLibraryActivities, type LibraryFilterState, type LibrarySkillFilter } from "./filter-activities";
 import { EMPTY_LIBRARY_FILTERS, parseLibraryFilterUrl, serializeLibraryFilterUrl } from "./library-filter-url";
+
 interface LibraryExplorerProps {
   topics: TopicSummary[];
   activities: ActivityListItemContract[];
   initialTopic: string | null;
   suggestion: Suggestion | null;
 }
+
+/**
+ * Khung khám phá Thư viện: khối lọc gọn (tìm kiếm, kỹ năng, chủ đề, trạng thái —
+ * tất cả đồng bộ lên URL), dải gợi ý mảnh và lưới thẻ bài học.
+ */
 export function LibraryExplorer({ topics, activities, initialTopic, suggestion }: LibraryExplorerProps) {
   const searchParams = useSearchParams();
   const pathname = usePathname();
@@ -37,22 +44,38 @@ export function LibraryExplorer({ topics, activities, initialTopic, suggestion }
     window.history.pushState(null, "", `${pathname}${next ? `?${next}` : ""}${window.location.hash}`);
   }
   function resetFilters() { updateFilters(EMPTY_LIBRARY_FILTERS); }
-  return (<div className="space-y-5">
+  return (
+    <div className="space-y-4 sm:space-y-5">
+      <div className="space-y-3">
+        <LibraryFilterBar query={query} status={status} skill={skill} totalCount={countSkill("all")} countSkill={countSkill}
+          onQueryChange={(query) => updateFilters({ query })} onStatusChange={(status) => updateFilters({ status })} onSkillChange={(skill) => updateFilters({ skill })} />
+        <TopicFilterStrip topics={scopedTopics} selectedTopic={topic} totalCount={topicScope.length} onSelectTopic={(topic) => updateFilters({ topic })} />
+      </div>
 
-    <LibraryFilterBar query={query} status={status} skill={skill} totalCount={countSkill("all")} countSkill={countSkill} hasActiveFilter={hasActiveFilter} onQueryChange={(query) => updateFilters({ query })} onStatusChange={(status) => updateFilters({ status })} onSkillChange={(skill) => updateFilters({ skill })} onReset={resetFilters} />
+      {scopedSuggestion && <SuggestionsStrip suggestion={scopedSuggestion} />}
 
-    <TopicFilterStrip topics={scopedTopics} selectedTopic={topic} totalCount={topicScope.length} onSelectTopic={(topic) => updateFilters({ topic })} />
+      <div className="flex min-h-11 flex-wrap items-center justify-between gap-x-3 gap-y-2">
+        <div className="flex items-center gap-2">
+          <p role="status" className="text-base text-text-secondary">
+            <span className="font-semibold tabular-nums text-text">{visible.length}</span> bài<span className={hasActiveFilter ? "hidden sm:inline" : undefined}> phù hợp</span>
+          </p>
+          {hasActiveFilter && (
+            <button type="button" onClick={resetFilters}
+              className="pressable inline-flex min-h-11 cursor-pointer items-center gap-1.5 rounded-lg px-2 text-base font-medium text-primary-dark hover:bg-primary-soft">
+              <Icon name="x" className="h-4 w-4" />Xóa bộ lọc
+            </button>
+          )}
+        </div>
+        <LibraryStatusSelect id="library-status-mobile" value={status} onChange={(status) => updateFilters({ status })} className="sm:hidden" />
+      </div>
 
-    <div className="flex flex-wrap items-baseline justify-between gap-2 border-b border-border pb-3">
-      <h2 className="text-lg font-semibold text-text">Bài học{topic ? " trong chủ đề" : " đã duyệt"}</h2>
-      <p role="status" className="text-base tabular-nums text-text-secondary">{visible.length} bài phù hợp</p>
+      {visible.length === 0 ? (
+        <EmptyState icon="search" title="Không tìm thấy bài phù hợp" className="rounded-2xl border border-dashed border-border bg-surface"
+          description={activities.length === 0 ? "Thư viện chưa có bài nào được duyệt." : query.trim() ? `Không tìm thấy “${query.trim()}” với bộ lọc hiện tại. Thử từ khóa khác hoặc xóa bộ lọc.` : "Thử kỹ năng, trạng thái hoặc chủ đề khác."}
+          action={hasActiveFilter ? <Button onClick={resetFilters}>Xóa bộ lọc</Button> : undefined} />
+      ) : (
+        <ActivityGrid activities={visible} grouped={skill === "all"} suggestedId={scopedSuggestion?.activityId} />
+      )}
     </div>
-
-    {scopedSuggestion && <SuggestionsStrip suggestion={scopedSuggestion} />}
-
-    {visible.length === 0 ? (<EmptyState icon="search" title="Không tìm thấy bài phù hợp" description={activities.length === 0 ? "Thư viện chưa có bài nào được duyệt." : query.trim() ? `Không tìm thấy “${query.trim()}” với bộ lọc hiện tại. Thử từ khóa khác hoặc xóa bộ lọc.` : "Thử kỹ năng, trạng thái hoặc chủ đề khác."} action={hasActiveFilter ? <button type="button" onClick={resetFilters} className="inline-flex min-h-11 cursor-pointer items-center rounded-xl bg-primary px-4 py-3 text-base font-semibold text-white hover:bg-primary-dark">Xóa bộ lọc</button> : undefined} />) : <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-      {visible.map((activity, index) => <ActivityCard key={activity.id} activity={activity} suggested={scopedSuggestion?.activityId === activity.id} tourTarget={index === 0} />)}
-    </div>}
-
-  </div>);
+  );
 }

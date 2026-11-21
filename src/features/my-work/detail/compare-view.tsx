@@ -1,5 +1,7 @@
-import { Card, Icon } from "@/components/ui";
 import Link from "next/link";
+import { Badge, Icon } from "@/components/ui";
+import { feedbackCategoryLabel } from "@/lib/feedback-labels";
+import { cn } from "@/lib/utils";
 import { StructuredBody } from "./structured-body";
 import type { MyWorkFeedback, ParentRevision, SubmissionDetail } from "../types";
 
@@ -10,125 +12,131 @@ interface CompareViewProps {
 }
 
 /**
- * So sánh Bản gốc vs Bản sửa — xếp DỌC trên mobile, 2 cột từ md trở lên.
- * Cột gốc kèm góp ý của bản 1 để đối chiếu khi đọc bản 2.
+ * So sánh Bản trước ↔ Bản đã sửa — xếp DỌC trên mobile, 2 cột từ lg.
+ * Cột bản trước kèm tóm tắt góp ý đã nhận để đối chiếu khi đọc bản sửa
+ * (hai bản là hai submission riêng — append-only qua parent_id).
  */
 export function CompareView({ current, currentFeedback, parent }: CompareViewProps) {
   return (
-    <div className="mb-8 grid grid-cols-1 items-start gap-6 lg:grid-cols-2">
-      <CompareColumn
-        title={`Bản ${parent.submission.revision} · trước khi sửa`}
-        submissionId={parent.submission.id}
-        audioUrl={parent.submission.audioUrl}
-        pronunciation={parent.feedback?.pronunciation ?? null}
-        body={parent.submission.body}
-        accent="muted"
-        observations={parent.feedback?.observations ?? []}
-      />
-      <CompareColumn
-        title={`Bản ${current.revision} (Đã sửa)`}
-        submissionId={current.id}
-        audioUrl={current.audioUrl}
-        pronunciation={currentFeedback?.pronunciation ?? null}
-        body={current.body}
-        accent="primary"
-        observations={[]}
-      />
-    </div>
+    <section id="so-sanh" aria-labelledby="compare-title" className="scroll-mt-20 lg:scroll-mt-6">
+      <h2 id="compare-title" className="text-xl font-semibold tracking-tight text-text">
+        So sánh Bản {parent.submission.revision} và Bản {current.revision}
+      </h2>
+      <p className="mt-1 text-base text-text-secondary">
+        Đọc lại bản trước cùng góp ý đã nhận, rồi xem bản sửa đã xử lý đến đâu.
+      </p>
+      <div className="mt-4 grid grid-cols-1 items-start gap-4 lg:grid-cols-2">
+        <CompareColumn
+          revision={parent.submission.revision}
+          caption="trước khi sửa"
+          audioUrl={parent.submission.audioUrl}
+          pronunciation={parent.feedback?.pronunciation ?? null}
+          body={parent.submission.body}
+          observations={parent.feedback?.observations ?? []}
+          openHref={`/my-work/${parent.submission.id}`}
+        />
+        <CompareColumn
+          revision={current.revision}
+          caption="đã sửa · bài đang xem"
+          audioUrl={current.audioUrl}
+          pronunciation={currentFeedback?.pronunciation ?? null}
+          body={current.body}
+          observations={[]}
+          highlighted
+        />
+      </div>
+    </section>
   );
 }
 
 interface CompareColumnProps {
-  title: string;
-  submissionId: string;
+  revision: number;
+  caption: string;
   audioUrl?: string | null;
   pronunciation: { status: "assessed" | "not_assessable"; notes: string } | null;
   body: string | null;
-  accent: "muted" | "primary";
   observations: MyWorkFeedback["observations"];
+  /** Bản đang xem — viền teal để phân biệt với bản trước. */
+  highlighted?: boolean;
+  /** Link mở trang chi tiết của bản này (chỉ cho bản trước). */
+  openHref?: string;
 }
 
-function CompareColumn({
-  title,
-  submissionId,
-  audioUrl,
-  pronunciation,
-  body,
-  accent,
-  observations,
-}: CompareColumnProps) {
-  const isPrimary = accent === "primary";
+function CompareColumn({ revision, caption, audioUrl, pronunciation, body, observations, highlighted = false, openHref }: CompareColumnProps) {
   return (
-    <Card
-      padded={false}
-      className={`flex flex-col gap-3 p-3.5 ${
-        isPrimary ? "border-primary" : ""
-      }`}
-    >
-      <p
-        className={`border-b border-slate-100 pb-1.5 text-base font-bold ${
-          isPrimary ? "text-teal-700" : "text-text-secondary"
-        }`}
-      >
-        {title}
-      </p>
+    <article className={cn("flex min-w-0 flex-col gap-4 rounded-2xl border bg-surface p-5 sm:p-6", highlighted ? "border-teal-200 shadow-card" : "border-border")}>
+      <header className="flex flex-wrap items-center gap-2 border-b border-border pb-3">
+        <Badge tone={highlighted ? "success" : "neutral"}>Bản {revision}</Badge>
+        <span className="text-base text-text-secondary">{caption}</span>
+      </header>
 
       {audioUrl ? (
         <div>
-          <p className="mb-1 text-base font-semibold text-text-muted">
-              Bản ghi âm
-          </p>
+          <p className="eyebrow mb-1.5">Bản ghi âm</p>
           <audio controls src={audioUrl} className="h-11 w-full" />
         </div>
       ) : null}
 
       {pronunciation ? (
-        <div
-          className={`rounded-lg border px-2.5 py-2 text-base ${
-            isPrimary
-              ? "border-teal-200 bg-teal-50 text-teal-900"
-              : "border-emerald-200 bg-emerald-50 text-emerald-900"
-          }`}
-        >
-          <strong>Phát âm:</strong> {pronunciation.notes}
-        </div>
+        <p className="rounded-xl bg-surface-muted px-4 py-3 text-base leading-relaxed text-text-secondary">
+          <span className="font-semibold text-text">Phát âm: </span>
+          {pronunciation.notes}
+        </p>
       ) : null}
 
-      <div className="text-base leading-relaxed text-text">
+      <div className="break-words text-base leading-relaxed text-text">
         <StructuredBody body={body} />
       </div>
 
       {observations.length > 0 ? (
-        <div className="mt-1 border-t border-dashed border-slate-300 pt-3">
-          <p className="mb-2 flex items-center gap-1 text-base font-bold text-amber-800">
-            <Icon name="alert-triangle" className="h-3.5 w-3.5" />
-            Góp ý ở bản trước ({observations.length})
-          </p>
-          <div className="flex flex-col gap-2">
-            {observations.map((obs, idx) => (
-              <div
-                key={idx}
-                className="rounded-lg border border-amber-200 bg-amber-50 px-2.5 py-2 text-base text-amber-900"
-              >
-                <p className="mb-0.5 font-bold">
-                  {obs.location}
-                  {obs.category ? ` · ${obs.category}` : ""}
-                </p>
-                <p className="mb-1 italic text-rose-800">&quot;{obs.original}&quot;</p>
-                <p>
-                  <strong>Cách sửa:</strong> {obs.suggestion}
-                </p>
-                {obs.example ? (
-                  <p className="mt-0.5 text-emerald-800">
-                    <strong>Mẫu:</strong> &quot;{obs.example}&quot;
-                  </p>
-                ) : null}
-              </div>
-            ))}
+        <>
+          {/* Mobile: thu gọn để Bản sửa nằm ngay dưới Bản trước; ≥lg: mở sẵn cạnh nhau */}
+          <details className="group border-t border-border lg:hidden">
+            <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 text-base font-medium text-text [&::-webkit-details-marker]:hidden">
+              Góp ý đã nhận ở bản này ({observations.length})
+              <Icon name="chevron-down" className="h-5 w-5 shrink-0 text-text-muted transition-transform group-open:rotate-180" />
+            </summary>
+            <ObservationSummaryList observations={observations} />
+          </details>
+          <div className="hidden border-t border-border pt-4 lg:block">
+            <p className="eyebrow mb-1">Góp ý đã nhận ở bản này ({observations.length})</p>
+            <ObservationSummaryList observations={observations} />
           </div>
-        </div>
+        </>
       ) : null}
-      <Link href={`/my-work/${submissionId}`} className="inline-flex min-h-11 items-center text-base font-medium text-primary-dark underline underline-offset-4">Mở bài và góp ý của bản này</Link>
-    </Card>
+
+      {openHref ? (
+        <Link href={openHref} className="inline-flex min-h-11 items-center gap-1.5 self-start text-base font-medium text-primary-dark hover:underline">
+          Mở Bản {revision} và toàn bộ góp ý
+          <Icon name="arrow-right" className="h-4 w-4" />
+        </Link>
+      ) : null}
+    </article>
+  );
+}
+
+/** Tóm tắt góp ý của bản trước (vị trí, câu gốc, cách sửa, câu mẫu) — bản đầy đủ nằm ở trang của bản đó. */
+function ObservationSummaryList({ observations }: { observations: MyWorkFeedback["observations"] }) {
+  return (
+    <ul className="divide-y divide-border">
+      {observations.map((obs, idx) => (
+        <li key={idx} className="py-3 text-base leading-relaxed">
+          <p className="flex flex-wrap items-center gap-x-2 gap-y-1">
+            <Badge tone="neutral">{feedbackCategoryLabel(obs.category)}</Badge>
+            <span className="font-medium text-text-secondary">{obs.location}</span>
+          </p>
+          <p className="mt-2 break-words text-text-secondary">&ldquo;{obs.original}&rdquo;</p>
+          <p className="mt-1 break-words text-text">
+            <span className="font-semibold">Cách sửa: </span>
+            {obs.suggestion}
+          </p>
+          {obs.example ? (
+            <p className="mt-1 break-words text-emerald-800">
+              <span className="font-semibold">Câu mẫu: </span>&ldquo;{obs.example}&rdquo;
+            </p>
+          ) : null}
+        </li>
+      ))}
+    </ul>
   );
 }

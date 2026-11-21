@@ -1,11 +1,12 @@
 "use client";
 
 import { useCallback, useEffect, useRef } from "react";
-import { Icon, MarkdownText } from "@/components/ui";
+import { MarkdownText } from "@/components/ui";
 import type { ModePanelProps } from "../types";
 import { usePluginState } from "../types";
 import { useRecorder } from "../../hooks/use-recorder";
 import { SessionColumns } from "../../shell/session-columns";
+import { PROMPT_TEXT_CLASS, SessionBriefCard } from "../../shared/session-brief-card";
 import { apiFetch, ApiClientError } from "@/lib/api-client";
 import { uploadMediaResponseSchema } from "@/contracts/media";
 import { SpeakingRecorder } from "./speaking-recorder";
@@ -16,6 +17,8 @@ import type { SpeakingModeState } from "./state";
  * Vùng làm bài mode Nói: cột trái = đối chiếu bản trước + tình huống nói,
  * cột phải = phòng thu audio (upload → mediaId) + khung ghi chú ý chính
  * (cũng hỗ trợ nộp text-only với invariant pronunciation: not_assessable).
+ * Mobile: hai tab "Tình huống" ⇄ "Ghi âm"; phòng thu luôn được mount nên đang
+ * ghi âm vẫn xem lại được tình huống (tab có chấm đỏ khi đang thu).
  */
 export function SpeakingPanel(props: ModePanelProps) {
   const { data, busy, capture } = props;
@@ -103,43 +106,30 @@ export function SpeakingPanel(props: ModePanelProps) {
   const sourceRef = `Bài nói: ${activity.slot || activity.id}`;
 
   const left = (
-    <>
-      {parentData && (
-        <SpeakingParentReference
-          parentData={parentData}
-          open={state.showParentRef}
-          onToggle={() =>
-            setState((prev) => ({ ...prev, showParentRef: !prev.showParentRef }))
-          }
-        />
-      )}
-
-      <div className="mb-4 rounded-xl border border-border bg-surface p-5 ">
-        <div className="mb-2.5 flex items-center gap-2">
-          <span className="inline-flex items-center gap-1 rounded-md border border-skill-speaking-border bg-skill-speaking-soft px-2 py-0.5 text-base font-bold text-skill-speaking">
-            <Icon name="mic" className="h-3.5 w-3.5" />
-            Tình huống nói
-          </span>
-        </div>
-
-        <h2 className="mb-2 text-lg font-bold text-text">{activity.title}</h2>
-
-        {activity.objective && (
-          <p className="mb-3 text-base leading-relaxed text-text-secondary">
-            <strong className="text-text">Mục tiêu:</strong>{" "}
-            {activity.objective}
-          </p>
-        )}
-
-        <div
-          {...capture.selectHandlers(promptText, sourceRef, "text")}
-          className="rounded-xl border border-border-subtle bg-surface-muted px-4 py-3.5 text-base leading-relaxed text-text-secondary"
-        >
-          <MarkdownText text={promptText} />
-        </div>
+    <SessionBriefCard
+      eyebrow="Đề bài · Tình huống nói"
+      title="Chuẩn bị bài nói"
+      durationMinutes={activity.durationMinutes}
+      objective={activity.objective}
+    >
+      <div
+        {...capture.selectHandlers(promptText, sourceRef, "text")}
+        className={PROMPT_TEXT_CLASS}
+      >
+        <MarkdownText text={promptText} />
       </div>
-    </>
+    </SessionBriefCard>
   );
+
+  const reference = parentData ? (
+    <SpeakingParentReference
+      parentData={parentData}
+      open={state.showParentRef}
+      onToggle={() =>
+        setState((prev) => ({ ...prev, showParentRef: !prev.showParentRef }))
+      }
+    />
+  ) : undefined;
 
   const right = (
     <>
@@ -152,13 +142,10 @@ export function SpeakingPanel(props: ModePanelProps) {
         onClearTake={handleClearTake}
       />
 
-      <div className="mt-4 rounded-xl border border-border bg-surface p-5 ">
-        <label
-          htmlFor="speaking-notes"
-          className="mb-2 flex items-center gap-1.5 text-base font-semibold text-text"
-        >
-          <Icon name="pen" className="h-4 w-4 text-text-muted" />
-          <span>Ghi chú dàn ý nói (tuỳ chọn)</span>
+      <section className="mt-4 rounded-2xl border border-border bg-surface p-4 shadow-card sm:p-6 lg:mt-5">
+        <p className="eyebrow">Tuỳ chọn</p>
+        <label htmlFor="speaking-notes" className="text-lg font-semibold text-text">
+          Ghi chú dàn ý nói
         </label>
         <textarea
           id="speaking-notes"
@@ -169,18 +156,37 @@ export function SpeakingPanel(props: ModePanelProps) {
           disabled={busy}
           placeholder="Ghi nhanh vài từ khoá dự kiến nói..."
           rows={3}
-          className="box-border w-full resize-y rounded-xl border border-border-strong bg-surface p-3.5 text-base leading-relaxed text-text outline-none transition placeholder:text-text-muted focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:opacity-60"
+          className="mt-3 box-border w-full resize-y rounded-xl border border-border-strong bg-surface p-4 text-base leading-relaxed text-text outline-none transition placeholder:text-text-muted focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:opacity-60"
         />
         {!recorder.blob && !recorder.isRecording && (
-          <p className="mt-2 text-base leading-relaxed text-text-muted">
+          <p className="mt-2 text-sm leading-5 text-text-muted">
             Khi không tiện ghi âm, bạn vẫn có thể nộp nội dung gõ tay — AI sẽ
             góp ý từ vựng & cấu trúc và ghi nhận phát âm là &ldquo;chưa đánh giá
             được&rdquo;.
           </p>
         )}
-      </div>
+      </section>
     </>
   );
 
-  return <SessionColumns left={left} right={right} collapsible sourceLabel="Xem tình huống và bản nói trước" />;
+  return (
+    <SessionColumns
+      left={left}
+      right={right}
+      reference={reference}
+      referenceLabel={parentData ? `Góp ý bản ${parentData.submission.revision}` : undefined}
+      promptLabel="Tình huống"
+      answerLabel="Ghi âm"
+      answerIcon="mic"
+      answerBadge={
+        recorder.isRecording ? (
+          <span className="inline-flex h-2.5 w-2.5 shrink-0 animate-pulse rounded-full bg-red-600">
+            <span className="sr-only">đang ghi âm</span>
+          </span>
+        ) : undefined
+      }
+      startLabel="Sẵn sàng ghi âm"
+      startOnAnswer={Boolean(data.initialDraft || data.parentId)}
+    />
+  );
 }

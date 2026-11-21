@@ -10,8 +10,8 @@ export function ReadingHint({ data }: { data: SessionData }) {
   const { activity } = data;
   return (
     <div>
-      <div className="mb-1 font-bold">💡 Gợi ý quy trình dịch đoạn y khoa:</div>
-      <ul className="mb-1.5 list-disc pl-5">
+      <p className="mb-2 font-semibold">Quy trình dịch đoạn y khoa</p>
+      <ul className="list-disc space-y-1.5 pl-5">
         <li>
           <strong>Bước 1 — Đọc lướt:</strong> đọc cả đoạn một lần, gạch ý chính
           trước khi dịch từng câu.
@@ -26,9 +26,9 @@ export function ReadingHint({ data }: { data: SessionData }) {
         </li>
       </ul>
       {activity.feedbackGuide && (
-        <div className="mt-1 border-t border-yellow-200 pt-1.5">
+        <p className="mt-3 border-t border-amber-200 pt-3">
           <strong>Tiêu chí chấm của bài này:</strong> {activity.feedbackGuide}
-        </div>
+        </p>
       )}
     </div>
   );

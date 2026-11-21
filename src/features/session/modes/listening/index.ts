@@ -26,7 +26,7 @@ export const listeningPlugin: ModePlugin = {
   buildSubmission,
   buildDraft,
   staysAfterSubmit: true,
-  submitLabel: "Nộp bài & Xem đáp án chi tiết",
+  submitLabel: "Nộp bài & xem đáp án",
   submittingCopy: {
     title: "Hệ thống đang chấm các câu trả lời của bạn...",
     description:

@@ -1,10 +1,17 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Button, Icon } from "@/components/ui";
+import { Button, Icon, SegmentedControl } from "@/components/ui";
 import { apiFetch, ApiClientError } from "@/lib/api-client";
-import { cn } from "@/lib/utils";
 import { createSessionResponseSchema, type TargetMinutes } from "@/contracts/session";
+
+const DURATION_OPTIONS = [{ value: 30, label: "30 phút" }, { value: 45, label: "45 phút" }] as const;
+
+/**
+ * Chọn thời lượng 30/45 + nút bắt đầu. Trên <lg nút chính nằm ở thanh dính đáy
+ * (ngay trên thanh tab) để luôn trong tầm tay khi đọc đề; ≥lg nút nằm trong thẻ.
+ * Hai nút dùng chung một handler và trạng thái đang mở.
+ */
 export function StartSessionCta({ activityId, parentId }: {
   activityId: string;
   parentId?: string;
@@ -36,22 +43,30 @@ export function StartSessionCta({ activityId, parentId }: {
       setStarting(false);
     }
   }
-  return (<div className="mt-5 space-y-3">
-
-    {error && <div role="alert" className="rounded-xl border border-danger/30 bg-danger/5 px-4 py-3 text-base text-danger">
-      <p>
-        {error}
-      </p>
+  const startLabel = starting ? "Đang mở bài…" : parentId ? "Bắt đầu bản sửa" : "Bắt đầu học";
+  const errorNotice = (className: string) => error && (
+    <div role="alert" className={`rounded-xl border border-danger/30 bg-red-50 px-4 py-3 text-base text-red-800 ${className}`}>
+      <p>{error}</p>
       {existingSessionId && <button type="button" onClick={() => router.push(`/learn/${existingSessionId}${revisionQuery}`)} className="inline-flex min-h-11 cursor-pointer items-center gap-2 text-base font-medium underline underline-offset-2">Tiếp tục phiên đang dở<Icon name="arrow-right" className="h-4 w-4" /></button>}
-    </div>}
-
-    <div role="group" aria-label="Thời lượng buổi học" className="flex gap-2">
-        {([30, 45] as const).map((minutes) => <Button key={minutes} variant="outline" aria-pressed={targetMinutes === minutes} disabled={starting} onClick={() => setTargetMinutes(minutes)} className={cn("flex-1", targetMinutes === minutes && "border-primary bg-surface-muted text-primary-dark")}>{minutes} phút</Button>)}
     </div>
+  );
+  return (
+    <div className="mt-4 flex flex-col gap-3">
+      {errorNotice("hidden lg:block")}
+      <SegmentedControl ariaLabel="Thời lượng buổi học" options={DURATION_OPTIONS} value={targetMinutes} disabled={starting} fullWidth
+        onChange={(minutes) => setTargetMinutes(minutes)} />
+      <Button size="lg" fullWidth loading={starting} onClick={() => void handleStart()} className="hidden min-h-14 font-semibold lg:inline-flex">
+        {startLabel}{!starting && <Icon name="arrow-right" className="h-4 w-4" />}
+      </Button>
 
-    <Button size="lg" fullWidth loading={starting} onClick={() => void handleStart()}>
-      {starting ? "Đang mở bài…" : parentId ? "Bắt đầu bản sửa" : "Bắt đầu học"}
-    </Button>
-
-  </div>);
+      <div className="fixed inset-x-0 bottom-(--nav-height) z-40 border-t border-border bg-surface/95 px-5 py-3 backdrop-blur lg:hidden">
+        <div className="mx-auto max-w-2xl space-y-2">
+          {errorNotice("")}
+          <Button size="lg" fullWidth loading={starting} onClick={() => void handleStart()} className="min-h-13 font-semibold">
+            {startLabel}{!starting && <span className="font-normal text-white/85">· {targetMinutes} phút</span>}
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
 }

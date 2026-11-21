@@ -26,9 +26,7 @@ export function VocabListView({ initialItems }: VocabListViewProps) {
   const [activeFilter, setActiveFilter] = useState<VocabFilter>("all");
   const [sourceFilter, setSourceFilter] = useState<string>("all");
   const [query, setQuery] = useState("");
-  const [expandedId, setExpandedId] = useState<string | null>(
-    initialItems.length > 0 ? initialItems[0].id : null
-  );
+  const [expandedId, setExpandedId] = useState<string | null>(null);
   const isLoadingFilter = false;
 
   const now = useMemo(() => new Date(), []);
@@ -84,10 +82,10 @@ export function VocabListView({ initialItems }: VocabListViewProps) {
   }
 
   return (
-    <PageContainer className="space-y-6">
-      <VocabPageHeader />
+    <PageContainer className="space-y-4 sm:space-y-5">
+      <VocabPageHeader totalCount={items.length} dueCount={dueCount} masteredCount={masteredCount} />
 
-      <DueTodayCard dueCount={dueCount} />
+      <DueTodayCard dueCount={dueCount} totalCount={items.length} />
 
       <VocabFilterBar
         query={query}
@@ -111,7 +109,7 @@ export function VocabListView({ initialItems }: VocabListViewProps) {
       {!isLoadingFilter && filteredItems.length === 0 && (
         <EmptyState
           icon="book-open"
-          className="mx-auto max-w-lg"
+          className="rounded-2xl border border-dashed border-border bg-surface"
           title={
             trimmedQuery
               ? "Không tìm thấy cụm từ khớp từ khoá"
@@ -125,7 +123,7 @@ export function VocabListView({ initialItems }: VocabListViewProps) {
           action={
             <Link
               href="/library"
-              className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-primary px-5 text-base font-semibold text-white no-underline  transition hover:bg-primary-dark"
+              className="pressable inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-primary px-5 text-base font-semibold text-white no-underline hover:bg-primary-dark"
             >
               <span>Luyện đọc ngay</span>
               <Icon name="arrow-right" className="h-4 w-4" />
@@ -137,15 +135,13 @@ export function VocabListView({ initialItems }: VocabListViewProps) {
       {!isLoadingFilter &&
         Object.entries(groupedByDate).map(([dateStr, dateItems]) => (
           <div key={dateStr} className="space-y-3">
-            <div className="flex items-center gap-2 pl-1 text-base font-semibold uppercase tracking-wider text-text-muted">
-              <Icon name="calendar" className="h-3.5 w-3.5" />
+            <h2 className="eyebrow flex items-center gap-2 pl-1">
+              <Icon name="calendar" className="h-4 w-4" />
               <span>Ngày lưu: {dateStr}</span>
-              <span className="rounded-full bg-slate-200/70 px-2 py-0.5 text-base font-semibold tabular-nums text-text-secondary">
-                {dateItems.length}
-              </span>
-            </div>
+              <span className="tabular-nums">· {dateItems.length} cụm từ</span>
+            </h2>
 
-            <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-2">
+            <div className="grid grid-cols-1 items-start gap-3 sm:gap-4 lg:grid-cols-2">
               {dateItems.map((item) => (
                 <VocabItemCard
                   key={item.id}

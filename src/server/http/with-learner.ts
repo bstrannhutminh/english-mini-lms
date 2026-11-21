@@ -16,15 +16,24 @@ import { mapServiceError } from "./map-service-error";
 export interface LearnerHandlerArgs<TParams> {
   req: NextRequest;
   learner: CurrentLearner;
-  /** Resolved route params (undefined for routes without dynamic segments). */
+  /** Resolved route params (undefined when called without a route context). */
   params: TParams;
+}
+
+/**
+ * Keep direct calls without context available to internal callers. The final
+ * overload exposes Next's required promised params to generated route checks.
+ */
+export interface HttpRouteHandler<TParams> {
+  (req: NextRequest): Promise<Response>;
+  (req: NextRequest, routeCtx: { params: Promise<TParams> }): Promise<Response>;
 }
 
 export function withLearner<TParams = unknown>(
   handler: (
     args: LearnerHandlerArgs<TParams>
   ) => Promise<Response> | Response
-) {
+): HttpRouteHandler<TParams> {
   return async function wrappedRoute(
     req: NextRequest,
     routeCtx?: { params?: Promise<TParams> }

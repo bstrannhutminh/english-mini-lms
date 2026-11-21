@@ -43,7 +43,7 @@ export function ExportCard() {
         description="Tải hồ sơ, các phiên học, bài nộp chưa xóa, nhận xét và sổ từ dưới dạng JSON. Link âm thanh chỉ có khi tạo được; bản xuất chưa gồm nháp và lịch sử từng lượt ôn từ."
       />
       <Button
-        variant="secondary"
+        variant="outline"
         onClick={handleExport}
         loading={exporting}
         className="w-full sm:w-auto"

@@ -31,7 +31,7 @@ function pickMimeType(): string {
 
 /**
  * Ghi âm bài nói bằng MediaRecorder (tối đa `maxSeconds`, mặc định 5 phút).
- * Port headless từ audio-recorder.tsx — speaking/listening-shadowing dùng.
+ * Hook headless (không kèm giao diện) — speaking/listening-shadowing dùng.
  */
 export function useRecorder(maxSeconds = 300): Recorder {
   const [isRecording, setIsRecording] = useState(false);

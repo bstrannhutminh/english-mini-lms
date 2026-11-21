@@ -10,16 +10,16 @@ export function StepSkills({ draft, onChange }: StepSkillsProps) {
   return (<div className="space-y-6">
 
     <div>
-      <h2 className="text-2xl font-semibold tracking-tight text-text">Bạn cảm thấy thế nào với từng kỹ năng?</h2>
+      <h1 className="text-2xl font-semibold leading-tight tracking-tight text-text sm:text-3xl">Bạn cảm thấy thế nào với từng kỹ năng?</h1>
       <p className="mt-2 text-base leading-relaxed text-text-secondary">Tự chọn mức gần nhất với mình. Mức 3 là gợi ý mặc định, bạn có thể chỉnh hoặc giữ để bắt đầu.</p>
     </div>
 
-    <p className="rounded-xl border border-border bg-surface-muted p-4 text-base leading-relaxed text-text-secondary">Đây là tự đánh giá để chọn bài khởi đầu. Không phải kết quả kiểm tra hay điểm IELTS/CEFR.</p>
+    <p className="border-l-2 border-border-strong pl-4 text-base leading-relaxed text-text-secondary">Đây là tự đánh giá để chọn bài khởi đầu. Không phải kết quả kiểm tra hay điểm IELTS/CEFR.</p>
 
-    <div className="divide-y divide-border">
+    <div className="grid gap-x-6 gap-y-4 sm:grid-cols-2">
       {SKILL_ORDER.map((skill) => {
-        const meta = SKILL_INFO[skill]; const score = draft.selfAssessment[skill]; const levelInfo = SKILL_LEVEL_LABELS[score] ?? SKILL_LEVEL_LABELS[3]; return <fieldset key={skill} className="py-5">
-          <legend className="pt-5 text-lg font-semibold text-text">
+        const meta = SKILL_INFO[skill]; const score = draft.selfAssessment[skill]; const levelInfo = SKILL_LEVEL_LABELS[score] ?? SKILL_LEVEL_LABELS[3]; return <fieldset key={skill} className="min-w-0 border-t border-border py-3">
+          <legend className="pt-3 text-lg font-semibold text-text">
             {meta.label}
           </legend>
           <p id={`skill-description-${skill}`} className="mb-3 text-base leading-relaxed text-text-secondary">Mức {score}/5 · {levelInfo.short}. {levelInfo.detail}</p>

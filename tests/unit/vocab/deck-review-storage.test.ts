@@ -4,7 +4,7 @@ import { parseDeckSnapshot, restoreDeckSnapshot } from "@/features/vocab/deck-re
 const word = {
   id: "11111111-1111-4111-8111-111111111111",
   phrase: "follow-up", ipa: null, contextMeaning: "tái khám", originalSentence: "Arrange a follow-up.",
-  sourceRef: "W1", myAttempt: null, masteryLevel: 1, dueAt: "2026-11-19T00:00:00.000Z",
+  sourceRef: "W1", myAttempt: null, imageUrl: null, masteryLevel: 1, dueAt: "2026-11-19T00:00:00.000Z",
 };
 const review = { vocab_id: word.id, result: "know", clientReviewId: "22222222-2222-4222-8222-222222222222" };
 const snapshot = { mode: "due", items: [word], batch: [review] };
@@ -12,6 +12,12 @@ const snapshot = { mode: "due", items: [word], batch: [review] };
 describe("pending flashcard review restoration", () => {
   it("keeps the original idempotency key when restoring an unsaved grade", () => {
     const parsed = parseDeckSnapshot(JSON.stringify(snapshot));
+    expect(parsed?.batch[0].clientReviewId).toBe(review.clientReviewId);
+  });
+  it("restores grades saved before optional word images were available", () => {
+    const legacy = { ...snapshot, items: [{ ...word, imageUrl: undefined }] };
+    const parsed = parseDeckSnapshot(JSON.stringify(legacy));
+    expect(parsed?.items[0].imageUrl).toBeNull();
     expect(parsed?.batch[0].clientReviewId).toBe(review.clientReviewId);
   });
   it("does not expose a stored word outside the authenticated learner's current list", () => {

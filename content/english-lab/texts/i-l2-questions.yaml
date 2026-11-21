@@ -1,0 +1,50 @@
+# Bộ câu hỏi nghe hiểu cho bài I-L2 (IELTS Listening Part 3 — phỏng vấn Robert Sapolsky về ý chí tự do)
+# Đáp án bị khóa đến khi nộp bài (answer_reveal: after_submit)
+
+title: "Nghe hiểu: Sapolsky — Vì sao không có ý chí tự do?"
+segment_id: "seg-i-l2"
+questions:
+  - id: "q1"
+    prompt: "What does the interviewer ask Sapolsky to do at the beginning of the conversation?"
+    options:
+      - id: "A"
+        text: "Describe the process of writing his 800-page book 'Behave'."
+      - id: "B"
+        text: "Give the most concise version of his argument that humans do not have free will."
+      - id: "C"
+        text: "Explain why the brain changes through life experiences."
+      - id: "D"
+        text: "Offer advice to help the audience make better decisions."
+    correct_option_id: "B"
+    explanation: "Ở mốc giây 170–179 (02:50), người phỏng vấn hỏi: 'I'm curious if you could provide us with the most succinct version of that argument for us, just to foreground things for our audience.'"
+    timestamp_reference: 174
+
+  - id: "q2"
+    prompt: "According to Sapolsky, why do most people believe they have free will?"
+    options:
+      - id: "A"
+        text: "Because science has proved that the brain operates independently of its environment."
+      - id: "B"
+        text: "Because they can accurately predict every consequence of their choices."
+      - id: "C"
+        text: "Because they are aware of making a choice, know its likely consequences, and know that alternatives are available."
+      - id: "D"
+        text: "Because they feel that their past and biology do not influence them."
+    correct_option_id: "C"
+    explanation: "Ở mốc giây 179–197 (02:59), Sapolsky nói: 'We're consciously aware of doing it, we know what the consequences are likely to be. Most importantly, we know there's alternatives available to us. And for most people that's necessary and sufficient, there's free will.'"
+    timestamp_reference: 188
+
+  - id: "q3"
+    prompt: "According to Sapolsky, what is the only question that matters when discussing free will?"
+    options:
+      - id: "A"
+        text: "How can education help people develop stronger willpower?"
+      - id: "B"
+        text: "Why can people imagine different consequences?"
+      - id: "C"
+        text: "How did a person become someone who would have that intention at that moment? The answer lies in biology and environment beyond their control."
+      - id: "D"
+        text: "Are decisions completely random and unpredictable?"
+    correct_option_id: "C"
+    explanation: "Ở mốc giây 197–225 (03:16), Sapolsky nhấn mạnh: 'How did you become the sort of person who would have that intent at that point? And the answer is because of the biology over which you had no control, interacting with the environment over which you had no control.'"
+    timestamp_reference: 207

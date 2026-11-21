@@ -1,18 +1,23 @@
 "use client";
 
 import { useState } from "react";
+import { PageContainer } from "@/components/layout";
+import { EmptyState, Icon } from "@/components/ui";
+import { cn } from "@/lib/utils";
 import { DetailHeader } from "./detail-header";
 import { PendingState } from "./pending-state";
 import { FailedState } from "./failed-state";
-import { PriorityObservations } from "./priority-observations";
 import { SubmissionPanel } from "./submission-panel";
 import { CompareView } from "./compare-view";
 import { FeedbackPanel } from "./feedback-panel";
+import { StickyRevisionBar } from "./sticky-revision-bar";
+import { originalEvidenceLabel, revisionAction } from "./revision-action";
 import { useRevisionSession } from "./use-revision-session";
 import type {
   ActivityMeta,
   AssessmentInfo,
   MyWorkFeedback,
+  LatestRevisionRef,
   ParentRevision,
   SubmissionDetail,
 } from "../types";
@@ -23,98 +28,108 @@ export interface FeedbackDetailViewProps {
   assessment: AssessmentInfo | null;
   feedback: MyWorkFeedback | null;
   parent: ParentRevision | null;
+  /** Đã có bản sửa làm từ bài này → CTA chính là mở bản đó thay vì sửa lại. */
+  latestRevision?: LatestRevisionRef | null;
 }
 
 /**
- * /my-work/[submissionId] — vòng Góp ý → Sửa lại (§3.5):
- * Top-3 ưu tiên đứng đầu → CTA "Sửa ngay" (phiên mới + parentId) →
- * tab So sánh Bản 1/2 → trạng thái chờ chấm tự cập nhật → flag + lưu cụm từ.
+ * /my-work/[submissionId] — vòng Góp ý → Sửa lại (§3.5), đọc từ trên xuống:
+ * thẻ tóm tắt (điểm ước tính luyện tập + việc tiếp theo + CTA) → trạng thái
+ * chấm → điểm theo tiêu chí → N điểm cần sửa trước → điểm sáng → bài đã nộp
+ * → so sánh với bản trước. Mobile: CTA "Sửa ngay" dính đáy trên thanh tab.
  */
-export function FeedbackDetailView({
-  submission,
-  activity,
-  assessment,
-  feedback,
-  parent,
-}: FeedbackDetailViewProps) {
-  const [activeTab, setActiveTab] = useState<"current" | "compare">("current");
+export function FeedbackDetailView({ submission, activity, assessment, feedback, parent, latestRevision = null }: FeedbackDetailViewProps) {
   const [flaggedIndexes, setFlaggedIndexes] = useState<Record<number, boolean>>({});
-  const { startRevision, isCreating, error: revisionError } =
-    useRevisionSession(activity.id, submission.id);
+  // Chưa có góp ý → mở sẵn bài đã nộp; có góp ý → thu gọn để góp ý đứng trước.
+  const [submissionOpen, setSubmissionOpen] = useState(!feedback);
+  const { startRevision, isCreating, error: revisionError } = useRevisionSession(activity.id, submission.id);
 
-  const markFlagged = (idx: number) =>
-    setFlaggedIndexes((prev) => ({ ...prev, [idx]: true }));
+  const markFlagged = (idx: number) => setFlaggedIndexes((prev) => ({ ...prev, [idx]: true }));
 
+  const isPending = assessment?.status === "queued" || assessment?.status === "processing";
+  const isFailed = assessment?.status === "failed";
+  // Thanh dính đáy chỉ xuất hiện khi đã có góp ý để sửa theo (1 hành động chính/màn).
+  const showStickyBar = Boolean(feedback);
+  const action = revisionAction(activity.mode, submission.revision);
   const sourceRef = `${activity.title} · bài nộp ${submission.id} · bản ${submission.revision}${feedback?.id ? ` · góp ý ${feedback.id}` : ""}`;
 
   return (
-    <div className="mx-auto w-full max-w-6xl px-4 pb-10 pt-6 sm:px-6">
+    <>
+    <PageContainer className={cn("space-y-6", showStickyBar && "pb-28 sm:pb-28 lg:pb-10")}>
       <DetailHeader
         activity={activity}
         submission={submission}
-        hasParent={Boolean(parent)}
-        activeTab={activeTab}
-        onTabChange={setActiveTab}
+        feedback={feedback}
+        parentRevision={parent ? parent.submission.revision : null}
+        latestRevision={latestRevision}
         onStartRevision={startRevision}
         isCreatingRevision={isCreating}
+        stickyCtaOnMobile={showStickyBar}
+        onShowSubmission={() => setSubmissionOpen(true)}
       />
 
       {revisionError ? (
-        <p className="mb-4 rounded-lg border border-red-200 bg-red-50 px-4 py-2.5 text-base text-red-800">
-          {revisionError} — vui lòng thử lại.
+        <p role="alert" className="flex items-start gap-2.5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-base text-red-800">
+          <Icon name="alert-triangle" className="mt-1 h-4 w-4 shrink-0" />
+          <span>{revisionError} — vui lòng thử lại.</span>
         </p>
       ) : null}
 
       {/* Trạng thái chấm: chờ (poll tự động) hoặc lỗi (nút chấm lại) */}
-      {assessment && (assessment.status === "queued" || assessment.status === "processing") ? (
-        <PendingState status={assessment.status} />
-      ) : null}
-      {assessment?.status === "failed" ? (
+      {assessment && isPending ? <PendingState status={assessment.status} /> : null}
+      {assessment && isFailed ? (
         <FailedState assessmentId={assessment.id} resultRef={assessment.resultRef} />
       ) : null}
 
-      {/* Top-3 góp ý ưu tiên — học trước: thấy ngay việc cần sửa */}
       {feedback ? (
-        <>
-          {feedback.next_action && (
-            <div className="mb-6 border-l-2 border-primary px-4 py-2 text-base leading-relaxed text-text">
-              <h2 className="mb-1 font-semibold text-primary-dark">Việc cần làm ở bản tiếp theo</h2>
-              {feedback.next_action}
-            </div>
-          )}
-          <PriorityObservations
-            feedback={feedback}
-            sourceRef={sourceRef}
-            flaggedIndexes={flaggedIndexes}
-            onFlagged={markFlagged}
-          />
-        </>
+        <FeedbackPanel
+          feedback={feedback}
+          sourceRef={sourceRef}
+          flaggedIndexes={flaggedIndexes}
+          onFlagged={markFlagged}
+          originalLabel={originalEvidenceLabel(activity.mode)}
+        />
+      ) : !isPending && !isFailed && assessment?.status !== "feedback_ready" ? (
+        <EmptyState
+          icon="clock"
+          title="Chưa có nhận xét cho bài này"
+          description="Bài nộp đã được lưu. Góp ý chi tiết sẽ hiển thị tại đây ngay khi AI chấm xong."
+          className="rounded-2xl border border-dashed border-border-strong"
+        />
       ) : null}
 
-      {activeTab === "compare" && parent && <CompareView current={submission} currentFeedback={feedback} parent={parent} />}
-      <div className={`grid grid-cols-1 items-start gap-6 ${activeTab === "compare" && parent ? "" : "lg:grid-cols-[minmax(0,6fr)_minmax(0,5fr)] lg:gap-8"}`}>
-        {(activeTab !== "compare" || !parent) && (
-          <div className="min-w-0">
-            <SubmissionPanel submission={submission} activityMode={activity.mode} />
-          </div>
-        )}
-
-        <div className="min-w-0">
-          {feedback ? (
-            <FeedbackPanel
-              feedback={feedback}
-              sourceRef={sourceRef}
-              flaggedIndexes={flaggedIndexes}
-              onFlagged={markFlagged}
-            />
-          ) : assessment?.status === "feedback_ready" ? null : (
-            <p className="rounded-xl border border-dashed border-slate-300 bg-surface px-5 py-8 text-center text-base text-text-muted">
-              Chưa có nhận xét — bài nộp sẽ hiển thị góp ý chi tiết ngay khi AI
-              chấm xong.
-            </p>
-          )}
+      <details
+        id="bai-da-nop"
+        open={submissionOpen}
+        onToggle={(event) => setSubmissionOpen(event.currentTarget.open)}
+        className="group scroll-mt-20 rounded-2xl border border-border bg-surface lg:scroll-mt-6"
+      >
+        <summary className="flex min-h-14 cursor-pointer list-none items-center justify-between gap-3 px-5 text-lg font-semibold text-text sm:px-6 [&::-webkit-details-marker]:hidden">
+          <span className="flex min-w-0 items-center gap-2.5">
+            <Icon name="file-text" className="h-5 w-5 shrink-0 text-text-muted" />
+            Bài đã nộp · Bản {submission.revision}
+          </span>
+          <Icon name="chevron-down" className="h-5 w-5 shrink-0 text-text-muted transition-transform group-open:rotate-180" />
+        </summary>
+        <div className="border-t border-border px-5 py-5 sm:px-6">
+          <SubmissionPanel submission={submission} activityMode={activity.mode} />
         </div>
-      </div>
-    </div>
+      </details>
+
+      {parent ? <CompareView current={submission} currentFeedback={feedback} parent={parent} /> : null}
+
+    </PageContainer>
+
+      {/* Ngoài PageContainer: không bị ảnh hưởng bởi animation vào trang */}
+      {showStickyBar ? (
+        <StickyRevisionBar
+          label={action.label}
+          icon={action.icon}
+          onStartRevision={startRevision}
+          isCreating={isCreating}
+          latestRevision={latestRevision}
+        />
+      ) : null}
+    </>
   );
 }

@@ -21,7 +21,7 @@ export function BottomTabBar({ vocabDueCount = 0 }: BottomTabBarProps) {
   return (
     <nav
       aria-label="Điều hướng chính"
-      className="fixed inset-x-0 bottom-0 z-(--z-nav) grid h-(--nav-height) grid-cols-5 items-stretch border-t border-border bg-surface pb-[env(safe-area-inset-bottom,0px)] lg:hidden"
+      className="fixed inset-x-0 bottom-0 z-(--z-nav) grid h-(--nav-height) grid-cols-5 items-stretch border-t border-border bg-surface/95 pb-[env(safe-area-inset-bottom,0px)] backdrop-blur-md lg:hidden"
     >
       {NAV_ITEMS.map((item) => {
         const active = isNavItemActive(pathname, item.href);
@@ -32,9 +32,9 @@ export function BottomTabBar({ vocabDueCount = 0 }: BottomTabBarProps) {
             href={item.href}
             data-tour={item.tour}
             aria-current={active ? "page" : undefined}
-            className={cn("group flex min-h-11 min-w-0 cursor-pointer flex-col items-center justify-center gap-2 border-t-2 py-2 no-underline", active ? "border-primary bg-surface-muted" : "border-transparent")}
+            className="group pressable flex min-h-11 min-w-0 cursor-pointer flex-col items-center justify-center gap-1 py-2 no-underline"
           >
-            <span className="relative">
+            <span className={cn("relative flex h-8 w-14 items-center justify-center rounded-full transition-colors", active ? "bg-primary-soft" : "group-hover:bg-surface-subtle")}>
               <Icon
                 name={item.icon}
                 className={cn(
@@ -45,7 +45,7 @@ export function BottomTabBar({ vocabDueCount = 0 }: BottomTabBarProps) {
               {showBadge ? (
                 <span
                   aria-hidden="true"
-                  className="absolute -right-3 -top-2 flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1 text-xs font-semibold leading-none text-white"
+                  className="absolute -top-1 right-0 flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1 text-xs font-semibold leading-none text-white"
                 >
                   {formatBadgeCount(vocabDueCount)}
                 </span>
@@ -53,7 +53,7 @@ export function BottomTabBar({ vocabDueCount = 0 }: BottomTabBarProps) {
             </span>
             <span
               className={cn(
-                "whitespace-nowrap text-base leading-none tracking-[-0.035em]",
+                "whitespace-nowrap text-base leading-none tracking-[-0.035em] max-[359px]:text-sm",
                 active
                   ? "font-semibold text-primary-dark"
                   : "font-normal text-text-muted group-hover:text-text"

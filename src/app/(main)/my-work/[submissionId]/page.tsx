@@ -29,6 +29,7 @@ export default async function MyWorkSubmissionPage({ params }: PageProps) {
       assessment={data.assessment}
       feedback={data.feedback}
       parent={data.parent}
+      latestRevision={data.latestRevision}
     />
   );
 }

@@ -1,0 +1,20 @@
+id: ielts-speaking-v1
+title: "IELTS Speaking Band Descriptors (Practice)"
+description: "Tiêu chí đánh giá bài nói IELTS theo 4 tiêu chí công khai của IELTS, dùng cho bài luyện tự soạn"
+dimensions:
+  - key: fluency_coherence
+    name: "Fluency and Coherence"
+    weight: 0.25
+    description: "Nói trôi chảy, ít ngập ngừng, ý liên kết mạch lạc bằng từ nối và cấu trúc phù hợp."
+  - key: lexical_resource
+    name: "Lexical Resource"
+    weight: 0.25
+    description: "Từ vựng đa dạng, chính xác, dùng được collocation và từ học thuật đúng ngữ cảnh."
+  - key: grammatical_range_accuracy
+    name: "Grammatical Range and Accuracy"
+    weight: 0.25
+    description: "Dùng đa dạng cấu trúc câu (phức, điều kiện, bị động), ít lỗi ngữ pháp ảnh hưởng nghĩa."
+  - key: pronunciation
+    name: "Pronunciation"
+    weight: 0.25
+    description: "Phát âm rõ, trọng âm và ngữ điệu tự nhiên, người nghe hiểu dễ dàng."

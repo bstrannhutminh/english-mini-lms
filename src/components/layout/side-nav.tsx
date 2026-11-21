@@ -51,7 +51,7 @@ export function SideNav({ vocabDueCount = 0, user }: SideNavProps) {
               data-tour={item.tour}
               aria-current={active ? "page" : undefined}
               className={cn(
-                "flex min-h-12 cursor-pointer items-center gap-3 rounded-lg border px-3 py-2.5 text-base no-underline transition-colors",
+                "pressable flex min-h-12 cursor-pointer items-center gap-3 rounded-xl border px-3 py-2.5 text-base no-underline",
                 active
                   ? "border-transparent bg-primary-soft font-semibold text-primary-dark"
                   : "border-transparent font-medium text-text-secondary hover:bg-surface-muted hover:text-text"

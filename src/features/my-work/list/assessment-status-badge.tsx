@@ -8,7 +8,7 @@ const STATUS_META: Record<
   string,
   { label: string; tone: BadgeTone; icon?: IconName; spinning?: boolean }
 > = {
-  feedback_ready: { label: "Đã có feedback", tone: "success", icon: "check-circle" },
+  feedback_ready: { label: "Đã có góp ý", tone: "success", icon: "check-circle" },
   not_assessed: { label: "Chưa chấm", tone: "neutral", icon: "clock" },
   queued: { label: "Đang chấm", tone: "warning", spinning: true },
   processing: { label: "Đang chấm", tone: "warning", spinning: true },

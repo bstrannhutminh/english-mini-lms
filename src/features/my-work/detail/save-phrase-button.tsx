@@ -86,9 +86,9 @@ export function SavePhraseButton({
           setOpen(true);
         }}
         title="Tra nghĩa nhanh và lưu cụm từ này vào Sổ từ"
-        className="inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-lg border border-border px-3 py-2 text-base text-text-secondary transition hover:border-primary hover:text-primary-dark"
+        className="pressable -mr-2 inline-flex min-h-11 cursor-pointer items-center gap-1.5 rounded-lg px-2 text-base text-text-muted hover:bg-primary-soft hover:text-primary-dark sm:mr-0"
       >
-        <Icon name="bookmark" className="h-3 w-3" />
+        <Icon name="bookmark" className="h-4 w-4" />
         Lưu cụm từ
       </button>
 

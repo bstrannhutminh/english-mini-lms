@@ -1,5 +1,7 @@
 "use client";
 
+import { Icon } from "@/components/ui";
+import { cn } from "@/lib/utils";
 import type { ListeningReviewItem } from "@/lib/listening-answer-checking";
 
 /**
@@ -22,73 +24,80 @@ export function ListeningReview({
 
   return (
     <div className="flex flex-col gap-4">
-      {/* Thẻ tổng kết điểm */}
-      <div className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-4">
-        <div>
-          <div className="text-lg font-extrabold text-slate-900">
-            Kết quả nghe hiểu
-          </div>
-          <div className="mt-0.5 text-base text-slate-600">
+      {/* Thẻ tổng kết */}
+      <section className="flex items-center justify-between gap-4 rounded-2xl border border-border bg-surface p-4 shadow-card sm:p-6">
+        <div className="min-w-0">
+          <p className="eyebrow">Kết quả</p>
+          <h2 className="text-lg font-semibold text-text">Kết quả nghe hiểu</h2>
+          <p className="mt-0.5 text-sm leading-5 text-text-secondary">
             {assisted
               ? "Đã hoàn thành (có xem gợi ý/transcript)"
               : "Đã hoàn thành tự làm độc lập"}
-          </div>
+          </p>
         </div>
-        <div className="rounded-xl border border-green-200 bg-green-50 px-4 py-2 text-lg font-extrabold text-green-700">
+        <p className="shrink-0 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2 text-lg font-semibold tabular-nums text-emerald-800">
           {correctCount}/{review.length} đúng
-        </div>
-      </div>
+        </p>
+      </section>
 
       {/* Chi tiết từng câu */}
       {review.map((q, idx) => {
         const seekTarget = q.timestamp ?? fallbackTimestamp;
         return (
-          <div
+          <article
             key={q.id}
-            className={`rounded-xl border bg-white p-4 ${
-              q.isCorrect ? "border-green-300" : "border-red-300"
-            }`}
+            className={cn(
+              "rounded-2xl border bg-surface p-4 sm:p-5",
+              q.isCorrect ? "border-emerald-200" : "border-red-200"
+            )}
           >
-            <div className="mb-2 text-base font-bold text-slate-900">
-              {q.isCorrect ? "✅" : "❌"} Câu {idx + 1}: {q.prompt}
+            <div className="flex items-start gap-3">
+              <span
+                className={cn(
+                  "mt-0.5 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full",
+                  q.isCorrect ? "bg-emerald-100 text-emerald-700" : "bg-red-100 text-red-700"
+                )}
+              >
+                <Icon name={q.isCorrect ? "check" : "x"} className="h-4 w-4" />
+                <span className="sr-only">{q.isCorrect ? "Đúng" : "Sai"}</span>
+              </span>
+              <div className="min-w-0">
+                <p className="eyebrow">Câu {idx + 1}</p>
+                <h3 className="text-base font-semibold leading-relaxed text-text">{q.prompt}</h3>
+              </div>
             </div>
 
-            <div className="mb-2 text-base">
-              <div>
-                Lựa chọn của bạn:{" "}
-                <strong
-                  className={q.isCorrect ? "text-green-700" : "text-red-600"}
-                >
+            <dl className="mt-3 flex flex-wrap gap-x-6 gap-y-1 text-base">
+              <div className="flex gap-2">
+                <dt className="text-text-secondary">Lựa chọn của bạn:</dt>
+                <dd className={cn("font-semibold", q.isCorrect ? "text-emerald-700" : "text-red-700")}>
                   {q.userOption ? q.userOption.toUpperCase() : "Chưa trả lời"}
-                </strong>
+                </dd>
               </div>
               {!q.isCorrect && (
-                <div className="mt-0.5 text-green-700">
-                  Đáp án đúng:{" "}
-                  <strong>
+                <div className="flex gap-2">
+                  <dt className="text-text-secondary">Đáp án đúng:</dt>
+                  <dd className="font-semibold text-emerald-700">
                     {q.correctOption ? q.correctOption.toUpperCase() : "—"}
-                  </strong>
+                  </dd>
                 </div>
               )}
-            </div>
+            </dl>
 
             {/* Giải thích & nút nghe lại mốc giây gây nhầm */}
-            <div className="rounded-lg border border-slate-200 bg-slate-50 p-3 text-base leading-relaxed text-slate-700">
-              <div className="mb-1 font-bold text-slate-600">
-                💡 Phân tích & đoạn gây nhầm:
-              </div>
-              <div>{q.explanation}</div>
-              <div className="mt-1.5">
-                <button
-                  type="button"
-                  onClick={() => onSeek(seekTarget)}
-                  className="inline-flex min-h-11 items-center gap-2 rounded-lg border border-border bg-surface px-3 text-base font-medium text-primary-dark hover:bg-primary-soft"
-                >
-                  ⏱️ Nghe lại đoạn mốc {seekTarget}s trên video
-                </button>
-              </div>
+            <div className="mt-3 rounded-xl bg-surface-muted p-4 text-base leading-relaxed text-text-secondary">
+              <p className="eyebrow mb-1">Phân tích &amp; đoạn gây nhầm</p>
+              <p className="text-text">{q.explanation}</p>
+              <button
+                type="button"
+                onClick={() => onSeek(seekTarget)}
+                className="pressable mt-3 inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-xl border border-border bg-surface px-3 text-base font-medium text-primary-dark hover:bg-primary-soft"
+              >
+                <Icon name="clock" className="h-4 w-4" />
+                Nghe lại từ mốc {seekTarget}s
+              </button>
             </div>
-          </div>
+          </article>
         );
       })}
     </div>

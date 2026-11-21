@@ -1,6 +1,11 @@
 "use client";
 
 import type { SessionParentData } from "../types";
+import {
+  RevisionFixList,
+  RevisionReferenceCard,
+  RevisionSection,
+} from "../../shared/revision-reference-card";
 
 /**
  * Shape thật của feedback mà getSubmissionWithFeedback ghép lại
@@ -14,9 +19,8 @@ interface SpeakingParentFeedback {
 }
 
 /**
- * Khung so sánh Bản nói trước (luồng revision): audio cũ (signed URL ngắn
- * hạn), ghi chú/transcript bản trước, nhận xét phát âm và các điểm cần
- * cải thiện — port từ speaking-session-view cũ.
+ * Khung so sánh Bản nói trước (luồng revision): các điểm cần cải thiện, nhận
+ * xét phát âm, audio cũ (signed URL ngắn hạn) và ghi chú/transcript bản trước.
  */
 export function SpeakingParentReference({
   parentData,
@@ -28,71 +32,42 @@ export function SpeakingParentReference({
   onToggle: () => void;
 }) {
   const feedback = parentData.feedback as SpeakingParentFeedback | null;
+  const { id, revision, audioUrl, body } = parentData.submission;
 
   return (
-    <div className="mb-4 rounded-xl border border-slate-300 bg-slate-50 px-4 py-3.5">
-      <button
-        type="button"
-        onClick={onToggle}
-        className="flex min-h-[44px] w-full items-center justify-between text-left"
-      >
-        <span className="text-base font-bold text-slate-700">
-          📋 So sánh với Bản {parentData.submission.revision} trước đó
-        </span>
-        <span className="text-base font-semibold text-blue-600">
-          {open ? "Thu gọn ▲" : "Xem chi tiết ▼"}
-        </span>
-      </button>
-
-      {open && (
-        <div className="mt-2 flex flex-col gap-2.5">
-          {parentData.submission.audioUrl && (
-            <div>
-              <div className="mb-1 text-base text-slate-500">
-                Bản ghi âm trước đó:
-              </div>
-              <audio
-                controls
-                src={parentData.submission.audioUrl}
-                className="h-11 w-full"
-              />
-            </div>
-          )}
-
-          {parentData.submission.body && (
-            <div>
-              <div className="mb-0.5 text-base text-slate-500">
-                📝 Nội dung bản trước:
-              </div>
-              <div className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-base text-slate-700">
-                {parentData.submission.body}
-              </div>
-            </div>
-          )}
-
-          {feedback?.pronunciation?.notes && (
-            <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-base text-emerald-800">
-              <strong>🗣️ Nhận xét phát âm trước đó:</strong>{" "}
-              {feedback.pronunciation.notes}
-            </div>
-          )}
-
-          {feedback?.observations && feedback.observations.length > 0 && (
-            <div>
-              <div className="mb-1 text-base text-slate-500">
-                🔍 Các điểm cần cải thiện lần này:
-              </div>
-              <ul className="m-0 list-disc pl-5 text-base text-amber-700">
-                {feedback.observations.map((obs, i) => (
-                  <li key={i} className="mb-0.5">
-                    {obs.suggestion}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-        </div>
+    <RevisionReferenceCard
+      revision={revision}
+      open={open}
+      onToggle={onToggle}
+      fullFeedbackHref={`/my-work/${id}`}
+    >
+      {feedback?.observations && feedback.observations.length > 0 && (
+        <RevisionSection label="Điểm cần cải thiện lần này">
+          <RevisionFixList items={feedback.observations} />
+        </RevisionSection>
       )}
-    </div>
+
+      {feedback?.pronunciation?.notes && (
+        <RevisionSection label="Nhận xét phát âm trước đó">
+          <p className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-base leading-relaxed text-emerald-900">
+            {feedback.pronunciation.notes}
+          </p>
+        </RevisionSection>
+      )}
+
+      {audioUrl && (
+        <RevisionSection label="Bản ghi âm trước đó">
+          <audio controls preload="none" src={audioUrl} className="h-11 w-full" />
+        </RevisionSection>
+      )}
+
+      {body && (
+        <RevisionSection label="Nội dung bản trước">
+          <p className="max-w-[65ch] whitespace-pre-wrap rounded-xl bg-surface-muted p-4 text-base leading-relaxed text-text-secondary">
+            {body}
+          </p>
+        </RevisionSection>
+      )}
+    </RevisionReferenceCard>
   );
 }

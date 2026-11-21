@@ -3,8 +3,11 @@
 import { Icon } from "@/components/ui";
 import { cn } from "@/lib/utils";
 import type { Recorder } from "../../hooks/use-recorder";
+import { StepProgress } from "../../shared/step-progress";
 import type { MediaUploadStatus } from "./state";
 import { SpeakingUploadStatus } from "./speaking-upload-status";
+
+const STEPS = ["Chuẩn bị ý", "Ghi âm", "Nghe lại & nộp"] as const;
 
 function formatTime(secs: number): string {
   const mins = Math.floor(secs / 60);
@@ -13,9 +16,9 @@ function formatTime(secs: number): string {
 }
 
 /**
- * Phòng thu gọn gàng cho mode Nói:
- * 3 bước trực quan (Chuẩn bị → Ghi âm → Nghe lại & Nộp), nút chạm ≥ 44px,
- * không dùng emoji làm icon chức năng, trạng thái upload rõ ràng.
+ * Phòng thu của mode Nói — trung tâm thị giác của vùng làm bài:
+ * 3 chặng (Chuẩn bị → Ghi âm → Nghe lại & nộp), đồng hồ số lớn, nút ghi âm
+ * tròn 80px, nghe lại + trạng thái tải lên rõ ràng. Không dùng emoji làm icon.
  */
 export function SpeakingRecorder({
   recorder,
@@ -38,45 +41,23 @@ export function SpeakingRecorder({
     recorder;
 
   const currentStage = isRecording ? 2 : blob ? 3 : 1;
+  const done = Boolean(blob) && !isRecording;
 
   return (
-    <div className="rounded-xl border border-border bg-surface p-5 ">
-      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
-        <div className="flex items-center gap-2 text-base font-bold text-text">
-          <Icon name="mic" className="h-4.5 w-4.5 text-skill-speaking" />
-          <span>Thu âm bài nói</span>
+    <section className="rounded-2xl border border-border bg-surface p-4 shadow-card sm:p-6">
+      <div className="flex flex-wrap items-end justify-between gap-x-4 gap-y-1">
+        <div>
+          <p className="eyebrow">Bài làm</p>
+          <h2 className="text-lg font-semibold text-text">Thu âm bài nói</h2>
         </div>
-        <span className="text-base font-medium text-text-muted">
-          Tối đa {Math.floor(maxSeconds / 60)} phút
-        </span>
+        <p className="text-sm text-text-muted">Tối đa {Math.floor(maxSeconds / 60)} phút</p>
       </div>
 
-      {/* Thanh 3 bước nói */}
-      <ol className="mb-4 grid grid-cols-3 gap-1.5 text-center text-base">
-        {[
-          { num: 1, label: "Chuẩn bị ý" },
-          { num: 2, label: "Ghi âm" },
-          { num: 3, label: "Nghe lại & Nộp" },
-        ].map((st) => (
-          <li
-            key={st.num}
-            className={cn(
-              "rounded-lg border px-2 py-1.5 font-semibold",
-              currentStage === st.num
-                ? "border-primary bg-teal-50 text-primary-dark"
-                : currentStage > st.num
-                  ? "border-emerald-200 bg-emerald-50/70 text-emerald-700"
-                  : "border-border-subtle bg-surface-muted text-text-muted"
-            )}
-          >
-            {st.num}. {st.label}
-          </li>
-        ))}
-      </ol>
+      <StepProgress steps={STEPS} current={currentStage} className="mt-4" />
 
       {isInAppBrowser && (
-        <div className="mb-4 flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3.5 py-2.5 text-base leading-relaxed text-amber-900">
-          <Icon name="info" className="mt-0.5 h-4 w-4 shrink-0 text-amber-700" />
+        <div className="mt-4 flex items-start gap-2.5 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-base leading-relaxed text-amber-900">
+          <Icon name="info" className="mt-1 h-4 w-4 shrink-0 text-amber-700" />
           <span>
             Nếu ghi âm không chạy trong trình duyệt Zalo, chạm menu (⋯) và chọn{" "}
             <strong>&ldquo;Mở bằng Safari&rdquo;</strong> hoặc{" "}
@@ -88,44 +69,69 @@ export function SpeakingRecorder({
       {error && (
         <div
           role="alert"
-          className="mb-4 flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 px-3.5 py-2.5 text-base text-red-700"
+          className="mt-4 flex items-start gap-2.5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-base text-red-800"
         >
-          <Icon name="alert-triangle" className="mt-0.5 h-4 w-4 shrink-0" />
+          <Icon name="alert-triangle" className="mt-1 h-4 w-4 shrink-0" />
           <span>{error}</span>
         </div>
       )}
 
-      {/* Khung đồng hồ thu âm */}
+      {/* Sân khấu ghi âm: đồng hồ lớn + nút tròn */}
       <div
         className={cn(
-          "mb-4 flex flex-col items-center justify-center rounded-xl px-4 py-6 transition-colors",
-          isRecording
-            ? "border-2 border-red-400 bg-red-50/70"
-            : blob
-              ? "border border-emerald-200 bg-emerald-50/40"
-              : "border border-dashed border-border bg-surface-muted"
+          "mt-4 flex flex-col items-center rounded-2xl px-4 py-6 text-center transition-colors sm:py-8",
+          isRecording ? "bg-red-50" : done ? "bg-emerald-50/60" : "bg-surface-muted"
         )}
       >
-        <div className="mb-2 flex items-center gap-2.5">
-          {isRecording && (
-            <span
-              aria-hidden
-              className="h-3 w-3 animate-pulse rounded-full bg-red-600"
-            />
-          )}
+        <p className="flex items-baseline gap-2" aria-live="off">
           <span
             className={cn(
-              "font-mono text-3xl font-extrabold tabular-nums",
-              isRecording ? "text-red-600" : "text-text"
+              "text-6xl font-semibold leading-none tracking-tight tabular-nums",
+              isRecording ? "text-red-700" : "text-text"
             )}
           >
             {formatTime(durationSeconds)}
           </span>
-          <span className="text-base tabular-nums text-text-muted">
-            / {formatTime(maxSeconds)}
+          <span className="text-sm tabular-nums text-text-muted">/ {formatTime(maxSeconds)}</span>
+        </p>
+
+        {!isRecording && !blob && (
+          <button
+            type="button"
+            onClick={() => void recorder.start()}
+            disabled={busy}
+            className="group mt-5 flex cursor-pointer flex-col items-center gap-2.5 rounded-2xl px-4 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            <span className="pressable inline-flex h-20 w-20 items-center justify-center rounded-full bg-primary text-white shadow-lift ring-8 ring-primary/10 group-hover:bg-primary-dark">
+              <Icon name="mic" className="h-8 w-8" />
+            </span>
+            <span className="text-base font-semibold text-text">Bắt đầu ghi âm</span>
+          </button>
+        )}
+
+        {isRecording && (
+          <button
+            type="button"
+            onClick={recorder.stop}
+            className="group mt-5 flex cursor-pointer flex-col items-center gap-2.5 rounded-2xl px-4"
+          >
+            <span className="relative inline-flex h-20 w-20 items-center justify-center">
+              <span aria-hidden="true" className="absolute -inset-2 animate-pulse rounded-full bg-red-200" />
+              <span className="pressable relative inline-flex h-20 w-20 items-center justify-center rounded-full bg-red-600 text-white shadow-lift group-hover:bg-red-700">
+                <Icon name="stop" className="h-7 w-7" />
+              </span>
+            </span>
+            <span className="text-base font-semibold text-red-800">Dừng ghi âm</span>
+          </button>
+        )}
+
+        {done && (
+          <span className="mt-5 inline-flex h-16 w-16 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
+            <Icon name="check" className="h-8 w-8" />
           </span>
-        </div>
-        <p className="text-center text-base text-text-secondary">
+        )}
+
+        <p className="mt-3 max-w-sm text-base leading-relaxed text-text-secondary">
           {isRecording
             ? "Đang thu âm giọng nói của bạn… Nhấn Dừng khi nói xong."
             : blob
@@ -135,60 +141,34 @@ export function SpeakingRecorder({
       </div>
 
       {audioUrl && !isRecording && (
-        <div className="mb-4">
-          <div className="mb-1.5 flex items-center gap-1.5 text-base font-semibold text-text-secondary">
-            <Icon name="volume" className="h-3.5 w-3.5 text-primary" />
+        <div className="mt-4">
+          <p className="mb-2 flex items-center gap-2 text-base font-semibold text-text">
+            <Icon name="volume" className="h-4 w-4 text-primary" />
             <span>Nghe lại bản ghi trước khi nộp</span>
-          </div>
-          <audio controls src={audioUrl} className="h-11 w-full rounded-lg" />
+          </p>
+          <audio controls src={audioUrl} className="h-11 w-full" />
         </div>
       )}
 
-      {blob && !isRecording && (
-        <SpeakingUploadStatus
-          mediaStatus={mediaStatus}
-          mediaError={mediaError}
-          busy={busy}
-          onRetryUpload={onRetryUpload}
-        />
-      )}
-
-      <div className="flex flex-wrap gap-2.5">
-        {!isRecording && !blob && (
-          <button
-            type="button"
-            onClick={() => void recorder.start()}
-            disabled={busy}
-            className="inline-flex min-h-12 flex-1 cursor-pointer items-center justify-center gap-2 rounded-xl bg-primary px-5 text-base font-semibold text-white  transition hover:bg-primary-dark disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            <Icon name="mic" className="h-5 w-5" />
-            <span>Bắt đầu ghi âm</span>
-          </button>
-        )}
-
-        {isRecording && (
-          <button
-            type="button"
-            onClick={recorder.stop}
-            className="inline-flex min-h-12 flex-1 cursor-pointer items-center justify-center gap-2 rounded-xl bg-red-600 px-5 text-base font-semibold text-white  transition hover:bg-red-700"
-          >
-            <Icon name="stop" className="h-4.5 w-4.5" />
-            <span>Dừng ghi âm ({formatTime(durationSeconds)})</span>
-          </button>
-        )}
-
-        {blob && !isRecording && (
+      {done && (
+        <>
+          <SpeakingUploadStatus
+            mediaStatus={mediaStatus}
+            mediaError={mediaError}
+            busy={busy}
+            onRetryUpload={onRetryUpload}
+          />
           <button
             type="button"
             onClick={onClearTake}
             disabled={busy}
-            className="inline-flex min-h-11 cursor-pointer items-center justify-center gap-1.5 rounded-xl border border-border bg-surface-muted px-4 text-base font-semibold text-text-secondary transition hover:bg-slate-200/70 hover:text-text disabled:cursor-not-allowed disabled:opacity-60"
+            className="pressable mt-4 inline-flex min-h-11 w-full cursor-pointer items-center justify-center gap-2 rounded-xl border border-border-strong bg-surface px-4 text-base font-medium text-text-secondary hover:bg-surface-muted hover:text-text disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
           >
             <Icon name="trash" className="h-4 w-4" />
             <span>Thu lại từ đầu</span>
           </button>
-        )}
-      </div>
-    </div>
+        </>
+      )}
+    </section>
   );
 }

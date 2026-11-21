@@ -48,3 +48,46 @@ export function computeStreakDays(
 
   return streak;
 }
+
+/** Một ngày trong dải "7 ngày gần nhất" ở màn Hôm nay. */
+export interface WeekDayActivity {
+  /** YYYY-MM-DD theo giờ VN. */
+  date: string;
+  /** Nhãn thứ ngắn: T2…T7, CN. */
+  label: string;
+  /** Có ít nhất một phiên hoàn thành trong ngày. */
+  studied: boolean;
+  isToday: boolean;
+}
+
+const WEEKDAY_LABELS = ["CN", "T2", "T3", "T4", "T5", "T6", "T7"] as const;
+
+/**
+ * buildWeekActivity — 7 ngày gần nhất (kết thúc ở hôm nay, giờ VN) kèm cờ
+ * "đã học". Hàm thuần: cùng cách tính ngày với computeStreakDays, chỉ phản
+ * ánh phiên đã hoàn thành — không suy ra năng lực.
+ */
+export function buildWeekActivity(
+  completedDates: Date[],
+  now = new Date(),
+  timeZone = "Asia/Ho_Chi_Minh"
+): WeekDayActivity[] {
+  const dayFormatter = new Intl.DateTimeFormat("en-CA", {
+    timeZone, year: "numeric", month: "2-digit", day: "2-digit",
+  });
+  const studiedDays = new Set(completedDates.map((d) => dayFormatter.format(d)));
+  const todayStr = dayFormatter.format(now);
+
+  return Array.from({ length: 7 }, (_, index) => {
+    const day = new Date(now.getTime() - (6 - index) * 24 * 60 * 60 * 1000);
+    const date = dayFormatter.format(day);
+    // Thứ của ngày lịch (UTC noon tránh lệch múi giờ khi dựng lại từ chuỗi).
+    const weekday = new Date(`${date}T12:00:00Z`).getUTCDay();
+    return {
+      date,
+      label: WEEKDAY_LABELS[weekday],
+      studied: studiedDays.has(date),
+      isToday: date === todayStr,
+    };
+  });
+}

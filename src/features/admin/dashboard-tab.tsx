@@ -96,7 +96,7 @@ export default function DashboardTab() {
         <div className="mt-4">
           {data.failedAssessments.length === 0 ? (
             <p className="p-4 bg-emerald-50 text-emerald-800 rounded-lg text-base border border-emerald-100">
-              ✓ Tất cả bài nộp đã chấm xong.
+              Không có bài chấm lỗi được ghi nhận.
             </p>
           ) : (
             <div className="divide-y divide-slate-100 border rounded-lg overflow-hidden">

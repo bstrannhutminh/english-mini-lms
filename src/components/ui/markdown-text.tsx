@@ -9,6 +9,9 @@ import { Fragment, type ReactNode } from "react";
  * mọi nội dung nhập từ admin.
  *
  * Dùng cho promptText/đề bài do admin soạn bằng Markdown nhẹ.
+ *
+ * Ảnh độc lập "![alt](src)" chiếm cả block được render thành <img>
+ * khi src là đường dẫn nội bộ "/..." (không phải "//...") hoặc https://.
  */
 export function MarkdownText({ text }: { text: string }) {
   const blocks = text.split(/\n{2,}/).map((b) => b.trim()).filter(Boolean);
@@ -16,6 +19,25 @@ export function MarkdownText({ text }: { text: string }) {
     <>
       {blocks.map((block, i) => {
         const lines = block.split("\n");
+        // Ảnh độc lập: ![alt](src) chiếm cả block → <img>, chỉ khi src an toàn
+        // (đường dẫn nội bộ "/..." không phải "//..." hoặc https://).
+        const image = block.match(/^!\[([^\]]*)\]\(([^)\s]+)\)$/);
+        if (image) {
+          const [, alt, src] = image;
+          const safeSrc =
+            (src.startsWith("/") && !src.startsWith("//")) ||
+            src.startsWith("https://");
+          if (safeSrc) {
+            return (
+              <img
+                key={i}
+                src={src}
+                alt={alt}
+                className="my-2 w-full rounded-lg"
+              />
+            );
+          }
+        }
         const isList = lines.every((l) => /^\s*[-*]\s+/.test(l));
         if (isList) {
           return (

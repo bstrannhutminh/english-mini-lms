@@ -1,0 +1,72 @@
+/*
+ * Learning Studio — lớp trình bày dùng chung cho các màn học (21/11/2026).
+ * Chỉ chứa component class tái sử dụng: chuyển cảnh, phản hồi nhấn, nền wash
+ * theo kỹ năng, skeleton shimmer, vòng tiến trình. Token màu/bóng nằm ở
+ * globals.css (@theme). Mọi motion tự tắt qua prefers-reduced-motion ở globals.
+ */
+@layer components {
+  /* Nội dung trang hiện dần khi điều hướng (PageContainer). */
+  .page-enter { animation: var(--animate-page-enter); }
+
+  /* Các khối con lần lượt hiện — dùng cho cột thẻ ở Hôm nay/Tiến độ. */
+  .stagger > * { animation: var(--animate-page-enter); }
+  .stagger > *:nth-child(2) { animation-delay: 50ms; }
+  .stagger > *:nth-child(3) { animation-delay: 100ms; }
+  .stagger > *:nth-child(4) { animation-delay: 150ms; }
+  .stagger > *:nth-child(5) { animation-delay: 200ms; }
+  .stagger > *:nth-child(n + 6) { animation-delay: 240ms; }
+
+  /* Phản hồi nhấn cho nút/thẻ bấm được. */
+  .pressable {
+    transition: transform 120ms ease-out, background-color var(--duration-state),
+      border-color var(--duration-state), box-shadow var(--duration-state), color var(--duration-state);
+  }
+  .pressable:active:not(:disabled) { transform: scale(0.98); }
+
+  /* Thẻ nổi nhẹ khi rê chuột (chỉ thiết bị có hover). */
+  .card-lift {
+    transition: transform 180ms ease-out, box-shadow 180ms ease-out, border-color 180ms ease-out;
+  }
+  @media (hover: hover) {
+    .card-lift:hover {
+      transform: translateY(-2px);
+      border-color: var(--color-teal-200);
+      box-shadow: var(--shadow-lift);
+    }
+  }
+
+  /* Nền thẻ bài chính: wash màu kỹ năng ở góc trên phải, vẫn là surface trắng. */
+  .hero-wash {
+    background:
+      radial-gradient(110% 85% at 100% 0%, var(--wash, var(--color-primary-soft)) 0%, transparent 62%),
+      var(--color-surface);
+  }
+  .hero-wash-writing { --wash: var(--color-skill-writing-soft); }
+  .hero-wash-reading { --wash: var(--color-skill-reading-soft); }
+  .hero-wash-speaking { --wash: var(--color-skill-speaking-soft); }
+  .hero-wash-listening { --wash: var(--color-skill-listening-soft); }
+
+  /* Skeleton có ánh chạy — thay animate-pulse. */
+  .skeleton-shimmer {
+    background: linear-gradient(100deg, var(--color-slate-200) 35%, var(--color-slate-100) 50%, var(--color-slate-200) 65%);
+    background-size: 200% 100%;
+    animation: var(--animate-shimmer);
+  }
+
+  /* Vòng tiến trình SVG: nét chạy mượt khi giá trị đổi. */
+  .ring-progress-value { transition: stroke-dashoffset 600ms cubic-bezier(0.2, 0.7, 0.2, 1); }
+
+  /* Dải cuộn ngang (chip lọc, tab) không lộ thanh cuộn. */
+  .scroll-strip { overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+  .scroll-strip::-webkit-scrollbar { display: none; }
+
+  /* Nhãn mục nhỏ viết hoa — phân tầng thông tin trong thẻ. */
+  .eyebrow {
+    font-size: 0.8125rem;
+    line-height: 1.25rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+  }
+}

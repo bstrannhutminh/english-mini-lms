@@ -60,6 +60,30 @@ sources:
     locator_type: seconds
     review_state: approved
 
+  - id: src-ielts-practice
+    title: "IELTS Academic — Bài luyện tự soạn"
+    kind: self-authored
+    permission: self-authored
+    locator_type: page
+    review_state: approved
+    notes: "Bài luyện tự soạn theo format IELTS Academic, không phải đề thi chính thức. Số liệu biểu đồ Task 1 là minh họa."
+
+  - id: src-ielts-l1-universal-flu-vaccine
+    title: "TED-Ed: Could this technology end all viruses?"
+    kind: video
+    url: "https://www.youtube.com/watch?v=Z2Y0GMCFWq0"
+    permission: public-embed
+    locator_type: seconds
+    review_state: approved
+
+  - id: src-ielts-l2-sapolsky-free-will
+    title: "Big Think: You have no free will at all | Stanford professor Robert Sapolsky"
+    kind: video
+    url: "https://www.youtube.com/watch?v=ke8oFS8-fBk"
+    permission: public-embed
+    locator_type: seconds
+    review_state: approved
+
 segments:
   - id: seg-r1
     source_id: src-ultrasound-handbook
@@ -111,6 +135,30 @@ segments:
     start_seconds: 0
     end_seconds: 60
     transcript_file: transcripts/l4-pocus-symposium.txt
+    verified_transcript: true
+
+  - id: seg-i-r1
+    source_id: src-ielts-practice
+    text_file: texts/i-r1-ai-healthcare.md
+    language: en
+
+  - id: seg-i-r2
+    source_id: src-ielts-practice
+    text_file: texts/i-r2-urban-green.md
+    language: en
+
+  - id: seg-i-l1
+    source_id: src-ielts-l1-universal-flu-vaccine
+    start_seconds: 33
+    end_seconds: 95
+    transcript_file: transcripts/i-l1-universal-flu-vaccine.txt
+    verified_transcript: true
+
+  - id: seg-i-l2
+    source_id: src-ielts-l2-sapolsky-free-will
+    start_seconds: 163
+    end_seconds: 234
+    transcript_file: transcripts/i-l2-sapolsky-free-will.txt
     verified_transcript: true
 
 activities:
@@ -357,4 +405,132 @@ activities:
     output: audio
     feedback_guide: "Đánh giá cấu trúc báo cáo ca bệnh chuẩn quốc tế, thuật ngữ chuyên ngành và tính liên kết giữa các phần."
     purpose: assessment
+    review_state: approved
+
+  # ── IELTS LISTENING ───────────────────────────────────────────────────
+  - id: I-L1
+    slot: I-L1
+    topic: luyen-ielts
+    mode: ielts-listening
+    title: "Nghe độc thoại: Vắc-xin cúm phổ quát và cách hệ miễn dịch ghi nhớ virus"
+    objective: "Nghe đoạn độc thoại khoa học 62s và trả lời 3 câu hỏi trắc nghiệm về vai trò của hemagglutinin và cách hệ miễn dịch ghi nhớ virus."
+    duration_minutes: 15
+    difficulty: intermediate
+    segment_ids: [seg-i-l1]
+    questions_file: texts/i-l1-questions.yaml
+    output: text
+    answer_reveal: after_submit
+    purpose: practice
+    review_state: approved
+
+  - id: I-L2
+    slot: I-L2
+    topic: luyen-ielts
+    mode: ielts-listening
+    title: "Nghe phỏng vấn: Robert Sapolsky — Vì sao không có ý chí tự do?"
+    objective: "Nghe đoạn phỏng vấn 71s và trả lời 3 câu hỏi trắc nghiệm về lập luận của Sapolsky đối với ý chí tự do."
+    duration_minutes: 15
+    difficulty: advanced
+    segment_ids: [seg-i-l2]
+    questions_file: texts/i-l2-questions.yaml
+    output: text
+    answer_reveal: after_submit
+    purpose: practice
+    review_state: approved
+
+  # ── IELTS READING ─────────────────────────────────────────────────────
+  - id: I-R1
+    slot: I-R1
+    topic: luyen-ielts
+    mode: ielts-reading
+    title: "IELTS Reading: Trí tuệ nhân tạo trong y tế hiện đại"
+    objective: "Đọc–hiểu bài đọc học thuật ~800 từ về AI trong y tế: nắm ý chính, từ vựng học thuật band 8.0 và lập luận hai mặt lợi–hại."
+    duration_minutes: 25
+    difficulty: intermediate
+    segment_ids: [seg-i-r1]
+    output: text
+    feedback_guide: "Đối chiếu ý chính với đoạn gốc; lưu ý từ vựng học thuật (diagnostic accuracy, algorithmic bias, accountability) và cách bài đọc cân bằng lợi ích – rủi ro."
+    answer_reveal: on_request
+    purpose: practice
+    review_state: approved
+
+  - id: I-R2
+    slot: I-R2
+    topic: luyen-ielts
+    mode: ielts-reading
+    title: "IELTS Reading: Không gian xanh đô thị và sức khỏe cộng đồng"
+    objective: "Đọc–hiểu bài đọc học thuật ~800 từ về không gian xanh đô thị: nắm ý chính, từ vựng học thuật band 8.0 và các khái niệm như urban heat island, green gentrification."
+    duration_minutes: 25
+    difficulty: advanced
+    segment_ids: [seg-i-r2]
+    output: text
+    feedback_guide: "Đối chiếu ý chính với đoạn gốc; lưu ý từ vựng học thuật (attention restoration, green gentrification, heat island) và cách bài đọc trình bày lợi ích rồi chuyển sang bất bình đẳng tiếp cận."
+    answer_reveal: on_request
+    purpose: practice
+    review_state: approved
+
+  # ── IELTS WRITING ─────────────────────────────────────────────────────
+  - id: I-W1
+    slot: I-W1
+    topic: luyen-ielts
+    mode: ielts-writing
+    title: "IELTS Writing Task 2: Trí tuệ nhân tạo trong giáo dục"
+    objective: "Viết bài luận discuss both views ít nhất 250 từ về AI trong giáo dục: cân bằng hai quan điểm rồi đưa ra quan điểm cá nhân."
+    duration_minutes: 40
+    difficulty: advanced
+    prompt_file: texts/i-w1-task2-prompt.md
+    output: text
+    feedback_guide: "Đánh giá 4 tiêu chí IELTS: Task Response (đủ hai quan điểm + quan điểm cá nhân rõ ràng), Coherence and Cohesion, Lexical Resource (từ vựng học thuật band 8.0), Grammatical Range and Accuracy. Tối đa 3 điểm chính, có ví dụ viết lại."
+    rubric_file: rubrics/ielts-writing-task2-v1.yaml
+    answer_reveal: none
+    purpose: practice
+    review_state: approved
+
+  - id: I-W2
+    slot: I-W2
+    topic: luyen-ielts
+    mode: ielts-writing
+    title: "IELTS Writing Task 1 (Academic): Biểu đồ sử dụng dịch vụ khám bệnh từ xa"
+    objective: "Miêu tả biểu đồ cột nhóm ít nhất 150 từ: có overview, chọn đặc điểm chính và so sánh số liệu giữa các nhóm tuổi và các năm."
+    duration_minutes: 20
+    difficulty: advanced
+    prompt_file: texts/i-w2-task1-prompt.md
+    output: text
+    feedback_guide: "Đánh giá 4 tiêu chí IELTS: Task Achievement (có overview, số liệu chính xác, đủ 150 từ), Coherence and Cohesion, Lexical Resource (ngôn ngữ xu hướng/so sánh), Grammatical Range and Accuracy. Nhắc không đưa ý kiến cá nhân vào Task 1."
+    rubric_file: rubrics/ielts-writing-task1-v1.yaml
+    answer_reveal: none
+    purpose: practice
+    review_state: approved
+
+  # ── IELTS SPEAKING ────────────────────────────────────────────────────
+  - id: I-S1
+    slot: I-S1
+    topic: luyen-ielts
+    mode: ielts-speaking
+    title: "IELTS Speaking Part 2: Công nghệ thay đổi cách chăm sóc sức khỏe"
+    objective: "Nói liền mạch 1–2 phút theo cue card: mô tả một công nghệ chăm sóc sức khỏe, cách dùng, lợi ích và tác động lên thói quen."
+    duration_minutes: 15
+    difficulty: intermediate
+    prompt_file: texts/i-s1-part2-prompt.md
+    output: audio
+    feedback_guide: "Đánh giá theo 4 tiêu chí IELTS Speaking: độ trôi chảy/mạch lạc, từ vựng, ngữ pháp, phát âm (chỉ khi có audio). Tối đa 3 điểm cần cải thiện, kèm ví dụ sửa cụ thể và mời nói lại."
+    rubric_file: rubrics/ielts-speaking-v1.yaml
+    answer_reveal: none
+    purpose: practice
+    review_state: approved
+
+  - id: I-S2
+    slot: I-S2
+    topic: luyen-ielts
+    mode: ielts-speaking
+    title: "IELTS Speaking Part 3: Công nghệ, sức khỏe và xã hội"
+    objective: "Trả lời 6 câu hỏi thảo luận trừu tượng về AI trong y khoa, quan hệ bác sĩ – bệnh nhân và khoảng cách số; nêu quan điểm kèm ví dụ."
+    duration_minutes: 15
+    difficulty: advanced
+    prompt_file: texts/i-s2-part3-prompt.md
+    output: audio
+    feedback_guide: "Đánh giá theo 4 tiêu chí IELTS Speaking: độ trôi chảy/mạch lạc, từ vựng, ngữ pháp, phát âm (chỉ khi có audio). Chú ý khả năng lập luận trừu tượng, đối chiếu quan điểm và dùng cấu trúc phức. Tối đa 3 điểm cần cải thiện, kèm ví dụ sửa cụ thể."
+    rubric_file: rubrics/ielts-speaking-v1.yaml
+    answer_reveal: none
+    purpose: practice
     review_state: approved

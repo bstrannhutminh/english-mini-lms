@@ -29,7 +29,7 @@ interface VocabFilterBarProps {
   masteredCount: number;
 }
 
-/** Thanh tìm kiếm + lọc theo nguồn và mức độ thành thạo cho Sổ từ vựng. */
+/** Thanh tìm kiếm + lọc theo nguồn và MỘT hàng tab mức độ thành thạo cho Sổ từ. */
 export function VocabFilterBar({
   query,
   onQueryChange,
@@ -43,20 +43,17 @@ export function VocabFilterBar({
   masteredCount,
 }: VocabFilterBarProps) {
   return (
-    <div className="space-y-3 rounded-xl border border-border bg-surface p-4 ">
-      <div className="flex flex-col gap-2.5 sm:flex-row sm:items-center">
+    <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
+      <div className="flex min-w-0 flex-1 gap-3">
         <div className="relative min-w-0 flex-1">
-          <Icon
-            name="search"
-            className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-text-muted"
-          />
+          <Icon name="search" className="pointer-events-none absolute left-3.5 top-1/2 h-5 w-5 -translate-y-1/2 text-text-muted" />
           <input
             type="search"
             value={query}
             onChange={(e) => onQueryChange(e.target.value)}
-            placeholder="Tìm cụm từ tiếng Anh, nghĩa tiếng Việt hoặc câu gốc..."
+            placeholder="Tìm cụm từ, nghĩa hoặc câu gốc…"
             aria-label="Tìm kiếm trong sổ từ"
-            className="min-h-11 w-full rounded-xl border border-border-strong bg-surface-muted pl-10 pr-4 text-base text-text placeholder:text-text-muted focus:border-primary focus:bg-surface focus:outline-none focus:ring-2 focus:ring-primary/20"
+            className="min-h-12 w-full rounded-xl border border-border bg-surface pl-11 pr-4 text-base text-text shadow-card placeholder:text-text-muted focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
           />
         </div>
 
@@ -64,7 +61,7 @@ export function VocabFilterBar({
           <select
             value={sourceFilter}
             onChange={(e) => onSourceFilterChange(e.target.value)}
-            className="max-w-full min-h-11 rounded-xl border border-border-strong bg-surface-muted px-3.5 text-base font-medium text-text focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+            className="min-h-12 max-w-[45%] cursor-pointer rounded-xl border border-border bg-surface px-3 text-base text-text-secondary focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
             aria-label="Lọc theo nguồn"
           >
             <option value="all">Tất cả nguồn</option>
@@ -82,15 +79,11 @@ export function VocabFilterBar({
         aria-label="Lọc theo mức thành thạo"
         value={activeFilter}
         onValueChange={onFilterChange}
+        className="scroll-strip flex w-full min-w-0 flex-nowrap lg:w-auto [&>button]:flex-1 [&>button]:justify-center [&>button]:whitespace-nowrap [&>button]:px-2 lg:[&>button]:px-4"
         tabs={[
           { value: "all", label: "Tất cả", count: totalCount },
-          { value: "due", label: "Đến hạn ôn", count: dueCount, icon: "clock" },
-          {
-            value: "mastered",
-            label: "Đã thuộc",
-            count: masteredCount,
-            icon: "check-circle",
-          },
+          { value: "due", label: "Đến hạn", count: dueCount },
+          { value: "mastered", label: "Đã thuộc", count: masteredCount },
         ]}
       />
     </div>

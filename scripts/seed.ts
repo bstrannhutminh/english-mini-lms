@@ -324,10 +324,35 @@ async function main() {
         },
       ];
 
+      // IELTS vocabulary — loaded from JSON files in content/english-lab/vocabulary/
+      // (one file per ~100-item batch; add a file to add words, no code change needed)
+      const ieltsVocabDir = path.resolve(baseDir, "vocabulary");
+      const ieltsVocabularies: typeof demoVocabularies = [];
+      if (fs.existsSync(ieltsVocabDir)) {
+        for (const file of fs
+          .readdirSync(ieltsVocabDir)
+          .filter((f) => f.endsWith(".json"))
+          .sort()) {
+          const items = JSON.parse(
+            fs.readFileSync(path.join(ieltsVocabDir, file), "utf-8")
+          );
+          ieltsVocabularies.push(...items);
+        }
+      }
+      console.log(
+        `   ℹ Đã đọc ${ieltsVocabularies.length} từ vựng IELTS từ ${ieltsVocabDir}`
+      );
+
       for (const learner of existingLearners) {
-        for (const item of demoVocabularies) {
+        for (const item of [...demoVocabularies, ...ieltsVocabularies]) {
+          // JSON IELTS có thể kèm imageUrl; từ demo không có → null.
+          const imageUrl =
+            (item as { imageUrl?: string | null }).imageUrl ?? null;
           const [exists] = await db
-            .select({ id: schema.vocabularyVault.id })
+            .select({
+              id: schema.vocabularyVault.id,
+              imageUrl: schema.vocabularyVault.imageUrl,
+            })
             .from(schema.vocabularyVault)
             .where(
               sql`${schema.vocabularyVault.learnerId} = ${learner.id} AND ${schema.vocabularyVault.phrase} = ${item.phrase}`
@@ -344,12 +369,20 @@ async function main() {
               sourceType: item.sourceType,
               sourceRef: item.sourceRef,
               myAttempt: item.myAttempt,
+              imageUrl,
               masteryLevel: item.masteryLevel,
               dueAt: new Date(),
             });
             console.log(
               `   ✔ Added vocabulary "${item.phrase}" for learner ${learner.id}`
             );
+          } else if (imageUrl && exists.imageUrl !== imageUrl) {
+            // Backfill ảnh cho từ đã seed từ trước (chạy seed lại sau khi
+            // bổ sung imageUrl vào JSON) — không động vào SRS/progress.
+            await db
+              .update(schema.vocabularyVault)
+              .set({ imageUrl })
+              .where(sql`${schema.vocabularyVault.id} = ${exists.id}`);
           }
         }
       }

@@ -1,74 +1,43 @@
 import Link from "next/link";
-import { Icon } from "@/components/ui";
+import { Icon, ProgressRing } from "@/components/ui";
 
 interface DueTodayCardProps {
-  /** Số từ đến hạn ôn (dueAt <= now, chưa đạt trần mastery). */
   dueCount: number;
+  totalCount: number;
 }
 
 /**
- * Thẻ "Ôn hôm nay" — block đầu trang Sổ từ (§3.2: đầu trang có thẻ Ôn hôm nay).
- * 1 chạm vào luồng ôn: flashcard quẹt nhanh hoặc thử thách câu (AI chấm).
+ * Thẻ hành động chính của Sổ từ: vòng tiến trình (số từ đến hạn / tổng số) và
+ * hai lối vào ôn — thẻ lật (chính) và dùng từ trong câu (phụ).
  */
-export function DueTodayCard({ dueCount }: DueTodayCardProps) {
-  if (dueCount <= 0) {
-    return (
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 rounded-xl border border-emerald-200 bg-emerald-50/70 px-4 py-4">
-        <div className="flex items-center gap-3">
-          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-100 text-emerald-700">
-            <Icon name="check-circle" className="h-5 w-5" />
-          </span>
-          <div>
-            <p className="text-base font-semibold text-emerald-900">
-              Không còn từ nào đến hạn ôn hôm nay
-            </p>
-            <p className="text-base text-emerald-800">
-              Có thể ôn tự do bằng Flashcard hoặc lưu thêm từ từ bài đọc.
-            </p>
-          </div>
-        </div>
-        <Link
-          href="/vocab/flashcards"
-          className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-primary px-4 text-base font-medium text-white transition hover:bg-primary-dark"
-        >
-          <Icon name="cards" className="h-4 w-4" />
-          Ôn tự do
-        </Link>
-      </div>
-    );
-  }
-
+export function DueTodayCard({ dueCount, totalCount }: DueTodayCardProps) {
+  const hasDue = dueCount > 0;
   return (
-    <div className="flex flex-col gap-3 rounded-xl border border-amber-300 bg-amber-50/80 px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
-      <div className="flex items-center gap-3">
-        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-amber-100 text-amber-700">
-          <Icon name="clock" className="h-5 w-5" />
-        </span>
-        <div>
-          <p className="text-base font-semibold text-amber-950">
-            Ôn hôm nay: {dueCount} từ đến hạn
-          </p>
-          <p className="text-base text-amber-900">
-            Ôn trước ≤5 phút rồi vào bài chính — theo lịch lặp lại ngắt quãng.
-          </p>
+    <section aria-label="Ôn từ hôm nay" className="hero-wash flex flex-col gap-5 rounded-2xl border border-border p-5 shadow-card sm:p-6 lg:flex-row lg:items-center lg:justify-between lg:gap-8">
+      <div className="flex min-w-0 items-center gap-4">
+        <ProgressRing value={hasDue ? dueCount : totalCount} max={Math.max(1, totalCount)} size={72} strokeWidth={7}
+          toneClass={hasDue ? "text-amber-500" : "text-emerald-600"}
+          label={hasDue ? `${dueCount} trên ${totalCount} cụm từ đến hạn ôn` : "Không có cụm từ nào đến hạn ôn"}>
+          {hasDue
+            ? <span className="text-2xl font-semibold tabular-nums text-text">{dueCount}</span>
+            : <Icon name="check" className="h-7 w-7 text-emerald-600" />}
+        </ProgressRing>
+        <div className="min-w-0">
+          <p className="eyebrow">Ôn hôm nay</p>
+          <h2 className="text-xl font-semibold leading-snug tracking-tight text-text">{hasDue ? `${dueCount} từ đến lượt ôn` : "Không có từ đến hạn hôm nay"}</h2>
+          <p className="mt-0.5 hidden text-base leading-relaxed text-text-secondary sm:block">{hasDue ? "Dành ít phút nhớ lại từ trong ngữ cảnh đã học." : "Bạn vẫn có thể ôn tự do những cụm từ đã lưu."}</p>
         </div>
       </div>
-      <div className="flex flex-wrap items-center gap-3">
-        <Link
-          href="/vocab/flashcards"
-          className="inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-xl bg-teal-600 px-4 text-base font-semibold text-white  transition hover:bg-teal-700 sm:flex-none"
-        >
-          <Icon name="cards" className="h-4 w-4" />
-          Ôn nhanh Flashcard
+      <div className="grid shrink-0 gap-2 sm:grid-cols-2 sm:gap-3 lg:flex">
+        <Link href="/vocab/flashcards" data-tour="vocab-flashcards"
+          className="pressable inline-flex min-h-13 items-center justify-center gap-2 rounded-xl bg-primary px-4 text-base font-semibold text-white no-underline shadow-card hover:bg-primary-dark lg:px-6">
+          <Icon name="cards" className="h-5 w-5 shrink-0" />{hasDue ? "Ôn bằng thẻ" : "Ôn tự do"}
         </Link>
-        <Link
-          href="/vocab/review"
-          className="inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-xl border border-border bg-surface px-4 text-base font-medium text-text-secondary  transition hover:bg-surface-muted sm:flex-none"
-        >
-          <Icon name="sparkles" className="h-4 w-4" />
-          Thử thách câu
+        <Link href="/vocab/review" data-tour="vocab-review"
+          className="pressable inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-4 text-base font-medium text-text-secondary no-underline hover:bg-surface-subtle hover:text-text sm:min-h-13 sm:border sm:border-border-strong sm:bg-surface lg:px-6">
+          <Icon name="pen" className="h-5 w-5 shrink-0" />Dùng từ trong câu<Icon name="arrow-right" className="h-4 w-4 shrink-0 sm:hidden" />
         </Link>
       </div>
-    </div>
+    </section>
   );
 }

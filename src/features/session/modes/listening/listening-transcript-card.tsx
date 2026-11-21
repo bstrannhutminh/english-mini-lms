@@ -1,6 +1,7 @@
 "use client";
 
-import { Button, Icon } from "@/components/ui";
+import { Badge, Button, Icon } from "@/components/ui";
+import { cn } from "@/lib/utils";
 import type { CaptureHelpers, SessionTranscriptSegment } from "../types";
 
 /**
@@ -19,6 +20,7 @@ export function ListeningTranscriptCard({
   onSeek,
   capture,
   sourceRef,
+  className,
 }: {
   revealed: boolean;
   isRevealing: boolean;
@@ -29,79 +31,76 @@ export function ListeningTranscriptCard({
   onSeek: (seconds: number) => void;
   capture: CaptureHelpers;
   sourceRef: string;
+  className?: string;
 }) {
   return (
-    <div className="mb-4 rounded-xl border border-border bg-surface p-4 ">
+    <section className={cn("rounded-2xl border border-border bg-surface p-4 sm:p-5", className)}>
       {!revealed ? (
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="min-w-0 flex-1">
-            <div className="flex items-center gap-2 text-base font-bold text-text">
-              <Icon name="lock" className="h-4 w-4 text-slate-500" />
-              <span>Transcript đang được khoá</span>
-            </div>
-            <p className="m-0 mt-1 text-base leading-relaxed text-text-secondary">
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-3">
+          <span aria-hidden="true" className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-surface-subtle text-text-secondary">
+            <Icon name="lock" className="h-4 w-4" />
+          </span>
+          <div className="min-w-0 flex-1 basis-56">
+            <h3 className="text-base font-semibold text-text">Transcript đang được khoá</h3>
+            <p className="mt-0.5 text-sm leading-5 text-text-secondary">
               Hãy nghe tự nhiên và trả lời trước. Mở transcript trước khi nộp
               sẽ đánh dấu bài là &ldquo;Có hỗ trợ&rdquo;.
             </p>
             {revealError && (
-              <p
-                role="alert"
-                className="m-0 mt-1.5 text-base font-semibold text-red-600"
-              >
+              <p role="alert" className="mt-2 text-base font-semibold text-red-700">
                 {revealError}
               </p>
             )}
           </div>
-          <Button variant="outline" onClick={onReveal} loading={isRevealing}>
+          <Button variant="outline" onClick={onReveal} loading={isRevealing} className="w-full sm:w-auto">
             {!isRevealing && <Icon name="eye" className="h-4 w-4" />}
             {revealError ? "Thử lại" : "Mở xem trước"}
           </Button>
         </div>
       ) : (
         <div>
-          <div className="mb-2.5 flex items-center justify-between gap-2">
-            <div className="flex items-center gap-1.5 text-base font-bold text-amber-800">
-              <Icon name="unlock" className="h-4 w-4 text-amber-600" />
-              <span>Transcript đoạn nghe (đã mở trước khi nộp)</span>
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex min-w-0 items-center gap-3">
+              <span aria-hidden="true" className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-amber-100 text-amber-700">
+                <Icon name="unlock" className="h-4 w-4" />
+              </span>
+              <h3 className="text-base font-semibold text-text">Transcript đoạn nghe (đã mở trước khi nộp)</h3>
             </div>
-            <span className="rounded-md border border-amber-200 bg-amber-50 px-2 py-0.5 text-base font-bold text-amber-800">
-              Có hỗ trợ
-            </span>
+            <Badge tone="warning" className="shrink-0">Có hỗ trợ</Badge>
           </div>
 
           {loadingTranscript ? (
-            <p className="m-0 rounded-xl border border-border-subtle bg-surface-muted p-3 text-base text-text-muted">
+            <p className="mt-3 rounded-xl bg-surface-muted p-3 text-base text-text-muted">
               Đang tải transcript…
             </p>
           ) : segments.length === 0 ? (
-            <p className="m-0 rounded-xl border border-border-subtle bg-surface-muted p-3 text-base text-text-muted">
+            <p className="mt-3 rounded-xl bg-surface-muted p-3 text-base text-text-muted">
               Đoạn nghe này chưa có transcript.
             </p>
           ) : (
-            <div
-              className="flex max-h-60 flex-col gap-2 overflow-y-auto rounded-xl border border-border-subtle bg-surface-muted p-3"
-            >
+            <div className="mt-3 flex max-h-96 flex-col gap-3 overflow-y-auto overscroll-contain border-t border-border pt-3">
               {segments.map((seg, idx) => (
                 <div
                   key={idx}
                   {...capture.selectHandlers(seg.text, `${sourceRef} · câu ${seg.startSeconds}–${seg.endSeconds}s`, "video")}
-                  className="flex items-start gap-2.5 text-base leading-relaxed text-text"
+                  className="flex items-start gap-3 text-base leading-relaxed text-text"
                 >
                   <button
                     type="button"
                     onClick={() => onSeek(seg.startSeconds)}
-                    className="inline-flex min-h-11 min-w-11 shrink-0 cursor-pointer items-center gap-1 rounded-lg border border-border bg-surface px-2 text-base font-semibold tabular-nums text-primary-dark transition hover:bg-teal-50"
+                    aria-label={`Nghe từ giây ${seg.startSeconds}`}
+                    className="pressable inline-flex min-h-11 min-w-14 shrink-0 cursor-pointer items-center justify-center gap-1 rounded-xl border border-border bg-surface px-2 text-sm font-semibold tabular-nums text-primary-dark hover:bg-primary-soft"
                   >
                     <Icon name="play" className="h-3 w-3" />
                     {seg.startSeconds}s
                   </button>
-                  <span className="pt-1">{seg.text}</span>
+                  <span className="min-w-0 pt-2">{seg.text}</span>
                 </div>
               ))}
             </div>
           )}
         </div>
       )}
-    </div>
+    </section>
   );
 }

@@ -1,6 +1,5 @@
 "use client";
 
-import { Icon } from "@/components/ui";
 import { ObservationCard } from "./observation-card";
 import { topPriorityObservations } from "../revision-chain";
 import type { MyWorkFeedback } from "../types";
@@ -14,39 +13,33 @@ interface PriorityObservationsProps {
   sourceRef?: string;
   flaggedIndexes: Record<number, boolean>;
   onFlagged: (index: number) => void;
+  originalLabel?: string;
 }
 
 /**
- * Top-3 góp ý ưu tiên đứng ĐẦU trang chi tiết (§3.5) + CTA "Sửa ngay" —
- * người học thấy ngay việc cần làm trước khi đọc toàn bộ feedback.
+ * "N điểm cần sửa trước" (§3.5) — Top-3 góp ý ưu tiên, đánh số để người học
+ * sửa lần lượt trước khi đọc phần còn lại của feedback.
  */
 export function PriorityObservations({
   feedback,
   sourceRef,
   flaggedIndexes,
   onFlagged,
+  originalLabel,
 }: PriorityObservationsProps) {
   const top = topPriorityObservations(feedback.observations, TOP_PRIORITY_COUNT);
   if (top.length === 0) return null;
 
   return (
-    <section
-      aria-label="Các điểm cần sửa ưu tiên"
-      className="mb-8"
-    >
-      <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h2 className="flex items-center gap-1.5 text-base font-bold text-teal-900">
-            <Icon name="alert-triangle" className="h-4 w-4" />
-            {top.length} điểm cần sửa trước
-          </h2>
-          <p className="mt-0.5 text-base text-teal-800">
-            Tập trung từng điểm, rồi thử lại bằng lời của bạn.
-          </p>
-        </div>
-      </div>
+    <section aria-labelledby="priority-observations-title">
+      <h2 id="priority-observations-title" className="text-xl font-semibold tracking-tight text-text">
+        {top.length} điểm cần sửa trước
+      </h2>
+      <p className="mt-1 text-base text-text-secondary">
+        Đi lần lượt từng điểm, rồi thử viết lại bằng lời của bạn.
+      </p>
 
-      <div className="grid grid-cols-1 gap-4 xl:grid-cols-3">
+      <div className="stagger mt-4 space-y-4">
         {top.map((obs, i) => (
           <ObservationCard
             key={i}
@@ -56,7 +49,7 @@ export function PriorityObservations({
             sourceRef={sourceRef}
             locallyFlagged={Boolean(flaggedIndexes[i])}
             onFlagged={onFlagged}
-            compact
+            originalLabel={originalLabel}
           />
         ))}
       </div>

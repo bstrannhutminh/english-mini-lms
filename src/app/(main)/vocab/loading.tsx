@@ -1,5 +1,6 @@
-import { LoadingScreen } from "@/app/_shared/loading-screen";
+import { VocabSkeleton } from "@/features/vocab/vocab-skeleton";
 
-export default function SegmentLoading() {
-  return <LoadingScreen />;
+/** Khung xương đúng bố cục Sổ từ trong lúc tải dữ liệu. */
+export default function VocabLoading() {
+  return <VocabSkeleton />;
 }

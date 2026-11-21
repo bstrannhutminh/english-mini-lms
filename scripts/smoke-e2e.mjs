@@ -215,6 +215,9 @@ async function visit(browser, url, name, w, fails) {
   for (const [s, w] of submitRuns) {
     if (s) {
       const { ctx, page } = await visit(browser, "/learn/" + s.sessionId, "submit-flow-" + w, w, fails);
+      // Mobile: phiên mới mở tab "Đề bài" — chuyển sang "Bài làm" để ô viết hiện ra.
+      const answerTab = page.getByRole("button", { name: "Bài làm", exact: true });
+      if (await answerTab.isVisible().catch(() => false)) await answerTab.click();
       await page.fill("textarea", "Dear Conference Committee, I am writing to apply for the upcoming regional anesthesia workshop. Smoke test submission.");
       await page.evaluate(() => {
         const b = [...document.querySelectorAll("button")].find((x) => /nộp|submit/i.test(x.textContent || ""));

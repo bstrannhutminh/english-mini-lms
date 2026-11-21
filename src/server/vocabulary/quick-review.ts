@@ -31,6 +31,7 @@ export async function getVocabularyForFlashcards(
     sourceRef: vocabularyVault.sourceRef,
     sourceType: vocabularyVault.sourceType,
     myAttempt: vocabularyVault.myAttempt,
+    imageUrl: vocabularyVault.imageUrl,
     masteryLevel: vocabularyVault.masteryLevel,
     dueAt: vocabularyVault.dueAt,
   };

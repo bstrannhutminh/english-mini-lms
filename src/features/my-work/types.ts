@@ -58,3 +58,9 @@ export interface ParentRevision {
   >;
   feedback: MyWorkFeedback | null;
 }
+
+/** Bản sửa mới nhất đã làm từ bài đang xem (append-only: là submission khác). */
+export interface LatestRevisionRef {
+  id: string;
+  revision: number;
+}

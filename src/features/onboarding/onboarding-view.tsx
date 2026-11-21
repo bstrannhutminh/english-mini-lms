@@ -6,11 +6,12 @@ import { onboardingPostResponseSchema, type OnboardingProfile } from "@/contract
 import { preferencesResponseSchema } from "@/contracts/settings";
 import { Button, Icon, useToast } from "@/components/ui";
 import { buildOnboardingPayload, createInitialDraft, type OnboardingDraft } from "./onboarding-presets";
-import { ONBOARDING_STEPS, OnboardingHeader } from "./onboarding-header";
+import { ONBOARDING_STEPS, OnboardingHeader, OnboardingProgress } from "./onboarding-header";
 import { StepGoals } from "./step-goals";
 import { StepSchedule } from "./step-schedule";
 import { StepSkills } from "./step-skills";
 import { StepPreview } from "./step-preview";
+import styles from "./onboarding-view.module.css";
 interface OnboardingViewProps {
   initialProfile: OnboardingProfile | null;
 }
@@ -78,61 +79,50 @@ export function OnboardingView({ initialProfile }: OnboardingViewProps) {
       setSaving(false);
     }
   }
-  return (<div className="min-h-dvh bg-surface-muted">
+  return (
+    <div className="min-h-dvh bg-surface-muted">
+      <OnboardingHeader isReturning={isReturning} skipping={skipping} saving={saving} onSkipOrBack={() => void handleSkipOrBack()} />
 
-    <OnboardingHeader step={step} isReturning={isReturning} skipping={skipping} saving={saving} onSelectStep={setStep} onSkipOrBack={() => void handleSkipOrBack()} />
+      <main className="mx-auto grid max-w-5xl items-start gap-6 px-4 pb-36 pt-6 sm:px-6 lg:grid-cols-[13rem_minmax(0,1fr)] lg:gap-8 lg:pt-10">
+        <OnboardingProgress step={step} disabled={pending} onSelectStep={setStep} />
+        <div className="min-w-0">
+          {error && <div ref={errorRef} tabIndex={-1} role="alert" className="mb-4 flex scroll-mt-6 items-start gap-3 rounded-xl border border-danger/30 bg-danger/5 p-4 text-base leading-relaxed text-danger">
+            <Icon name="alert-triangle" className="mt-1 h-5 w-5 shrink-0" />
+            <span>{error}</span>
+          </div>}
 
-    <main className="mx-auto max-w-3xl px-4 pb-32 pt-6 sm:px-6">
+          <form id="onboarding-form" onSubmit={(event) => {
+            event.preventDefault();
+            if (pending) return;
+            if (isLastStep) void handleFinish();
+            else setStep((current) => Math.min(ONBOARDING_STEPS.length - 1, current + 1));
+          }}>
+            <fieldset disabled={pending} className="min-w-0 rounded-2xl border border-border border-t-4 border-t-primary bg-surface p-5 sm:p-8">
+              <div ref={stepRef} tabIndex={-1} aria-label={`Bước ${step + 1}: ${ONBOARDING_STEPS[step].label}`} className={`${styles.step} scroll-mt-6`}>
+                {step === 0 && <StepGoals draft={draft} onChange={updateDraft} />}
+                {step === 1 && <StepSchedule draft={draft} onChange={updateDraft} />}
+                {step === 2 && <StepSkills draft={draft} onChange={updateDraft} />}
+                {step === 3 && <StepPreview draft={draft} />}
+              </div>
+            </fieldset>
+          </form>
+        </div>
+      </main>
 
-      {error && <div ref={errorRef} tabIndex={-1} role="alert" className="mb-4 flex scroll-mt-24 items-start gap-3 rounded-xl border border-danger/30 bg-danger/5 p-4 text-base leading-relaxed text-danger">
-        <Icon name="alert-triangle" className="mt-1 h-5 w-5 shrink-0" />
-        <span>
-          {error}
-        </span>
-      </div>}
-
-      <form id="onboarding-form" onSubmit={(event) => {
-        event.preventDefault(); if (pending)
-          return; if (isLastStep)
-          void handleFinish();
-        else
-          setStep((current) => Math.min(ONBOARDING_STEPS.length - 1, current + 1));
-      }}>
-
-        <fieldset disabled={pending} className="rounded-xl border border-border bg-surface p-5 sm:p-7">
-
-          <div ref={stepRef} tabIndex={-1} aria-label={`Bước ${step + 1}: ${ONBOARDING_STEPS[step].label}`} className="scroll-mt-24 outline-none">
-
-            {step === 0 && <StepGoals draft={draft} onChange={updateDraft} />}
-
-            {step === 1 && <StepSchedule draft={draft} onChange={updateDraft} />}
-
-            {step === 2 && <StepSkills draft={draft} onChange={updateDraft} />}
-
-            {step === 3 && <StepPreview draft={draft} />}
-
+      <footer className="fixed inset-x-0 bottom-0 z-20 border-t border-border bg-surface px-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-4">
+        <div className="mx-auto grid max-w-5xl gap-8 sm:px-2 lg:grid-cols-[13rem_minmax(0,1fr)]">
+          <span aria-hidden="true" className="hidden lg:block" />
+          <div className="flex min-w-0 items-center justify-between gap-3">
+            {step > 0 ? <Button variant="outline" size="lg" onClick={() => setStep((current) => Math.max(0, current - 1))} disabled={pending} className="shrink-0 px-3">
+              <Icon name="arrow-left" className="h-4 w-4" />Quay lại
+            </Button> : <p className="text-base text-text-secondary">Có thể sửa sau.</p>}
+            <Button type="submit" form="onboarding-form" size="lg" loading={saving} disabled={pending} className="min-h-14 min-w-0 flex-1 px-3 sm:flex-none sm:px-5">
+              {saving ? "Đang lưu…" : isLastStep ? "Lưu và vào học" : "Tiếp tục"}
+              {!saving && <Icon name={isLastStep ? "check" : "arrow-right"} className="h-4 w-4" />}
+            </Button>
           </div>
-
-        </fieldset>
-
-      </form>
-
-    </main>
-
-    <footer className="fixed inset-x-0 bottom-0 z-20 border-t border-border bg-surface px-4 py-4">
-
-      <div className="mx-auto flex max-w-3xl items-center justify-between gap-3 sm:px-2">
-
-        {step > 0 ? <Button variant="outline" size="lg" onClick={() => setStep((current) => Math.max(0, current - 1))} disabled={pending}><Icon name="arrow-left" className="h-4 w-4" />Quay lại</Button> : <p className="text-base text-text-secondary">Có thể sửa sau.</p>}
-
-        <Button type="submit" form="onboarding-form" size="lg" loading={saving} disabled={pending} className={isLastStep ? "flex-1 sm:flex-none" : "min-w-32"}>
-          {saving ? "Đang lưu…" : isLastStep ? "Lưu và vào học" : "Tiếp tục"}
-          {!saving && <Icon name={isLastStep ? "check" : "arrow-right"} className="h-4 w-4" />}
-        </Button>
-
-      </div>
-
-    </footer>
-
-  </div>);
+        </div>
+      </footer>
+    </div>
+  );
 }

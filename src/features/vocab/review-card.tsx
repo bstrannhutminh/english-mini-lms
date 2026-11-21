@@ -1,6 +1,7 @@
 "use client";
 
 import type { ReviewVocabItem } from "@/contracts/vocabulary";
+import { Spinner } from "@/components/ui";
 import { formatMastery } from "./mastery";
 
 export type ResponseMode = "text" | "voice";
@@ -15,6 +16,11 @@ interface ReviewCardProps {
   onSubmit: () => void;
 }
 
+const MODES: ReadonlyArray<{ value: ResponseMode; label: string }> = [
+  { value: "text", label: "Gõ chữ" },
+  { value: "voice", label: "Đọc chính tả" },
+];
+
 /** Thẻ thử thách micro-challenge: prompt + toggle Gõ chữ/Giọng nói + nộp. */
 export function ReviewCard({
   item,
@@ -26,24 +32,24 @@ export function ReviewCard({
   onSubmit,
 }: ReviewCardProps) {
   return (
-    <div className="bg-white rounded-xl border border-slate-200 p-6  space-y-5">
-      <div className="border-b pb-4 space-y-1.5">
-        <div className="flex items-center justify-between">
-          <span className="text-base uppercase font-semibold tracking-wider text-slate-400">
+    <div className="space-y-5 rounded-2xl border border-border bg-surface p-5 shadow-card sm:p-8">
+      <div className="space-y-1.5 border-b border-border pb-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <span className="eyebrow text-primary-dark">
             Thử thách Micro-challenge
           </span>
-          <span className="text-base bg-slate-100 text-slate-600 px-2 py-0.5 rounded font-medium">
+          <span className="inline-flex items-center rounded-lg bg-surface-subtle px-2.5 py-1 text-sm font-medium tabular-nums text-text-secondary">
             Mức nhớ {formatMastery(item.masteryLevel)}
           </span>
         </div>
-        <div className="flex items-baseline gap-2">
-          <h2 className="text-2xl font-semibold text-slate-900">{item.phrase}</h2>
+        <div className="flex min-w-0 flex-wrap items-baseline gap-x-2.5 gap-y-1">
+          <h2 className="min-w-0 max-w-full break-words text-2xl font-semibold tracking-tight text-text sm:text-3xl">{item.phrase}</h2>
           {item.ipa && (
-            <span className="text-base text-slate-500 font-mono">{item.ipa}</span>
+            <span className="min-w-0 max-w-full break-words font-mono text-base text-text-muted">{item.ipa}</span>
           )}
         </div>
         {item.contextMeaning && (
-          <p className="text-base text-indigo-700 font-medium">
+          <p className="text-base leading-relaxed text-text-secondary">
             Nghĩa ngữ cảnh: {item.contextMeaning}
           </p>
         )}
@@ -51,23 +57,21 @@ export function ReviewCard({
 
       {/* Ngữ cảnh gốc */}
       {item.originalSentence && (
-        <div className="bg-slate-50 border border-slate-200/60 rounded-xl p-3 text-base text-slate-600">
-          <span className="font-semibold text-slate-700 block mb-1">
-            Câu gốc đã lưu:
-          </span>
-          <p className="italic font-sans text-slate-700">
+        <div className="rounded-xl bg-surface-muted p-4 text-base leading-relaxed">
+          <span className="eyebrow mb-1 block">Câu gốc đã lưu</span>
+          <p className="text-text">
             &quot;{item.originalSentence}&quot;
           </p>
         </div>
       )}
 
       {/* Đề bài thử thách */}
-      <div className="bg-blue-50 border border-blue-100 rounded-xl p-3.5 text-base text-blue-900 space-y-1">
-        <div className="font-semibold flex items-center gap-1 text-blue-800">
-          <span>🎯</span> Yêu cầu thử thách:
+      <div className="space-y-1 text-base leading-relaxed text-text">
+        <div className="font-semibold text-primary-dark">
+          Yêu cầu thử thách:
         </div>
         <p className="leading-relaxed">
-          Dùng cụm từ <strong className="underline">{item.phrase}</strong> trong
+          Dùng cụm từ <strong className="underline decoration-primary/50 underline-offset-4">{item.phrase}</strong> trong
           1 câu tiếng Anh về bối cảnh công việc thực tế (khám bệnh, trao đổi ca
           bệnh, hoặc hội nghị chuyên môn).
         </p>
@@ -75,33 +79,25 @@ export function ReviewCard({
 
       {/* Form nhập câu trả lời */}
       <div className="space-y-3">
-        <div className="flex items-center justify-between text-base">
-          <span className="font-semibold text-slate-700">Câu trả lời của bạn:</span>
-          <div className="flex items-center gap-1 bg-slate-100 p-0.5 rounded-lg">
-            <button
-              type="button"
-              disabled={submitting}
-              onClick={() => onModeChange("text")}
-              className={`px-2.5 py-1 rounded text-base font-semibold transition min-h-11 ${
-                responseMode === "text"
-                  ? "bg-white text-slate-800 "
-                  : "text-slate-500 hover:text-slate-700"
-              }`}
-            >
-              Gõ chữ ✍️
-            </button>
-            <button
-              type="button"
-              disabled={submitting}
-              onClick={() => onModeChange("voice")}
-              className={`px-2.5 py-1 rounded text-base font-semibold transition min-h-11 ${
-                responseMode === "voice"
-                  ? "bg-white text-slate-800 "
-                  : "text-slate-500 hover:text-slate-700"
-              }`}
-            >
-              Đọc chính tả
-            </button>
+        <div className="flex flex-wrap items-center justify-between gap-3 text-base">
+          <span className="font-semibold text-text">Câu trả lời của bạn:</span>
+          <div className="inline-flex items-center gap-1 rounded-xl bg-surface-subtle p-1">
+            {MODES.map((mode) => (
+              <button
+                key={mode.value}
+                type="button"
+                disabled={submitting}
+                aria-pressed={responseMode === mode.value}
+                onClick={() => onModeChange(mode.value)}
+                className={`pressable min-h-11 cursor-pointer rounded-lg px-3 text-base font-medium disabled:cursor-not-allowed disabled:opacity-60 ${
+                  responseMode === mode.value
+                    ? "bg-surface text-primary-dark shadow-card ring-1 ring-inset ring-border"
+                    : "text-text-secondary hover:text-text"
+                }`}
+              >
+                {mode.label}
+              </button>
+            ))}
           </div>
         </div>
 
@@ -113,12 +109,12 @@ export function ReviewCard({
           onChange={(e) => onTextChange(e.target.value)}
           placeholder={`Ví dụ: The patient presented with ${item.phrase} following acute trauma...`}
           rows={3}
-          className="w-full text-base p-3 border border-border-strong rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 leading-relaxed font-sans"
+          className="field-control min-h-32 resize-y font-sans"
         />
 
         {responseMode === "voice" && (
-          <p className="text-base text-slate-500 italic">
-            💡 Mẹo: Bạn có thể dùng tính năng đọc chính tả (Dictation / Mic)
+          <p className="text-base leading-relaxed text-text-secondary">
+            Mẹo: Bạn có thể dùng tính năng đọc chính tả (Dictation / Mic)
             tích hợp sẵn trên bàn phím điện thoại để nói trực tiếp vào ô văn
             bản trên.
           </p>
@@ -127,16 +123,16 @@ export function ReviewCard({
         <button
           onClick={onSubmit}
           disabled={submitting || !userText.trim()}
-          className="w-full bg-primary hover:bg-primary-dark text-white font-semibold py-3 px-4 rounded-xl text-base transition   disabled:opacity-50 flex items-center justify-center gap-2"
+          className="pressable flex min-h-13 w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-base font-semibold text-white shadow-card hover:bg-primary-dark disabled:cursor-not-allowed disabled:bg-surface-subtle disabled:text-text-muted disabled:shadow-none"
         >
           {submitting ? (
             <>
-              <span className="animate-spin">⏳</span> Gemini đang nhận xét
+              <Spinner size="sm" label="Đang chấm" /> Gemini đang nhận xét
               cách dùng từ...
             </>
           ) : (
             <>
-              <span>🚀</span> Gửi câu trả lời để chấm
+              Gửi câu trả lời để chấm
             </>
           )}
         </button>

@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { apiFetch } from "@/lib/api-client";
 import { updateSubmissionResponseSchema } from "@/contracts/submission";
-import { Button, Card, Icon, useToast } from "@/components/ui";
+import { Button, Icon, useToast } from "@/components/ui";
 import { StructuredBody } from "./structured-body";
 import type { SubmissionDetail } from "../types";
 import { modeSkill } from "@/lib/modes";
@@ -15,7 +15,7 @@ interface SubmissionPanelProps {
 }
 
 /**
- * Cột trái trang chi tiết: trình phát audio (signed URL) + nội dung bài nộp.
+ * Nội dung bài đã nộp: trình phát audio (signed URL) + văn bản/transcript.
  * Bài nói (audio) có thể "Chỉnh sửa / Xác nhận" transcript — PATCH chỉ gửi
  * confirmed_transcript (append-only: body bài nộp không bao giờ đổi).
  */
@@ -56,24 +56,19 @@ export function SubmissionPanel({ submission, activityMode }: SubmissionPanelPro
   }
 
   return (
-    <div>
+    <div className="space-y-5">
       {submission.audioUrl ? (
-        <Card className="mb-4">
-          <div className="mb-2 flex items-center justify-between">
-            <p className="flex items-center gap-1.5 text-base font-bold text-text">
-              <Icon name="headphones" className="h-4 w-4 text-teal-700" />
-              Bản ghi âm của bạn
-            </p>
-            <span className="text-base text-text-muted">
-              Âm thanh đã lưu
-            </span>
-          </div>
+        <section>
+          <p className="eyebrow mb-2 flex items-center gap-1.5">
+            <Icon name="headphones" className="h-4 w-4" />
+            Bản ghi âm của bạn
+          </p>
           <audio controls src={submission.audioUrl} className="h-11 w-full" />
-        </Card>
+        </section>
       ) : null}
 
-      <Card className="mb-4">
-        <p className="mb-2.5 text-base font-bold uppercase tracking-wide text-text-secondary">
+      <section>
+        <p className="eyebrow mb-2">
           {isAudio ? "Transcript bài nói" : "Nội dung bài nộp"}
         </p>
 
@@ -85,7 +80,7 @@ export function SubmissionPanel({ submission, activityMode }: SubmissionPanelPro
               rows={5}
               disabled={saving}
               aria-label="Transcript đã xác nhận"
-              className="w-full rounded-lg border border-teal-600 px-3 py-2.5 text-base leading-relaxed text-text outline-none focus:ring-2 focus:ring-teal-200"
+              className="field-control w-full rounded-xl border border-border-strong px-3.5 py-3 text-base leading-relaxed text-text"
             />
             <div className="mt-2 flex justify-end gap-2">
               <Button
@@ -106,12 +101,12 @@ export function SubmissionPanel({ submission, activityMode }: SubmissionPanelPro
           </div>
         ) : (
           <div>
-            <div className="whitespace-pre-wrap rounded-xl border border-slate-100 bg-surface-muted p-4 text-base leading-relaxed text-text">
+            <div className="max-w-prose whitespace-pre-wrap text-base leading-relaxed text-text">
               <StructuredBody body={draft || submission.body} />
             </div>
             {isAudio ? (
-              <div className="mt-2.5 flex flex-wrap items-center justify-between gap-2">
-                <span className="text-base text-text-muted">
+              <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-surface-muted px-4 py-3">
+                <span className="min-w-0 flex-1 basis-56 text-base leading-relaxed text-text-secondary">
                   Bác sĩ có thể chỉnh sửa các thuật ngữ chuyên ngành AI nhận diện
                   chưa chuẩn.
                 </span>
@@ -127,7 +122,7 @@ export function SubmissionPanel({ submission, activityMode }: SubmissionPanelPro
             ) : null}
           </div>
         )}
-      </Card>
+      </section>
     </div>
   );
 }

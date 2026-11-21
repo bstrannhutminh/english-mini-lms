@@ -22,9 +22,9 @@ export default function AdminApp() {
 
   return (
     <PageContainer size="wide" className="space-y-6">
-      <header className="border-b pb-4">
+      <header className="border-b border-border pb-5">
         <h1 className="page-title">Quản trị hệ thống</h1>
-        <p className="text-base text-slate-500 mt-0.5">
+        <p className="mt-2 text-base text-text-secondary">
           Duyệt nội dung, đồng bộ Drive và xử lý lỗi chấm bài
         </p>
       </header>

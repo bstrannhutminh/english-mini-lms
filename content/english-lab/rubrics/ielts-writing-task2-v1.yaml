@@ -1,0 +1,20 @@
+id: ielts-writing-task2-v1
+title: "IELTS Writing Task 2 Rubric"
+description: "Tiêu chí đánh giá IELTS Writing Task 2 theo 4 tiêu chí công khai của IELTS"
+dimensions:
+  - key: task_response
+    name: "Task Response"
+    weight: 0.25
+    description: "Trả lời đầy đủ yêu cầu đề: thảo luận cả hai quan điểm, đưa ra quan điểm cá nhân rõ ràng, luận điểm có lý lẽ và ví dụ cụ thể, đủ ít nhất 250 từ."
+  - key: coherence_cohesion
+    name: "Coherence and Cohesion"
+    weight: 0.25
+    description: "Bài viết mạch lạc, đoạn văn tổ chức hợp lý (mở bài – thân bài – kết bài), mỗi đoạn có một ý chính, dùng từ nối và từ thay thế phù hợp."
+  - key: lexical_resource
+    name: "Lexical Resource"
+    weight: 0.25
+    description: "Từ vựng học thuật đa dạng và chính xác theo chủ đề, dùng collocation tự nhiên (ví dụ: personalised learning, academic integrity), paraphrase tốt, ít lỗi từ vựng."
+  - key: grammatical_range_accuracy
+    name: "Grammatical Range and Accuracy"
+    weight: 0.25
+    description: "Đa dạng cấu trúc câu (câu điều kiện, câu bị động, mệnh đề quan hệ, câu phức), ngữ pháp chính xác, lỗi sai không gây khó hiểu."

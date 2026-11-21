@@ -16,6 +16,7 @@ const eslintConfig = defineConfig([
     "scratch/**",
     // Isolated runtime copies are artifacts; the owning source is linted above.
     "plans/reports/**/app/**",
+    "plans/reports/*-artifacts/**",
   ]),
 ]);
 

@@ -10,7 +10,7 @@ export function StepSchedule({ draft, onChange }: StepScheduleProps) {
   return (<div className="space-y-6">
 
     <div>
-      <h2 className="text-2xl font-semibold tracking-tight text-text">Dành bao nhiêu thời gian cho một buổi?</h2>
+      <h1 className="text-2xl font-semibold leading-tight tracking-tight text-text sm:text-3xl">Dành bao nhiêu thời gian cho một buổi?</h1>
       <p className="mt-2 text-base leading-relaxed text-text-secondary">30 phút là lựa chọn khởi đầu. Chọn 45 phút nếu muốn dành thêm thời gian làm và sửa bài.</p>
     </div>
 

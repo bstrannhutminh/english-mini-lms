@@ -25,6 +25,7 @@ export {
 export {
   quickCapture,
   createVocabulary,
+  countDueVocabulary,
   getLearnerVocabulary,
   updateVocabulary,
   type CreateVocabularyInput,
