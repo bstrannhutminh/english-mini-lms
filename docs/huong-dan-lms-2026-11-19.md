@@ -44,6 +44,8 @@ Mở một bài để đọc mục tiêu và chọn thời lượng. Khi chưa c
 | Nói | Chuẩn bị ý, cho phép micro, ghi âm, nghe lại và đợi tải âm thanh thành công trước khi nộp. Nội dung gõ tay không đủ để đánh giá phát âm. |
 | Nghe & Shadowing | Nghe và trả lời trước, rồi đối chiếu đáp án/transcript sau nộp. Mở transcript trước nộp được ghi là **Có hỗ trợ**. Sau nộp, chọn **Luyện Shadowing từng câu** để nghe và nói lại. |
 
+Câu hỏi nghe và các lựa chọn trả lời của học liệu có sẵn dùng tiếng Anh để luyện trực tiếp. Phần hướng dẫn giao diện và giải thích hỗ trợ vẫn dùng tiếng Việt; đáp án chỉ mở sau khi nộp. Khi quản trị thêm bộ câu hỏi, viết `prompt` và `options[].text` bằng tiếng Anh, giữ mã câu hỏi/lựa chọn ổn định khi chỉ sửa cách diễn đạt.
+
 Góp ý AI là tham khảo, có giới hạn theo bằng chứng đầu vào. Với sách y khoa, chỉ dùng để luyện ngôn ngữ và đối chiếu đoạn nguồn; không nhập dữ liệu bệnh nhân hoặc dùng góp ý như khuyến nghị điều trị. Điểm luyện IELTS không phải điểm thi chính thức.
 
 ## Ôn và lưu từ
@@ -51,6 +53,8 @@ Góp ý AI là tham khảo, có giới hạn theo bằng chứng đầu vào. V�
 Trong **Sổ từ**, tìm theo cụm từ/nghĩa/câu gốc, lọc theo nguồn hoặc mức nhớ. Mở một từ để xem câu gốc, nghe cách dùng qua YouGlish và viết **Câu của tôi**. Nút lưu báo kết quả thật; lưu lỗi giữ nội dung để thử lại.
 
 **Ôn bằng thẻ** giữ kết quả theo đợt. Khi đã ôn một số thẻ mà đổi bộ hoặc sang màn khác, chọn **Lưu và tiếp tục**, **Bỏ kết quả** hoặc **Ôn tiếp**. Nếu chưa xác nhận lưu, có thể quay lại trong cùng tab để khôi phục đợt ôn. Khi lưu lỗi, thử lại dùng cùng lượt ôn; không coi kết quả đã được ghi nhận cho đến khi thấy tổng kết lưu thành công. Phím tắt không tác động thẻ nền khi hộp thoại mở, nhập văn bản hoặc đang tải/lưu.
+
+Ngay trên mỗi thẻ, **Nghe** đọc từ/cụm từ bằng giọng của trình duyệt; **Nghe ví dụ qua YouGlish** mở video ví dụ cho từ đang ôn. Có thể mở từ mặt trước hoặc sau thẻ. Khi đóng video, tiếp tục cùng thẻ và mặt đang xem; kết quả ôn giữ nguyên. Mở video không tự đánh dấu từ đã thuộc: quay lại thẻ để chọn **Đã thuộc / Chưa thuộc**. Khi YouGlish không có kết quả hoặc bị chặn, dùng link mở trang YouGlish để tìm thêm; ứng dụng không hứa mọi cụm từ đều có video.
 
 Trong **Thử viết một câu**, ô trả lời và lựa chọn nhập được khóa trong lúc gửi. Đọc chính tả bằng bàn phím điện thoại tạo văn bản; đây không phải bản ghi âm để đánh giá phát âm.
 

@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="vi">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Hôm nay — đối chiếu trước và sau</title>
+<style>
+:root{font-family:Inter,system-ui,sans-serif;color:#172c2b;background:#faf9f6}*{box-sizing:border-box}body{margin:0;padding:32px 24px}main{max-width:1440px;margin:auto}h1{font-size:32px;letter-spacing:-.03em;margin:0 0 12px}h2{margin:40px 0 16px;font-size:24px}p{max-width:75ch;line-height:1.6}a{color:#115e59;display:inline-flex;align-items:center;min-height:44px;margin-right:24px}a:focus-visible{outline:2px solid #0f766e;outline-offset:4px}.pair{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px}.phone{max-width:800px}figure{margin:0;min-width:0}figcaption{margin-bottom:12px;font-weight:600}img{display:block;width:100%;height:auto;border:1px solid #dce5e3;border-radius:8px;background:white}.note{color:#445b59}@media(max-width:700px){body{padding:24px 16px}.pair{grid-template-columns:1fr}}
+</style>
+<main>
+<h1>Hôm nay — trước và sau</h1>
+<p>Một bài học làm trọng tâm, lời chào gọn và hành động chính dễ thấy. Đây là ảnh thật từ bản chạy với dữ liệu kiểm thử; đang chờ bạn duyệt hướng thiết kế.</p>
+<nav aria-label="Xem đối chiếu"><a href="#mobile">Điện thoại</a><a href="#desktop">Máy tính</a><a href="#tablet">Máy tính bảng</a><a href="http://127.0.0.1:3034/today">Xem preview dữ liệu mẫu</a></nav>
+<h2 id="mobile">Điện thoại · 375 × 812</h2>
+<div class="pair phone"><figure><figcaption>Trước</figcaption><img src="premium-today-artifacts/before-fresh-375.png" alt="Giao diện trước trên điện thoại: lời chào lớn, nút bắt đầu nằm dưới vùng nhìn thấy"></figure><figure><figcaption>Sau</figcaption><img src="premium-today-artifacts/after-fresh-375.png" alt="Giao diện mới trên điện thoại: bài học và nút bắt đầu hiện phía trên thanh điều hướng"></figure></div>
+<h2 id="desktop">Máy tính · 1440 × 900</h2>
+<div class="pair"><figure><figcaption>Trước</figcaption><img src="premium-today-artifacts/before-fresh-1440.png" alt="Bố cục cũ: khối chào lớn và lộ trình nhiều thẻ màu cạnh bài học" loading="lazy"></figure><figure><figcaption>Sau</figcaption><img src="premium-today-artifacts/after-fresh-1440.png" alt="Bố cục mới: hero bài học toàn chiều rộng, timeline và sổ từ phía dưới" loading="lazy"></figure></div>
+<h2 id="tablet">Máy tính bảng · 768 × 1024</h2>
+<div class="pair"><figure><figcaption>Trước</figcaption><img src="premium-today-artifacts/before-fresh-768.png" alt="Bố cục cũ trên máy tính bảng" loading="lazy"></figure><figure><figcaption>Sau</figcaption><img src="premium-today-artifacts/after-fresh-768.png" alt="Bố cục mới trên máy tính bảng" loading="lazy"></figure></div>
+<p class="note">Cùng bài W1, cùng dữ liệu mẫu và font hệ thống fallback. Không chứng minh provider hoặc production hoạt động. Phase 2–3 chờ duyệt hình Today; build/typecheck toàn dự án còn lỗi kiểu route API hiện hữu. Xem premium-today-walkthrough.md để biết kiểm thử và giới hạn.</p>
+</main>
+</html>

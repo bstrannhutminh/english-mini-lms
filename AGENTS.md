@@ -23,7 +23,9 @@ src/features/         # UI + hook theo vùng: today, library, my-work, vocab, pr
 src/features/session/ # khung phiên học: shell/ + modes/{writing,reading,speaking,listening}
                       # + hooks/ — mỗi kỹ năng là 1 plugin trong modes/registry.ts
 src/contracts/        # zod schema + type DÙNG CHUNG route ⇄ client (nguồn sự thật API)
-src/components/       # ui/ (design system: Button, Card, Badge, Modal, Toast…) + layout/
+src/components/       # ui/ (design system "Clinical Studio": Button, Card, Badge,
+                      # Modal, Toast + primitive mới: SkillTile, StatTile, ProgressRing,
+                      # SegmentedControl, MeterBar, Tabs, Skeleton shimmer) + layout/
 src/lib/              # hàm thuần: modes.ts (modeSkill + MODE_META — nguồn duy nhất
                       # cho nhãn/màu/icon của mode), env.ts, api-client.ts
 src/server/           # domain services (learning, library, vocabulary, today, admin, media…)
@@ -47,6 +49,13 @@ tests/integration/    # cần TEST_DATABASE_URL, gated bởi scripts/run-integra
 ## Lệnh
 
 `npm run dev` · `npm run lint` · `npm run typecheck` · `npm test` (unit, không cần env) · `npm run test:integration` (cần `TEST_DATABASE_URL`) · `npm run build` · `npm run db:migrate` · `npm run seed`
+
+## Design system & preview kiểm thử (21/11/2026)
+
+- Ngôn ngữ thị giác "Clinical Studio": Teal + Inter, nền ivory ấm, surface trắng; màu theo skill lấy từ `modeMeta()`/`MODE_META`. Utility CSS trong `src/app/learning-studio.css`: `page-enter`, `stagger`, `pressable`, `card-lift`, `hero-wash-*`, `eyebrow`, `scroll-strip`, `skeleton-shimmer` — motion phải tôn trọng `prefers-reduced-motion`.
+- Primitive mới ưu tiên dùng lại thay vì tự vẽ: `SkillTile` (ô icon skill), `StatTile` (ô số liệu, có `hideIconOnMobile`), `ProgressRing`, `SegmentedControl` (tab Đề bài/Bài làm, 30/45), `MeterBar` (thanh đo điểm/tỉ lệ SVG), `Card elevated`, `Tabs`, `Skeleton`. Xem toàn bộ tại `/ui-preview` (route chỉ tồn tại trong dev).
+- `/today` và `/my-work` nhận `initialData` từ server render — hook client KHÔNG được fetch trùng lúc mount khi đã có dữ liệu đầu (`resolveSubmissionList`/`shouldFetchOnMount` là hàm thuần đã có unit test).
+- Kiểm thử UI cô lập (không chạm Supabase/Gemini/dev server 3000): bản sao `/private/tmp/lms-leader-preview` chạy port 3111 với `DEV_BYPASS_AUTH` + DB local `lms_leader_preview`; đồng bộ `bash /private/tmp/lms-leader-sync.sh`, chụp ảnh `python3 /private/tmp/lms-shots.py TAG [m|d] route...`, E2E `python3 /private/tmp/lms-e2e.py`. Ảnh ra `/private/tmp/lms-shots/`; yêu cầu `overflowX=0` và 0 lỗi console.
 
 ## Nguyên tắc làm việc
 

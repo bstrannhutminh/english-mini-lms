@@ -1,12 +1,17 @@
 ---
 title: "Làm mới UI/UX LMS: không gian học cá nhân"
-status: in-progress
+status: merged-into-261121-1800-lms-comprehensive-upgrade
 created: 2026-11-20
 priority: P1
 branch: feat/lms-architecture-ux-onboarding
 ---
 
 # Làm mới UI/UX LMS
+
+> **ĐÃ GỘP (21/11/2026):** Plan này được kế thừa và nghiệm thu chung trong
+> `plans/261121-1800-lms-comprehensive-upgrade/`. Source của plan vẫn là nền tảng
+> (được giữ, không làm lại); acceptance/visual-QA cuối do plan mới thực hiện.
+> Không triển khai thêm theo checklist dưới đây.
 
 ## Kết quả và ranh giới
 

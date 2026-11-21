@@ -1,12 +1,17 @@
 ---
 title: "Review và hoàn thiện LMS để học thực tế"
-status: in-progress
+status: merged-into-261121-1800-lms-comprehensive-upgrade
 created: 2026-11-20
 priority: P1
 branch: feat/lms-architecture-ux-onboarding
 ---
 
 # Review và hoàn thiện English Mini LMS
+
+> **ĐÃ GỘP (21/11/2026):** Kế thừa vào `plans/261121-1800-lms-comprehensive-upgrade/`
+> (status: merged). Phần review/điều kiện học thật được đưa vào walkthrough
+> (`plans/reports/walkthrough-261121-1800-lms-comprehensive-upgrade.md`).
+> Không triển khai thêm theo checklist dưới đây.
 
 ## Kết quả cần đạt
 
