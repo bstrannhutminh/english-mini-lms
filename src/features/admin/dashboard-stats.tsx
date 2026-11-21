@@ -51,14 +51,20 @@ function StatCard({
   alert?: boolean;
 }) {
   return (
-    <div className="bg-white p-4 rounded-xl border border-slate-200  space-y-1">
-      <p className="text-base font-semibold text-slate-400 uppercase tracking-wider leading-tight">
-        {label}
-      </p>
-      <p className={`text-2xl font-semibold ${alert ? "text-red-600" : "text-slate-800"}`}>
+    <div
+      className={`card-lift space-y-1 rounded-2xl border bg-surface p-4 shadow-card ${
+        alert ? "border-red-200" : "border-border"
+      }`}
+    >
+      <p className="text-base font-medium leading-snug text-text-secondary">{label}</p>
+      <p
+        className={`text-3xl font-semibold tabular-nums tracking-tight ${
+          alert ? "text-red-700" : "text-text"
+        }`}
+      >
         {value}
       </p>
-      {sub && <p className="text-base text-slate-500">{sub}</p>}
+      {sub && <p className="text-base text-text-muted">{sub}</p>}
     </div>
   );
 }

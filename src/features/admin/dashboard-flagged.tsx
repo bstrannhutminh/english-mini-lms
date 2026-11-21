@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { Badge, Button, useToast } from "@/components/ui";
 import type { AdminDashboardDataContract } from "@/contracts/admin-dashboard";
+import { feedbackCategoryLabel } from "@/lib/feedback-labels";
 import { modeMeta } from "@/lib/modes";
 import { resolveFeedback } from "./admin-api";
 
@@ -45,28 +46,28 @@ export function FlaggedFeedbackList({
 
   if (items.length === 0) {
     return (
-      <div className="p-4 bg-emerald-50 text-emerald-800 rounded-lg text-base border border-emerald-100">
+      <div className="rounded-xl border border-emerald-100 bg-emerald-50 p-4 text-base text-emerald-800">
         ✓ Không có nhận xét nào đang bị gắn cờ.
       </div>
     );
   }
 
   return (
-    <div className="divide-y divide-slate-100 border rounded-lg overflow-hidden">
+    <div className="divide-y divide-border overflow-hidden rounded-xl border border-border">
       {items.map((item) => {
         const meta = modeMeta(item.activityMode);
         return (
-          <div key={item.id} className="p-4 space-y-3 hover:bg-slate-50 transition">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div key={item.id} className="space-y-3 p-4 transition hover:bg-surface-muted">
+            <div className="flex flex-col justify-between gap-2 sm:flex-row sm:items-center">
               <div className="flex flex-wrap items-center gap-2">
-                <span className="font-semibold text-slate-800">{item.activityTitle}</span>
+                <span className="font-semibold text-text">{item.activityTitle}</span>
                 <Badge tone={meta.tone}>{meta.shortLabel}</Badge>
                 <Badge tone="warning">Đang xét</Badge>
               </div>
               <div className="flex items-center gap-3">
                 <Link
                   href={`/my-work/${item.submissionId}`}
-                  className="text-base text-blue-600 hover:underline font-medium"
+                  className="inline-flex min-h-11 items-center text-base font-medium text-primary-dark hover:underline"
                 >
                   Xem bài nộp ↗
                 </Link>
@@ -82,7 +83,7 @@ export function FlaggedFeedbackList({
             </div>
 
             {item.submissionBodySnippet && (
-              <p className="text-base text-slate-600 italic bg-slate-50 p-2 rounded border border-slate-100">
+              <p className="rounded-xl border border-border bg-surface-muted p-3 text-base italic text-text-secondary">
                 Trích bài: &quot;{item.submissionBodySnippet}&quot;
               </p>
             )}
@@ -92,16 +93,16 @@ export function FlaggedFeedbackList({
                 {(item.observations as Observation[]).map((obs, idx) => (
                   <div
                     key={idx}
-                    className={`text-base p-3 rounded-lg border ${
+                    className={`rounded-xl border p-3 text-base ${
                       obs.flagged
-                        ? "bg-amber-50/70 border-amber-300 text-amber-900"
-                        : "bg-white border-slate-200 text-slate-700"
+                        ? "border-amber-300 bg-amber-50/70 text-amber-900"
+                        : "border-border bg-surface text-text-secondary"
                     }`}
                   >
                     <div className="flex items-center justify-between font-semibold mb-1">
                       <span>
                         {obs.flagged ? "🚩 " : "• "}
-                        {obs.location} ({obs.category || "ngữ pháp"})
+                        {obs.location} ({feedbackCategoryLabel(obs.category)})
                       </span>
                       {obs.flagged && (
                         <span className="text-base text-amber-700 font-normal">
@@ -110,7 +111,7 @@ export function FlaggedFeedbackList({
                       )}
                     </div>
                     {obs.original && (
-                      <div className="italic text-slate-600 mb-1">&quot;{obs.original}&quot;</div>
+                      <div className="mb-1 italic text-text-secondary">&quot;{obs.original}&quot;</div>
                     )}
                     <div>
                       <strong>Góp ý AI:</strong> {obs.issue}
@@ -121,7 +122,7 @@ export function FlaggedFeedbackList({
               </div>
             )}
 
-            <p className="text-base text-slate-400">
+            <p className="text-base text-text-muted">
               {new Date(item.createdAt).toLocaleString("vi-VN")} ·{" "}
               {item.learnerName || "Người học"}
             </p>

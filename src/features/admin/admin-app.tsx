@@ -6,7 +6,8 @@
  */
 import { useState } from "react";
 import { PageContainer } from "@/components/layout";
-import { Tabs } from "@/components/ui";
+import { SegmentedControl, Tabs } from "@/components/ui";
+import type { AdminDashboardDataContract } from "@/contracts/admin-dashboard";
 import ContentTab from "./content/content-tab";
 import DashboardTab from "./dashboard-tab";
 import DriveSyncTab from "./drive-sync-tab";
@@ -17,7 +18,18 @@ const TABS = [
   { value: "sync", label: "Drive Sync", icon: "refresh" as const },
 ];
 
-export default function AdminApp() {
+const MOBILE_OPTIONS = [
+  { value: "overview", label: <span className="truncate">Tổng quan</span> },
+  { value: "content", label: <span className="truncate">Nội dung</span> },
+  { value: "sync", label: <span className="truncate">Drive Sync</span> },
+];
+
+export default function AdminApp({
+  initialDashboard = null,
+}: {
+  /** Dữ liệu Tổng quan do server render sẵn (null → tab tự tải). */
+  initialDashboard?: AdminDashboardDataContract | null;
+}) {
   const [tab, setTab] = useState("overview");
 
   return (
@@ -29,14 +41,27 @@ export default function AdminApp() {
         </p>
       </header>
 
+      {/* Mobile: 3 nhãn không vừa một hàng dạng tab gạch chân → công tắc chia đều. */}
+      <SegmentedControl
+        fullWidth
+        ariaLabel="Khu vực quản trị"
+        className="sm:hidden [&>button]:min-w-0 [&>button]:px-2"
+        options={MOBILE_OPTIONS}
+        value={tab}
+        onChange={setTab}
+      />
       <Tabs
         tabs={TABS}
         value={tab}
         onValueChange={setTab}
         aria-label="Khu vực quản trị"
+        className="hidden sm:flex"
       />
 
-      {tab === "overview" && <DashboardTab />}
+      {/* Tổng quan luôn được dựng (chỉ ẩn) để giữ dữ liệu mới nhất khi đổi tab. */}
+      <div hidden={tab !== "overview"}>
+        <DashboardTab initialData={initialDashboard} />
+      </div>
       {tab === "content" && <ContentTab />}
       {tab === "sync" && <DriveSyncTab />}
     </PageContainer>
