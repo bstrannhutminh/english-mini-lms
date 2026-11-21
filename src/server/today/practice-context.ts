@@ -16,41 +16,60 @@ const learningFocusProfileSchema = z.object({
 export async function getLearnerPracticeContext(
   learnerId: string
 ): Promise<PracticeContext> {
-  // Quy tắc (a): nháp dở chưa nộp
-  const [latestDraft] = await db
-    .select({
-      sessionId: drafts.sessionId,
-      activityId: learningSessions.activityId,
-    })
-    .from(drafts)
-    .innerJoin(learningSessions, eq(drafts.sessionId, learningSessions.id))
-    .where(
-      and(
-        eq(drafts.learnerId, learnerId),
-        eq(learningSessions.status, "active"),
-        sql`length(coalesce(${drafts.content}, '')) > 20`
-      )
-    )
-    .orderBy(desc(drafts.updatedAt))
-    .limit(1);
+  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
 
-  // Quy tắc (a): bài Bản 1 cần sửa (chưa có Bản 2 và ĐÃ CÓ nhận xét AI feedback_ready)
-  const recentSubmissions = await db
-    .select({
-      id: submissions.id,
-      revision: submissions.revision,
-      activityId: learningSessions.activityId,
-      parentId: submissions.parentId,
-      assessmentStatus: assessments.status,
-    })
-    .from(submissions)
-    .innerJoin(learningSessions, eq(submissions.sessionId, learningSessions.id))
-    .leftJoin(assessments, eq(assessments.submissionId, submissions.id))
-    .where(
-      and(eq(submissions.learnerId, learnerId), isNull(submissions.deletedAt))
-    )
-    .orderBy(desc(submissions.submittedAt))
-    .limit(20);
+  // 4 truy vấn độc lập chạy song song (DB ở xa: mỗi lượt chờ ~100ms nếu nối tiếp).
+  const [[latestDraft], recentSubmissions, weeklySubmissions, [learner]] = await Promise.all([
+    // Quy tắc (a): nháp dở chưa nộp
+    db
+      .select({
+        sessionId: drafts.sessionId,
+        activityId: learningSessions.activityId,
+      })
+      .from(drafts)
+      .innerJoin(learningSessions, eq(drafts.sessionId, learningSessions.id))
+      .where(
+        and(
+          eq(drafts.learnerId, learnerId),
+          eq(learningSessions.status, "active"),
+          sql`length(coalesce(${drafts.content}, '')) > 20`
+        )
+      )
+      .orderBy(desc(drafts.updatedAt))
+      .limit(1),
+    // Quy tắc (a): bài Bản 1 cần sửa (chưa có Bản 2 và ĐÃ CÓ nhận xét AI feedback_ready)
+    db
+      .select({
+        id: submissions.id,
+        revision: submissions.revision,
+        activityId: learningSessions.activityId,
+        parentId: submissions.parentId,
+        assessmentStatus: assessments.status,
+      })
+      .from(submissions)
+      .innerJoin(learningSessions, eq(submissions.sessionId, learningSessions.id))
+      .leftJoin(assessments, eq(assessments.submissionId, submissions.id))
+      .where(
+        and(eq(submissions.learnerId, learnerId), isNull(submissions.deletedAt))
+      )
+      .orderBy(desc(submissions.submittedAt))
+      .limit(20),
+    // Quy tắc (c): cân bằng 4 kỹ năng trong 7 ngày qua
+    db
+      .select({ mode: activities.mode })
+      .from(submissions)
+      .innerJoin(learningSessions, eq(submissions.sessionId, learningSessions.id))
+      .innerJoin(activities, eq(learningSessions.activityId, activities.id))
+      .where(
+        and(
+          eq(submissions.learnerId, learnerId),
+          isNull(submissions.deletedAt),
+          gte(submissions.submittedAt, sevenDaysAgo)
+        )
+      ),
+    db.select({ goals: learners.goals }).from(learners)
+      .where(eq(learners.id, learnerId)).limit(1),
+  ]);
 
   const parentIds = new Set(
     recentSubmissions.map((s) => s.parentId).filter(Boolean)
@@ -61,21 +80,6 @@ export async function getLearnerPracticeContext(
       !parentIds.has(s.id) &&
       s.assessmentStatus === "feedback_ready"
   );
-
-  // Quy tắc (c): cân bằng 4 kỹ năng trong 7 ngày qua
-  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-  const weeklySubmissions = await db
-    .select({ mode: activities.mode })
-    .from(submissions)
-    .innerJoin(learningSessions, eq(submissions.sessionId, learningSessions.id))
-    .innerJoin(activities, eq(learningSessions.activityId, activities.id))
-    .where(
-      and(
-        eq(submissions.learnerId, learnerId),
-        isNull(submissions.deletedAt),
-        gte(submissions.submittedAt, sevenDaysAgo)
-      )
-    );
 
   const skillCounts: Record<string, number> = {
     writing: 0,
@@ -90,8 +94,6 @@ export async function getLearnerPracticeContext(
     }
   }
 
-  const [learner] = await db.select({ goals: learners.goals }).from(learners)
-    .where(eq(learners.id, learnerId)).limit(1);
   const parsed = learningFocusProfileSchema.safeParse(learner?.goals ?? {});
   const profile = parsed.success ? parsed.data : {};
   const hasProfile = Boolean(profile.priorities?.length || profile.selfAssessment);

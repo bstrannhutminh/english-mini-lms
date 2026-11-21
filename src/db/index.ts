@@ -24,13 +24,17 @@ function getDb() {
     postgresClient: postgres.Sql | undefined;
   };
 
+  // Production (serverless): 1 kết nối, đóng sau 20s rảnh để không giữ chỗ trên pooler.
+  // Dev: nhiều kết nối hơn và giữ 5 phút — DB ở xa, mở lại TLS tốn ~1,4s mỗi lần,
+  // nên để kết nối đóng giữa hai lượt chuyển trang làm trang chậm hẳn.
+  const isProd = process.env.NODE_ENV === "production";
   const client =
     globalForDb.postgresClient ??
     postgres(dbUrl, {
-      max: process.env.NODE_ENV === "production" ? 1 : 2,
+      max: isProd ? 1 : 5,
       ssl: "require",
       prepare: false,
-      idle_timeout: 20,
+      idle_timeout: isProd ? 20 : 300,
       connect_timeout: 10,
     });
 
