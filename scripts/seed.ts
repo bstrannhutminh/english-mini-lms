@@ -344,23 +344,35 @@ async function main() {
       );
 
       for (const learner of existingLearners) {
+        // 1 truy vấn lấy toàn bộ từ hiện có thay vì N+1 select mỗi item —
+        // quan trọng khi chạy qua pooler remote (~1k từ = ~2k roundtrip trước đây).
+        const existingRows = await db
+          .select({
+            id: schema.vocabularyVault.id,
+            phrase: schema.vocabularyVault.phrase,
+            imageUrl: schema.vocabularyVault.imageUrl,
+          })
+          .from(schema.vocabularyVault)
+          .where(
+            sql`${schema.vocabularyVault.learnerId} = ${learner.id}`
+          );
+        const existingByPhrase = new Map(
+          existingRows.map((r) => [r.phrase, r])
+        );
+
+        const toInsert: (typeof schema.vocabularyVault.$inferInsert)[] = [];
+        const toBackfill: { id: string; imageUrl: string }[] = [];
+        const queued = new Set<string>();
+
         for (const item of [...demoVocabularies, ...ieltsVocabularies]) {
           // JSON IELTS có thể kèm imageUrl; từ demo không có → null.
           const imageUrl =
             (item as { imageUrl?: string | null }).imageUrl ?? null;
-          const [exists] = await db
-            .select({
-              id: schema.vocabularyVault.id,
-              imageUrl: schema.vocabularyVault.imageUrl,
-            })
-            .from(schema.vocabularyVault)
-            .where(
-              sql`${schema.vocabularyVault.learnerId} = ${learner.id} AND ${schema.vocabularyVault.phrase} = ${item.phrase}`
-            )
-            .limit(1);
+          const exists = existingByPhrase.get(item.phrase);
 
-          if (!exists) {
-            await db.insert(schema.vocabularyVault).values({
+          if (!exists && !queued.has(item.phrase)) {
+            queued.add(item.phrase);
+            toInsert.push({
               learnerId: learner.id,
               phrase: item.phrase,
               ipa: item.ipa,
@@ -373,18 +385,28 @@ async function main() {
               masteryLevel: item.masteryLevel,
               dueAt: new Date(),
             });
-            console.log(
-              `   ✔ Added vocabulary "${item.phrase}" for learner ${learner.id}`
-            );
-          } else if (imageUrl && exists.imageUrl !== imageUrl) {
+          } else if (exists && imageUrl && exists.imageUrl !== imageUrl) {
             // Backfill ảnh cho từ đã seed từ trước (chạy seed lại sau khi
             // bổ sung imageUrl vào JSON) — không động vào SRS/progress.
-            await db
-              .update(schema.vocabularyVault)
-              .set({ imageUrl })
-              .where(sql`${schema.vocabularyVault.id} = ${exists.id}`);
+            toBackfill.push({ id: exists.id, imageUrl });
           }
         }
+
+        // Insert theo lô 200 dòng; backfill ảnh hiếm gặp nên giữ per-row.
+        for (let i = 0; i < toInsert.length; i += 200) {
+          await db
+            .insert(schema.vocabularyVault)
+            .values(toInsert.slice(i, i + 200));
+        }
+        for (const row of toBackfill) {
+          await db
+            .update(schema.vocabularyVault)
+            .set({ imageUrl: row.imageUrl })
+            .where(sql`${schema.vocabularyVault.id} = ${row.id}`);
+        }
+        console.log(
+          `   ✔ Learner ${learner.id}: thêm mới ${toInsert.length} từ, backfill ảnh ${toBackfill.length} từ`
+        );
       }
     } else {
       console.log(

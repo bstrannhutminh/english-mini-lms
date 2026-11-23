@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { Button, Icon } from "@/components/ui";
 import type { FlashcardDeckItem } from "./api";
 import { formatMastery } from "./mastery";
@@ -38,14 +39,20 @@ export function Flashcard({ item, isFlipped, dragOffset, isDragging, flyDirectio
       </header>
       <div className="space-y-5" aria-live="polite">
         {item.imageUrl && (
-          <img
-            src={item.imageUrl}
-            alt=""
-            aria-hidden="true"
-            className="aspect-video w-full rounded-xl object-cover"
-            loading="lazy"
-            draggable={false}
-          />
+          // unoptimized: imageUrl là remote URL ngoài tầm kiểm soát (Wikimedia,
+          // Pexels…), không whitelist remotePatterns được hết.
+          <div className="relative aspect-video w-full overflow-hidden rounded-xl">
+            <Image
+              src={item.imageUrl}
+              alt=""
+              aria-hidden="true"
+              fill
+              sizes="(max-width: 640px) 100vw, 640px"
+              className="object-cover"
+              unoptimized
+              draggable={false}
+            />
+          </div>
         )}
         <h2 className="break-words text-3xl font-semibold leading-tight tracking-tight text-text sm:text-4xl">{item.phrase}</h2>
         {item.ipa && <p className="break-words text-base font-mono text-text-secondary">{item.ipa}</p>}

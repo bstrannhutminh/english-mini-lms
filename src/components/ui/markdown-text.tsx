@@ -29,6 +29,7 @@ export function MarkdownText({ text }: { text: string }) {
             src.startsWith("https://");
           if (safeSrc) {
             return (
+              // eslint-disable-next-line @next/next/no-img-element -- src động do admin soạn (URL ngoài tuỳ ý), next/image cần kích thước cố định hoặc whitelist domain
               <img
                 key={i}
                 src={src}
