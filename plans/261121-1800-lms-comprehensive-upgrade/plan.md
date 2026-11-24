@@ -1,6 +1,6 @@
 ---
 title: "Cải tiến toàn diện LMS: luồng học, hiệu năng, UI/UX"
-status: in-progress
+status: completed
 created: 2026-11-21
 priority: P1
 branch: master
@@ -39,8 +39,8 @@ Giữ Teal + Inter (D-6) và 4 màu kỹ năng. Thêm: chiều sâu nhẹ (shado
 |---|---|---|---|
 | 1 | Nền tảng: tokens, primitives (`ProgressRing`, `SkillTile`, `StatTile`, `SegmentedControl`, shimmer, page-enter), hiệu năng server (`cache()` learner, count query, song song hoá truy vấn Hôm nay) | Leader | completed |
 | 2 | Hôm nay + khung điều hướng: SSR dữ liệu đầu, hero bài học, stepper, nhịp tuần, skeleton theo route | Leader | completed |
-| 3 | Learning Studio 4 kỹ năng: tab Đề bài/Bài làm trên mobile, cột đề dính trên desktop, header full-bleed, action bar gọn | Agent A | completed — Leader đã review diff 21/11; còn 1 điểm chờ người dùng quyết định (chữ phụ 13–14px, xem mục Review cuối) |
-| 4 | Bài làm/Góp ý/Tiến độ + Thư viện/Sổ từ/Cài đặt | Agent B, C | completed — Leader đã review diff 21/11; còn 1 điểm chờ người dùng quyết định (chữ phụ 13–14px, xem mục Review cuối) |
+| 3 | Learning Studio 4 kỹ năng: tab Đề bài/Bài làm trên mobile, cột đề dính trên desktop, header full-bleed, action bar gọn | Agent A | completed — Leader đã review diff 21/11 |
+| 4 | Bài làm/Góp ý/Tiến độ + Thư viện/Sổ từ/Cài đặt | Agent B, C | completed — Leader đã review diff 21/11 |
 | 5 | Kiểm chứng cuối, dọn nợ nhỏ, walkthrough + journal | **Task** (Leader review) | completed — Leader đã review 21/11 (xem [handoff](handoff-to-task.md)) |
 
 Từ 19:10 ngày 21/11/2026 người dùng chuyển vai: terminal `Task` làm phần còn lại, Leader chỉ review và lập plan tối ưu mới khi cần.
@@ -66,7 +66,7 @@ Phạm vi: diff so với `refs/leader/baseline-261121` của `src/server`, `src/
 
 - Invariant giữ nguyên: bản sửa vẫn là submission mới có `parent_id`; `assisted` chỉ đọc từ server; góp ý hiện đủ 6 trường + `limitations`; điểm chỉ `practice_estimate` thang 0–10; `data-tour` không đổi; contract chỉ thêm trường tuỳ chọn.
 - Thanh gợi ý chuyển sang slot: cả 3 plugin có `Hint` (Viết, Đọc, Nói) đều render qua `SessionColumns` nên nút gợi ý không mất.
-- **Chờ quyết định:** số chỗ dùng `text-sm` (14px) tăng 13 → 92, `text-xs` 12 → 19, lớp `eyebrow` 13px — trái luật "chữ ≥ 16px" trong `.agents/rules/english-mini-lms.md`. Gồm cả chữ có nội dung (lý do chưa nộp được, trạng thái lưu nháp, ghi chú "Có hỗ trợ").
+- ~~**Chờ quyết định:**~~ **Đã quyết 24/11/2026 — giữ chữ phụ 13–14px.** Luật trong `.agents/rules/english-mini-lms.md` đã sửa: chữ nội dung/tương tác vẫn ≥ 16px; caption/meta/ghi chú trạng thái/eyebrow được 13–14px. (`text-sm` 92 chỗ, `text-xs` 19 chỗ, `eyebrow` 13px giữ nguyên.)
 - Nhỏ, chưa sửa: `weekMinutes` tính theo 168 giờ trượt trong khi dải 7 ngày tính theo ngày lịch giờ VN; `src/server/today/service.ts` 236 dòng (>200); JSDoc của `getLearnerVocabulary` bị tách khỏi hàm do chèn `countDueVocabulary` vào giữa.
 
 ## Preview kiểm chứng

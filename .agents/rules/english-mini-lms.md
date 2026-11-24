@@ -42,7 +42,7 @@
 - Migration additive (thêm bảng/cột, không drop/rename cột đã có dữ liệu).
 - Mỗi service mới có ít nhất 1 test vitest cho invariant của nó (ví dụ: append-only, assisted, not_assessable).
 - File > 200 dòng → tách module. Tên file kebab-case, mô tả rõ.
-- Mobile-first: touch target ≥ 44px, chữ ≥ 16px, trạng thái lưu/đang chấm/lỗi hiển thị rõ.
+- Mobile-first: touch target ≥ 44px, chữ nội dung chính và chữ trên nút/tương tác ≥ 16px; chữ phụ (caption, meta, ghi chú trạng thái, eyebrow) được dùng 13–14px — quyết định 24/11/2026. Trạng thái lưu/đang chấm/lỗi hiển thị rõ.
 
 ## Quy trình mỗi bước
 
