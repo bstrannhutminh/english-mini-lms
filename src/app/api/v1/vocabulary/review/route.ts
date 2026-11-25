@@ -87,7 +87,8 @@ export const POST = withLearner(async ({ req, learner }) => {
       body.vocab_id,
       body.scenario,
       body.user_response,
-      body.modality
+      body.modality,
+      { clientReviewId: body.clientReviewId }
     );
     return NextResponse.json(result, { status: 200 });
   }

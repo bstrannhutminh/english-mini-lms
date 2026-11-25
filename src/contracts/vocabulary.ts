@@ -109,6 +109,9 @@ export const submitReviewRequestSchema = z.object({
   scenario: z.string().min(1),
   user_response: z.string().min(1),
   modality: modalitySchema.optional().default("text"),
+  // UUID client sinh cho 1 lần trả lời — retry/double-click cùng id thì server
+  // trả kết quả idempotent thay vì advance mastery hai lần.
+  clientReviewId: uuidSchema.optional(),
 });
 export type SubmitReviewRequest = z.infer<typeof submitReviewRequestSchema>;
 
@@ -146,6 +149,9 @@ export const submitReviewResponseSchema = z.object({
   nextDueAt: isoDateTimeSchema,
   intervalDays: z.number().int(),
   masteryLevel: z.number().int(),
+  // true khi request là retry trùng clientReviewId — mastery không đổi,
+  // evaluation chỉ khôi phục được phần persist trong DB (feedbackNotes rỗng).
+  idempotentDuplicate: z.boolean().optional(),
 });
 export type SubmitReviewResponse = z.infer<typeof submitReviewResponseSchema>;
 

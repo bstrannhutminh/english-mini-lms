@@ -49,11 +49,12 @@ export function parseAndValidateManifest(
 ): ParsedManifestResult {
   const empty: Pick<
     ParsedManifestResult,
-    "sourcesToUpsert" | "segmentsToUpsert" | "activitiesToUpsert"
+    "sourcesToUpsert" | "segmentsToUpsert" | "activitiesToUpsert" | "manifestActivityStates"
   > = {
     sourcesToUpsert: [],
     segmentsToUpsert: [],
     activitiesToUpsert: [],
+    manifestActivityStates: [],
   };
 
   let data: ManifestData;
@@ -100,5 +101,10 @@ export function parseAndValidateManifest(
     sourcesToUpsert: buildSourcesToUpsert(allSources, neededSourceIds),
     segmentsToUpsert: buildSegmentsToUpsert(baseDir, neededSegmentIds, allSegments),
     activitiesToUpsert: buildActivitiesToUpsert(baseDir, approvedActivities),
+    // Mọi activity trong manifest (kể cả draft/retired) — cho reconcile.
+    manifestActivityStates: allActivities.map((act) => ({
+      id: act.id,
+      reviewState: act.review_state,
+    })),
   };
 }

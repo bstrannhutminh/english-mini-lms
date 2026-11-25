@@ -27,7 +27,6 @@ import {
   sweepStuckAssessment,
   checkRetryAllowed,
   markAssessmentProcessing,
-  markAssessmentReady,
   markAssessmentFailed,
 } from "./assessment-status";
 
@@ -101,6 +100,8 @@ export async function retryAssessment(
       confirmedTranscript: submission.confirmedTranscript,
     });
 
+    // persist đã atomic: feedback + dọn error_observations cũ + status chuyển
+    // feedback_ready trong cùng transaction — không cần update riêng nữa.
     const feedback = await persistEvaluationResult({
       assessmentId: assessment.id,
       learnerId,
@@ -111,8 +112,6 @@ export async function retryAssessment(
       outcome,
       replaceErrorObservations: true,
     });
-
-    await markAssessmentReady(assessment.id);
 
     return { success: true as const, feedback };
   } catch (err) {

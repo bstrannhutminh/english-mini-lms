@@ -9,6 +9,7 @@ import { drizzle } from "drizzle-orm/postgres-js";
 import { sql } from "drizzle-orm";
 import * as schema from "../src/db/schema";
 import { parseAndValidateManifest } from "../src/server/seed/manifest-parser";
+import { computeSeedReviewStateReconcile } from "../src/server/seed/reconcile";
 import { staggeredDueAt, seedVocabStaggerKey } from "./vocab-stagger.mjs";
 
 async function main() {
@@ -209,6 +210,43 @@ async function main() {
         });
       console.log(`   ✔ Activity [${act.id}] (${act.mode}): ${act.title}`);
     }
+
+    // 5.5. Reconcile review_state: activity origin='seed' không còn approved
+    // trong manifest (bị gỡ hẳn hoặc đổi trạng thái) vẫn nằm nguyên approved
+    // trong DB ở bản cũ — learner vẫn học được bài đáng lẽ đã rút.
+    // Row admin sửa tay đã đổi origin='admin' nên không bao giờ bị động vào.
+    console.log("\n🔄 Đang reconcile review_state với manifest...");
+    const seedDbActivities = await db
+      .select({
+        id: schema.activities.id,
+        reviewState: schema.activities.reviewState,
+      })
+      .from(schema.activities)
+      .where(sql`${schema.activities.origin} = 'seed'`);
+
+    const reconcileActions = computeSeedReviewStateReconcile(
+      parsed.manifestActivityStates,
+      seedDbActivities
+    );
+
+    for (const action of reconcileActions) {
+      await db
+        .update(schema.activities)
+        .set({ reviewState: action.nextReviewState, updatedAt: new Date() })
+        .where(sql`${schema.activities.id} = ${action.id}`);
+      console.log(
+        `   ♻ Activity [${action.id}] → ${action.nextReviewState} (${
+          action.reason === "missing_from_manifest"
+            ? "không còn trong manifest"
+            : "manifest không còn approved"
+        })`
+      );
+    }
+    console.log(
+      reconcileActions.length === 0
+        ? "   ✓ Không có activity nào cần reconcile."
+        : `   ✓ Đã reconcile ${reconcileActions.length} activities.`
+    );
 
     console.log("\n🎉 HOÀN TẤT NẠP NỘI DUNG ACTIVITIES THÀNH CÔNG!");
     console.log(`Đã nạp / cập nhật ${parsed.activitiesToUpsert.length} activities: ${parsed.activitiesToUpsert.map((a) => a.id).join(", ")}`);

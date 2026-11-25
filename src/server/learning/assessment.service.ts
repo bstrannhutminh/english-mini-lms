@@ -33,7 +33,6 @@ export {
   checkRetryAllowed,
   assertRetryAllowed,
   markAssessmentProcessing,
-  markAssessmentReady,
   markAssessmentFailed,
   STUCK_ASSESSMENT_MESSAGE,
 } from "./assessment/assessment-status";

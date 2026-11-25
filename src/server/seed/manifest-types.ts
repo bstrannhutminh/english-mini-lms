@@ -103,4 +103,13 @@ export interface ParsedManifestResult {
     output: string | null;
     topic: string | null;
   }>;
+  /**
+   * Trạng thái review_state của MỌI activity trong manifest (kể cả không
+   * approved) — seed dùng để reconcile row origin='seed' đã bị rút khỏi
+   * manifest hoặc đổi khỏi approved (xem src/server/seed/reconcile.ts).
+   */
+  manifestActivityStates: Array<{
+    id: string;
+    reviewState: "draft" | "reviewing" | "approved" | "rejected" | "retired";
+  }>;
 }

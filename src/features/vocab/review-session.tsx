@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { Button, EmptyState, Icon, Skeleton, useToast } from "@/components/ui";
 import { PageContainer } from "@/components/layout";
@@ -60,6 +60,19 @@ export function ReviewSession() {
 
   const currentItem = items[currentIndex];
 
+  // clientReviewId ổn định theo (thứ tự, từ) trong phiên: retry/double-click
+  // cùng một lần trả lời dùng lại đúng id đó → server idempotent, không
+  // advance mastery hai lần. Sang từ mới là lần trả lời mới → id mới.
+  const attemptIdsRef = useRef(new Map<string, string>());
+  const attemptIdFor = (key: string) => {
+    let id = attemptIdsRef.current.get(key);
+    if (!id) {
+      id = crypto.randomUUID();
+      attemptIdsRef.current.set(key, id);
+    }
+    return id;
+  };
+
   const handleSubmitReview = async () => {
     if (!currentItem || !userText.trim() || submitting) return;
 
@@ -70,6 +83,7 @@ export function ReviewSession() {
         scenario: currentItem.challengePrompt ?? currentItem.phrase,
         user_response: userText.trim(),
         modality: "text",
+        clientReviewId: attemptIdFor(`${currentIndex}:${currentItem.id}`),
       });
       setReviewResult(json);
       setCompletedList((prev) => [

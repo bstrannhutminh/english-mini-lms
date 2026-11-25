@@ -150,9 +150,12 @@ export async function insertOrReuseSubmission(input: {
       })
       .returning();
 
+    // Insert thẳng status "processing" thay vì "queued" rồi update — giảm 1
+    // roundtrip và đúng thực tế: evaluate chạy đồng bộ ngay sau khi transaction
+    // này commit. Sweeper vẫn xử lý cả hai trạng thái nếu request chết giữa chừng.
     const [assessment] = await tx
       .insert(assessments)
-      .values({ submissionId: submission.id, learnerId, kind: "ai_feedback", runVersion: 1, status: "queued" })
+      .values({ submissionId: submission.id, learnerId, kind: "ai_feedback", runVersion: 1, status: "processing" })
       .returning();
 
     return { submission, assessment, feedback: null, activity, reused: false };

@@ -65,12 +65,8 @@ export async function markAssessmentProcessing(
     .where(eq(assessments.id, assessmentId));
 }
 
-export async function markAssessmentReady(assessmentId: string) {
-  await db
-    .update(assessments)
-    .set({ status: "feedback_ready", updatedAt: new Date() })
-    .where(eq(assessments.id, assessmentId));
-}
+// Không còn markAssessmentReady: status feedback_ready được chuyển ATOMIC
+// trong transaction của persistEvaluationResult (feedback tồn tại ⟺ ready).
 
 export async function markAssessmentFailed(assessmentId: string, resultRef: string) {
   await db

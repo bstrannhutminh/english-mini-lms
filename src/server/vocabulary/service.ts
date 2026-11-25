@@ -5,7 +5,8 @@
  * Code mới có thể import trực tiếp module nhỏ:
  *  - ./schedule.ts     : bộ lập lịch SRS thuần (1-3-7-14-30, mastery 0–4, partial = ôn sớm)
  *  - ./capture.ts      : quick-capture + CRUD vocabulary_vault
- *  - ./review.ts       : ôn viết micro-challenge qua Gemini
+ *  - ./review.ts       : lấy bộ từ đến hạn cho micro-challenge
+ *  - ./submit-vocabulary-review.ts : nộp bài ôn viết qua Gemini (atomic + idempotent)
  *  - ./quick-review.ts : ôn nhanh flashcard quẹt (0 token AI)
  *  - ./errors.ts       : ValidationError (statusCode → mapServiceError)
  */
@@ -30,10 +31,11 @@ export {
   updateVocabulary,
   type CreateVocabularyInput,
 } from "./capture";
+export { getDueVocabularyForReview } from "./review";
 export {
-  getDueVocabularyForReview,
   submitVocabularyReview,
-} from "./review";
+  type SubmitVocabularyReviewOptions,
+} from "./submit-vocabulary-review";
 export {
   getVocabularyForFlashcards,
   submitQuickFlashcardReviews,

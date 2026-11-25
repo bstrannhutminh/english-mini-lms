@@ -4,7 +4,6 @@
  * đó evaluate/persist feedback. Submission luôn được giữ lại kể cả khi AI lỗi.
  */
 import { eq } from "drizzle-orm";
-import { db } from "@/db";
 import { learningSessions } from "@/db/schema";
 import { ValidationError } from "../errors";
 import { MAX_SUBMISSION_BODY_CHARS } from "../limits";
@@ -12,11 +11,7 @@ import { loadReadyMedia } from "./submission-media";
 import { toVietnameseGeminiError } from "@/server/providers/gemini/call-gemini";
 import { evaluateSubmission } from "./evaluate-submission";
 import { persistEvaluationResult } from "./persist-evaluation";
-import {
-  markAssessmentProcessing,
-  markAssessmentReady,
-  markAssessmentFailed,
-} from "./assessment-status";
+import { markAssessmentFailed } from "./assessment-status";
 import { insertOrReuseSubmission } from "./insert-or-reuse-submission";
 import { recordSessionEvent } from "../session/record-session-event";
 
@@ -56,7 +51,8 @@ export async function createSubmissionAndAssess(
   }
 
   const { submission, assessment, activity } = prepared;
-  await markAssessmentProcessing(assessment.id);
+  // Assessment đã insert thẳng status "processing" trong transaction của
+  // insertOrReuseSubmission — không cần update queued→processing như trước.
 
   // Backup server-side cho client finish fire-and-forget. Nếu client đã ghi,
   // state machine lifecycle biến event này thành no-op về active_seconds.
@@ -67,27 +63,33 @@ export async function createSubmissionAndAssess(
   }
 
   try {
+    // Gọi Gemini là network — NGOÀI transaction, không giữ khoá/connection.
     const outcome = await evaluateSubmission(activity, {
       body: submission.body,
       mediaId: submission.mediaId,
       confirmedTranscript: submission.confirmedTranscript,
     });
 
-    const feedback = await persistEvaluationResult({
-      assessmentId: assessment.id,
-      learnerId,
-      submissionId: submission.id,
-      runVersion: 1,
-      activityMode: activity.mode,
-      rubricJson: activity.rubricJson,
-      outcome,
-    });
-
-    await markAssessmentReady(assessment.id);
-    await db
-      .update(learningSessions)
-      .set({ status: "completed", updatedAt: new Date() })
-      .where(eq(learningSessions.id, sessionId));
+    // ATOMIC: feedback + error_observations + usage_events + assessment
+    // feedback_ready + session completed trong 1 transaction — crash giữa
+    // chừng rollback sạch, không để lại trạng thái treo nửa vời.
+    const feedback = await persistEvaluationResult(
+      {
+        assessmentId: assessment.id,
+        learnerId,
+        submissionId: submission.id,
+        runVersion: 1,
+        activityMode: activity.mode,
+        rubricJson: activity.rubricJson,
+        outcome,
+      },
+      async (tx) => {
+        await tx
+          .update(learningSessions)
+          .set({ status: "completed", updatedAt: new Date() })
+          .where(eq(learningSessions.id, sessionId));
+      }
+    );
 
     return {
       submission,

@@ -1,4 +1,4 @@
-import { eq, and } from "drizzle-orm";
+import { eq, and, sql } from "drizzle-orm";
 import { db } from "@/db";
 import { drafts, learningSessions } from "@/db/schema";
 import { ValidationError } from "../errors";
@@ -34,34 +34,27 @@ export async function saveDraft(
     throw new ValidationError("Không tìm thấy phiên học hoặc phiên không thuộc người dùng.", 404);
   }
 
-  const [existingDraft] = await db
-    .select({ id: drafts.id, version: drafts.version })
-    .from(drafts)
-    .where(and(eq(drafts.sessionId, sessionId), eq(drafts.learnerId, learnerId)))
-    .limit(1);
-
-  if (!existingDraft) {
-    const [newDraft] = await db
-      .insert(drafts)
-      .values({
-        sessionId,
-        learnerId,
-        content,
-        version: 1,
-      })
-      .returning();
-    return newDraft;
-  }
-
-  const [updatedDraft] = await db
-    .update(drafts)
-    .set({
+  // Upsert atomic trên unique index drafts_one_per_session_learner: select-rồi-
+  // insert như bản cũ có race khi 2 autosave chạy song song (2 tab/retry mạng) —
+  // request thua gặp unique violation thành 500 thô. Version giữ đúng ngữ nghĩa
+  // cũ: max(version hiện có + 1, version client gửi).
+  const [draft] = await db
+    .insert(drafts)
+    .values({
+      sessionId,
+      learnerId,
       content,
-      version: Math.max(existingDraft.version + 1, version),
-      updatedAt: new Date(),
+      version: 1,
     })
-    .where(eq(drafts.id, existingDraft.id))
+    .onConflictDoUpdate({
+      target: [drafts.sessionId, drafts.learnerId],
+      set: {
+        content,
+        version: sql`GREATEST(${drafts.version} + 1, ${version})`,
+        updatedAt: new Date(),
+      },
+    })
     .returning();
 
-  return updatedDraft;
+  return draft;
 }
