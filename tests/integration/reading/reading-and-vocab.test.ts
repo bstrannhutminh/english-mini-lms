@@ -17,6 +17,7 @@ import {
   createSession,
   createSubmissionAndAssess,
   getSessionDetails,
+  getSubmissionWithFeedback,
 } from "@/server/learning/service";
 
 describe("Reading Mode & Vocabulary Vault Tests", () => {
@@ -185,21 +186,34 @@ describe("Reading Mode & Vocabulary Vault Tests", () => {
     expect(res.example_sentence).toBeDefined();
   });
 
-  // TEST 6: Reading mode evaluation không chứa khuyến nghị điều trị y khoa
-  it("Requirement 1: evaluateReading feedback enforces non-clinical disclaimer", async () => {
-    const segmentText =
-      "Direct sonographic monitoring substantially minimizes the risk of accidental intravascular injection.";
-    const submission = {
+  // TEST 6: Disclaimer y khoa sống sót nguyên văn qua pipeline persist → đọc lại.
+  // LƯU Ý: bản cũ của test này gọi evaluateReading (đã bị mock trong beforeEach)
+  // rồi assert limitations của chính dữ liệu mock — "assert chính mock", không
+  // kiểm chứng gì về code thật. Invariant 7 (model-side enforcement: prompt cấm
+  // khuyến nghị điều trị + hậu kiểm limitations) nay được test hermetic với
+  // evaluateReading THẬT ở tests/unit/invariants/medical-reading-safety.test.ts.
+  // Test dưới đây kiểm chứng phần pipeline còn lại: createSubmissionAndAssess →
+  // feedback_versions → getSubmissionWithFeedback không làm mất/mutate limitations.
+  it("Requirement 1: non-clinical disclaimer persists verbatim through the feedback pipeline", async () => {
+    const session = await createSession(testLearnerId, "R1", 25);
+    const payload = JSON.stringify({
       mainIdea: "Siêu âm giảm nguy cơ tiêm nhầm vào mạch máu",
       translation:
         "Giám sát trực tiếp bằng siêu âm giảm thiểu đáng kể nguy cơ tiêm nhầm vào lòng mạch máu.",
       keyTerms: "intravascular injection: tiêm vào mạch máu",
-    };
+    });
 
-    const res = await geminiProvider.evaluateReading(segmentText, submission);
-    expect(res.feedback.observations.length).toBeGreaterThan(0);
-    expect(res.feedback.limitations.toLowerCase()).toContain("khuyến nghị");
-    expect(res.feedback.limitations.toLowerCase()).toContain("điều trị");
+    const result = await createSubmissionAndAssess(session.id, testLearnerId, payload);
+    expect(result.assessment.status).toBe("feedback_ready");
+
+    const details = await getSubmissionWithFeedback(result.submission.id, testLearnerId);
+    expect(details).not.toBeNull();
+    // limitations của evaluator (mock) phải đi qua pipeline nguyên văn —
+    // nếu persist/serialize bỏ sót hoặc mutate cột này, test đỏ.
+    expect(details!.feedback?.limitations).toBe(
+      "Nhận xét của AI chỉ đánh giá kỹ năng ngôn ngữ và mức độ trung thành với đoạn gốc; tuyệt đối không mang tính chất khuyến nghị điều trị y khoa."
+    );
+    expect(details!.feedback?.observations.length).toBeGreaterThan(0);
   });
 
   // TEST 7: Luồng Reading mode submission end-to-end trên activity R1

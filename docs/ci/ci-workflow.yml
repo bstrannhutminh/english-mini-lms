@@ -1,57 +1,18 @@
-# CI workflow — COPY to .github/workflows/ci.yml to activate.
-# Kept outside .github/ because the lead OAuth token lacks "workflow"
-# scope and GitHub rejects pushes containing workflow files.
-# Steps identical to /verify: lint -> typecheck -> unit -> build, no secrets.
-name: CI
-
-on:
-  push:
-    branches: [main, "refactor/**"]
-  pull_request:
-
-jobs:
-  unit:
-    name: Lint, typecheck, unit tests, build
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: npm
-
-      - run: npm ci
-
-      - run: npm run lint
-
-      - run: npm run typecheck
-
-      # Hermetic unit suite (vitest.unit.config.ts) — needs NO env vars,
-      # no DB, no network.
-      - run: npm test
-
-      # Build runs without secrets by design (env is read lazily at
-      # request time via src/lib/env.ts, not at build time).
-      - run: npm run build
-
-  # ── Integration tests are OPT-IN ────────────────────────────────────
-  # `npm run test:integration` requires a real Postgres database
-  # (TEST_DATABASE_URL) and external service credentials. Do NOT enable
-  # this in CI until a dedicated ephemeral database is provisioned and
-  # TEST_DATABASE_URL is stored as a repository secret — the job below is
-  # kept as a commented template:
-  #
-  # integration:
-  #   name: Integration tests (opt-in)
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #     - uses: actions/setup-node@v4
-  #       with:
-  #         node-version: 20
-  #         cache: npm
-  #     - run: npm ci
-  #     - run: npm run test:integration
-  #       env:
-  #         TEST_DATABASE_URL: ${{ secrets.TEST_DATABASE_URL }}
+# ⚠️ FILE NÀY KHÔNG CÒN LÀ BẢN NHÁP — workflow thật đã nằm ở:
+#     .github/workflows/ci.yml   (kể từ batch F, 25/11/2026)
+#
+# Lý do trước đây phải giữ bản nháp ngoài .github/: OAuth token của lead
+# thiếu scope "workflow" nên GitHub từ chối push chứa file workflow. Nếu push
+# bị lỗi "refusing to allow an OAuth App to create or update workflow",
+# cần tạo PAT có scope `workflow` hoặc dùng GitHub CLI (`gh auth login`
+# với scope workflow) rồi push lại.
+#
+# Nội dung workflow thật (xem file .github yml để biết bản mới nhất):
+#   - trigger: push/PR vào master
+#   - Node 24, npm ci → lint → typecheck → unit tests (hermetic) → build
+#   - không cần secret nào (build xác minh chạy không env)
+#   - integration job giữ dạng template comment (opt-in khi có
+#     TEST_DATABASE_URL làm repository secret)
+#
+# File này chỉ còn vai trò ghi chú lịch sử — KHÔNG copy ngược vào .github
+# nữa, sửa workflow hãy sửa trực tiếp .github/workflows/ci.yml.

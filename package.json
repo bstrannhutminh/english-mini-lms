@@ -14,7 +14,8 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsx src/db/migrate.ts",
     "seed": "tsx scripts/seed.ts",
-    "smoke": "node scripts/smoke-e2e.mjs"
+    "smoke": "node scripts/smoke-e2e.mjs",
+    "test:live": "node scripts/run-live-tests.mjs"
   },
   "dependencies": {
     "@google/genai": "^2.24.0",

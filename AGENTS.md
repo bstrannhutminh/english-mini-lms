@@ -38,6 +38,8 @@ content/english-lab/  # manifest.yaml + texts/ transcripts/ rubrics/ (nguồn h�
 scripts/seed.ts       # đọc manifest → DB, chỉ review_state=approved
 tests/unit/           # vitest hermetic — KHÔNG cần env, không chạm DB (chạy bởi npm test)
 tests/integration/    # cần TEST_DATABASE_URL, gated bởi scripts/run-integration-tests.mjs
+                      # provider Gemini luôn mock — integration KHÔNG được gọi API thật
+tests/live/           # gọi Gemini THẬT (tốn token), gated bởi scripts/run-live-tests.mjs
 ```
 
 Điểm then chốt của kiến trúc mới (chi tiết: `docs/plan/kien-truc-tai-cau-truc-2026-10-19.md`):
@@ -48,7 +50,7 @@ tests/integration/    # cần TEST_DATABASE_URL, gated bởi scripts/run-integra
 
 ## Lệnh
 
-`npm run dev` · `npm run lint` · `npm run typecheck` · `npm test` (unit, không cần env) · `npm run test:integration` (cần `TEST_DATABASE_URL`) · `npm run build` · `npm run db:migrate` · `npm run seed`
+`npm run dev` · `npm run lint` · `npm run typecheck` · `npm test` (unit, không cần env) · `npm run test:integration` (cần `TEST_DATABASE_URL`) · `npm run test:live` (gọi Gemini thật, tốn token — chỉ chạy chủ đích) · `npm run build` · `npm run db:migrate` · `npm run seed`
 
 ## Design system & preview kiểm thử (21/11/2026)
 

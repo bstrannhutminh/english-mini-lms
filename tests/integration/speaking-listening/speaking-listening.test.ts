@@ -11,6 +11,7 @@ import {
   createSession,
   createSubmissionAndAssess,
   getSessionDetails,
+  getSubmissionWithFeedback,
   ValidationError,
 } from "@/server/learning/service";
 import { uploadLearnerMedia, MediaValidationError } from "@/server/media/service";
@@ -22,6 +23,32 @@ describe("Step 5: Speaking (S1) & Listening/Shadowing (L1) Tests", () => {
 
   beforeEach(() => {
     vi.restoreAllMocks();
+
+    // Integration tests KHÔNG được gọi Gemini thật — mock provider ở ranh giới
+    // giống các file integration khác (writing/reading/revision-chain).
+    // Enforcement not_assessable đã cover hermetic ở
+    // tests/unit/providers/speaking-enforcement.test.ts; smoke test API thật
+    // (opt-in, tốn token) nằm ở tests/live/gemini-speaking-live.test.ts.
+    vi.spyOn(geminiProvider, "evaluateSpeaking").mockResolvedValue({
+      feedback: {
+        transcript: "ai transcript shadowing",
+        observations: [],
+        pronunciation: {
+          status: "not_assessable",
+          notes: "Không thể chấm phát âm do thiếu dữ liệu âm thanh thực tế.",
+        },
+        retry_prompt: "Nói lại câu mở đầu.",
+        strengths: ["Đủ ý chính"],
+        next_action: "Luyện thêm ngữ điệu.",
+        limitations: "Điểm chỉ là ước tính luyện tập.",
+        scores: [
+          { kind: "practice_estimate", dimension: "fluency", value: 6 },
+        ],
+      },
+      tokenInput: 100,
+      tokenOutput: 50,
+      modelName: "gemini-2.5-flash",
+    });
   });
 
   it("should have or create a test learner", async () => {
@@ -46,17 +73,32 @@ describe("Step 5: Speaking (S1) & Listening/Shadowing (L1) Tests", () => {
     expect(testLearnerId).toBeDefined();
   });
 
-  // TEST 1: evaluateSpeaking without audio -> pronunciation.status = "not_assessable"
-  it(
-    "Requirement C.1: evaluateSpeaking with text-only / no audio must return pronunciation.status = 'not_assessable'",
-    async () => {
-      const res = await geminiProvider.evaluateSpeaking(null, "Test speaking prompt without audio");
+  // TEST 1 cũ (evaluateSpeaking không audio → not_assessable, gọi Gemini THẬT)
+  // đã tách khỏi integration: enforcement được test hermetic ở
+  // tests/unit/providers/speaking-enforcement.test.ts (không tốn token, chạy
+  // trong npm test), còn smoke test API thật ở tests/live/ (npm run test:live).
+  // Giữ test trực tiếp ở đây chỉ còn assert chính mock → vô nghĩa.
 
-      expect(res).toBeDefined();
-      expect(res.feedback).toBeDefined();
-      expect(res.feedback.pronunciation).toBeDefined();
-      expect(res.feedback.pronunciation.status).toBe("not_assessable");
-      expect(res.feedback.pronunciation.notes).toContain("Không thể chấm phát âm do thiếu dữ liệu âm thanh");
+  // TEST 1 (mới): pipeline speaking text-only persist pronunciation not_assessable
+  // từ evaluator xuống feedback_versions — đọc lại đúng qua getSubmissionWithFeedback.
+  it(
+    "Requirement C.1: speaking text-only — pronunciation not_assessable persist nguyên văn qua pipeline",
+    async () => {
+      const session = await createSession(testLearnerId, "S1", 30);
+      const result = await createSubmissionAndAssess(
+        session.id,
+        testLearnerId,
+        "Bài nói tự gõ không có audio"
+      );
+
+      expect(result.assessment.status).toBe("feedback_ready");
+
+      // pronunciation đi qua persist (rubricSnapshot jsonb) → đọc lại nguyên
+      // văn qua getSubmissionWithFeedback — pipeline không được mutate/đánh rơi.
+      const details = await getSubmissionWithFeedback(result.submission.id, testLearnerId);
+      expect(details).not.toBeNull();
+      expect(details!.feedback?.pronunciation?.status).toBe("not_assessable");
+      expect(details!.feedback?.pronunciation?.notes).toContain("Không thể chấm phát âm");
     },
     30000
   );

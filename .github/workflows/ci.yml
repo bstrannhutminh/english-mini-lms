@@ -1,0 +1,62 @@
+# CI — English Mini LMS.
+# Bản hoạt động của nháp docs/ci/ci-workflow.yml (đã hiệu chỉnh: branch master,
+# Node 24 — khớp môi trường dev; build xác minh chạy được không cần secrets).
+# Steps giống /verify: lint -> typecheck -> unit -> build, không secret nào.
+name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+jobs:
+  verify:
+    name: Lint, typecheck, unit tests, build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - run: npm ci
+
+      - run: npm run lint
+
+      - run: npm run typecheck
+
+      # Unit suite hermetic (vitest.unit.config.ts) — KHÔNG cần env vars,
+      # không DB, không network, không chạm API Gemini thật.
+      - run: npm test
+
+      # Build chạy không cần secrets theo thiết kế: src/lib/env.ts validate
+      # lazy ở request time, mọi trang đều dynamic (đã xác minh local bằng
+      # build với .env.local bị gỡ — exit 0).
+      - run: npm run build
+
+  # ── Integration tests là OPT-IN ─────────────────────────────────────
+  # `npm run test:integration` cần một Postgres thật (TEST_DATABASE_URL) và
+  # đã-seed content. KHÔNG bật trong CI tới khi provision được DB ephemeral
+  # riêng và lưu TEST_DATABASE_URL làm repository secret — giữ job dưới đây
+  # làm template có sẵn:
+  #
+  # integration:
+  #   name: Integration tests (opt-in)
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - uses: actions/setup-node@v4
+  #       with:
+  #         node-version: 24
+  #         cache: npm
+  #     - run: npm ci
+  #     - run: npm run test:integration
+  #       env:
+  #         TEST_DATABASE_URL: ${{ secrets.TEST_DATABASE_URL }}
+  #
+  # Lưu ý: integration tests không được gọi Gemini thật (provider đã mock
+  # trong từng file). Test live Gemini nằm ở tests/live/ — chỉ chạy chủ đích
+  # trên máy dev bằng `npm run test:live`, tuyệt đối không đưa vào CI.
