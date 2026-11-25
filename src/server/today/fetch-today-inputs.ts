@@ -3,19 +3,19 @@
  * Promise.all (trước đây nối tiếp 7 lượt chờ DB). Thuần đọc; toàn bộ suy
  * diễn nghiệp vụ (chọn bài, nhịp tuần, kế hoạch phiên) nằm ở service.ts.
  */
-import { eq, and, gte, isNull, lte, inArray, desc } from "drizzle-orm";
+import { eq, and, gte, isNull, inArray, desc } from "drizzle-orm";
 import { db } from "@/db";
 import {
   activities,
-  vocabularyVault,
   learners,
   learningSessions,
   submissions,
 } from "@/db/schema";
+import { countDueVocabulary } from "@/server/vocabulary/capture";
 import { getLearnerPracticeContext } from "./pick-activity";
 import { startOfTodayVietnam } from "./daily-plan";
 
-export async function fetchTodayInputs(learnerId: string, now: Date) {
+export async function fetchTodayInputs(learnerId: string) {
   const [
     [learner],
     dueVocabCount,
@@ -34,11 +34,9 @@ export async function fetchTodayInputs(learnerId: string, now: Date) {
       .from(learners)
       .where(eq(learners.id, learnerId))
       .limit(1),
-    // 2. Số từ vựng đến hạn ôn tập (Spaced Repetition)
-    db.$count(
-      vocabularyVault,
-      and(eq(vocabularyVault.learnerId, learnerId), lte(vocabularyVault.dueAt, now))
-    ),
+    // 2. Số từ vựng đến hạn ôn tập (Spaced Repetition) — qua countDueVocabulary
+    //    đã bọc React cache(): cùng request với badge ở layout thì chỉ 1 truy vấn.
+    countDueVocabulary(learnerId),
     // 3. Ngữ cảnh luyện tập: nháp dở, bài cần sửa, cân bằng 4 kỹ năng (module dùng chung)
     getLearnerPracticeContext(learnerId),
     // 4. Danh sách các hoạt động đã được phê duyệt (approved)

@@ -73,7 +73,7 @@ function CompareColumn({ revision, caption, audioUrl, pronunciation, body, obser
       {audioUrl ? (
         <div>
           <p className="eyebrow mb-1.5">Bản ghi âm</p>
-          <audio controls src={audioUrl} className="h-11 w-full" />
+          <audio controls preload="none" src={audioUrl} className="h-11 w-full" />
         </div>
       ) : null}
 

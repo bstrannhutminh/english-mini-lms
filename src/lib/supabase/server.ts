@@ -33,8 +33,10 @@ export async function createClient() {
               cookieStore.set(name, value, options)
             );
           } catch {
-            // The `setAll` method was called from a Server Component.
-            // This can be ignored — src/proxy.ts refreshes sessions.
+            // The `setAll` method was called from a Server Component (read-only
+            // cookies) — bỏ qua được vì src/proxy.ts refresh session khi điều
+            // hướng trang. Ở Route Handler cookies().set() HỢP LỆ nên refresh
+            // token trong API call vẫn ghi cookie mới về trình duyệt.
           }
         },
       },

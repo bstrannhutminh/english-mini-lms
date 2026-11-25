@@ -34,6 +34,8 @@ export function MarkdownText({ text }: { text: string }) {
                 key={i}
                 src={src}
                 alt={alt}
+                loading="lazy"
+                decoding="async"
                 className="my-2 w-full rounded-lg"
               />
             );

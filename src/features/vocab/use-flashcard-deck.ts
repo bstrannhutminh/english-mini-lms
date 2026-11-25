@@ -15,9 +15,10 @@ import { speakPhrase } from "./speech";
 export type DeckFilterMode = "due" | "all";
 import { useDeckReviews, type CardResult, type ReviewAction } from "./use-deck-reviews";
 import { clearDeckSnapshot, readDeckSnapshot, saveDeckSnapshot } from "./deck-review-storage";
-import { loadFlashcardData } from "./load-flashcard-data";
+import { chooseDeckDataSource } from "./load-flashcard-data";
 export type { CardResult, SaveStatus, ReviewAction, HistoryItem } from "./use-deck-reviews";
-export function useFlashcardDeck(interactionBlocked = false) {
+/** `initialDeck` = bộ thẻ "due" server render sẵn — xem chooseDeckDataSource. */
+export function useFlashcardDeck(interactionBlocked = false, initialDeck: FlashcardDeckItem[] | null = null) {
   const [filterMode, setFilterMode] = useState<DeckFilterMode>(() => readDeckSnapshot()?.mode ?? "due");
   const [items, setItems] = useState<FlashcardDeckItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -26,12 +27,9 @@ export function useFlashcardDeck(interactionBlocked = false) {
 
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
-
-  const reviews = useDeckReviews();
-  const { batch, setBatch, history, setHistory, saving, saveStatus, setSaveStatus,
-    isFinished, submitBatchReviews, resetReviews } = reviews;
-
   const [flyDirection, setFlyDirection] = useState<"left" | "right" | null>(null);
+  const { batch, setBatch, history, setHistory, saving, saveStatus, setSaveStatus,
+    isFinished, submitBatchReviews, resetReviews } = useDeckReviews();
 
   const busy = saving || saveStatus === "saving" || flyDirection !== null || interactionBlocked || error !== null;
 
@@ -53,7 +51,8 @@ export function useFlashcardDeck(interactionBlocked = false) {
   useEffect(() => {
     let active = true;
     const pendingSnapshot = readDeckSnapshot();
-    loadFlashcardData(filterMode, pendingSnapshot)
+    const dataPromise = chooseDeckDataSource(reloadKey, filterMode, initialDeck, pendingSnapshot);
+    dataPromise
       .then((data) => {
         if (!active) return;
         const snapshot = data.snapshot;
@@ -79,7 +78,7 @@ export function useFlashcardDeck(interactionBlocked = false) {
     return () => {
       active = false;
     };
-  }, [filterMode, reloadKey, setBatch, setHistory, setSaveStatus, resetReviews]);
+  }, [filterMode, reloadKey, initialDeck, setBatch, setHistory, setSaveStatus, resetReviews]);
 
   useEffect(() => {
     if (loading || error) return;

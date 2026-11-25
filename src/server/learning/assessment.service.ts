@@ -34,6 +34,7 @@ export {
   assertRetryAllowed,
   markAssessmentProcessing,
   markAssessmentFailed,
+  getAssessmentStatusForLearner,
   STUCK_ASSESSMENT_MESSAGE,
 } from "./assessment/assessment-status";
 export { loadReadyMedia } from "./assessment/submission-media";

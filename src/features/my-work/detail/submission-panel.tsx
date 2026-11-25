@@ -79,7 +79,7 @@ export function SubmissionPanel({ submission, activityMode, aiTranscript }: Subm
             <Icon name="headphones" className="h-4 w-4" />
             Bản ghi âm của bạn
           </p>
-          <audio controls src={submission.audioUrl} className="h-11 w-full" />
+          <audio controls preload="none" src={submission.audioUrl} className="h-11 w-full" />
         </section>
       ) : null}
 

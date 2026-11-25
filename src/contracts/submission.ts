@@ -222,3 +222,9 @@ export const retryAssessmentResponseSchema = z.object({
   success: z.literal(true),
   feedback: feedbackVersionSchema,
 });
+
+/** GET /api/v1/assessments/[id]/status — poll nhẹ khi đang chấm (tránh refresh full trang). */
+export const assessmentStatusResponseSchema = z.object({
+  status: assessmentStatusSchema,
+});
+export type AssessmentStatusResponse = z.infer<typeof assessmentStatusResponseSchema>;

@@ -8,6 +8,7 @@ import {
   preferencesPatchSchema,
   preferencesResponseSchema,
   type PreferencesPatch,
+  type SettingsResponse,
 } from "@/contracts/settings";
 import { Button, ConfirmDialog, useToast } from "@/components/ui";
 import { useSettingsData } from "./use-settings-data";
@@ -27,7 +28,7 @@ import { SignOutCard } from "./sign-out-card";
  * Trang Cài đặt — container ghép các nhóm thẻ: nhịp học, tài khoản, dữ liệu
  * và vùng cần cẩn trọng (xoá bài, đăng xuất).
  */
-export function SettingsView() {
+export function SettingsView({ initialData = null }: { initialData?: SettingsResponse | null }) {
   const router = useRouter();
   const toast = useToast();
   const {
@@ -40,7 +41,11 @@ export function SettingsView() {
     setReminders,
     reload,
     removeSubmission,
-  } = useSettingsData();
+  } = useSettingsData(
+    initialData
+      ? { profile: initialData.learner, submissions: initialData.submissions }
+      : null
+  );
 
   const [savingPrefs, setSavingPrefs] = useState(false);
   const preferencesInFlight = useRef(false);

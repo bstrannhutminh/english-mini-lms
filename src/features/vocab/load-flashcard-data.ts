@@ -10,3 +10,22 @@ export async function loadFlashcardData(mode: "due" | "all", pending: DeckSnapsh
   }
   return { items: snapshot?.items ?? data.items, snapshot };
 }
+
+/**
+ * Chọn nguồn dữ liệu deck cho lượt tải: lượt mount đầu + chế độ "due" +
+ * không snapshot resume → dùng luôn `initialDeck` server render sẵn (pattern
+ * /today), khỏi fetch trùng một roundtrip. Còn lại → fetch client như cũ.
+ * Hàm thuần theo tham số — quyết định không phụ thuộc window/sessionStorage.
+ */
+export function chooseDeckDataSource(
+  reloadKey: number,
+  mode: "due" | "all",
+  initialDeck: import("./api").FlashcardDeckItem[] | null,
+  pending: DeckSnapshot | null
+) {
+  const canUseServerDeck =
+    reloadKey === 0 && mode === "due" && initialDeck !== null && !pending;
+  return canUseServerDeck
+    ? Promise.resolve({ items: initialDeck, snapshot: null })
+    : loadFlashcardData(mode, pending);
+}

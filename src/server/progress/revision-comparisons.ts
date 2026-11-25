@@ -24,17 +24,30 @@ export interface RevisionSubmissionRow {
   activityMode: string;
 }
 
-/** Ghép bản sửa với bản gốc để màn Tiến độ so sánh; mỗi revised submission chỉ xuất hiện một lần. */
+/**
+ * Ghép bản sửa với bản gốc để màn Tiến độ so sánh; mỗi revised submission chỉ xuất hiện một lần.
+ * Tra cứu qua Map (O(n)) thay vì .find() trong vòng lặp (O(n²)) — danh sách
+ * submission dài theo thời gian học nên tránh quét lại toàn bộ mỗi bản sửa.
+ */
 export function buildRevisionComparisons(rows: RevisionSubmissionRow[]): RevisionComparisonItem[] {
-  const revisions = rows.filter((row) => row.parentId !== null || row.revision > 1);
-  const comparisons: RevisionComparisonItem[] = [];
+  const byId = new Map(rows.map((row) => [row.id, row]));
+  // Bản revision=1 theo activity — fallback khi parentId không trỏ đúng bản gốc.
+  const originalByActivity = new Map(
+    rows.filter((row) => row.revision === 1).map((row) => [row.activityId, row])
+  );
 
-  for (const revised of revisions) {
-    const original = rows.find(
-      (row) => row.id === revised.parentId || (row.activityId === revised.activityId && row.revision === 1)
-    );
+  const comparisons: RevisionComparisonItem[] = [];
+  const seenRevised = new Set<string>();
+
+  for (const revised of rows) {
+    if (revised.parentId === null && revised.revision <= 1) continue;
+    if (seenRevised.has(revised.id)) continue;
+
+    const original =
+      (revised.parentId ? byId.get(revised.parentId) : undefined) ??
+      originalByActivity.get(revised.activityId);
     if (!original || original.id === revised.id) continue;
-    if (comparisons.some((item) => item.revisedSubmissionId === revised.id)) continue;
+    seenRevised.add(revised.id);
 
     comparisons.push({
       activityId: revised.activityId,

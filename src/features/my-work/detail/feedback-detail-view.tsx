@@ -76,7 +76,7 @@ export function FeedbackDetailView({ submission, activity, assessment, feedback,
       ) : null}
 
       {/* Trạng thái chấm: chờ (poll tự động) hoặc lỗi (nút chấm lại) */}
-      {assessment && isPending ? <PendingState status={assessment.status} /> : null}
+      {assessment && isPending ? <PendingState status={assessment.status} assessmentId={assessment.id} /> : null}
       {assessment && isFailed ? (
         <FailedState assessmentId={assessment.id} resultRef={assessment.resultRef} />
       ) : null}

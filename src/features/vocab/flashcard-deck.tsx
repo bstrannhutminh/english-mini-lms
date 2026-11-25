@@ -17,11 +17,11 @@ import { readDeckSnapshot } from "./deck-review-storage";
 import { normalizeYouGlishQuery } from "./youglish";
 import { YouGlishModal } from "./youglish-modal";
 
-export function FlashcardDeck() {
+export function FlashcardDeck({ initialDeck = null }: { initialDeck?: import("./api").FlashcardDeckItem[] | null }) {
   const router = useRouter();
   const [confirm, setConfirm] = useState<null | "finish" | "abandon">(null);
   const [youGlishQuery, setYouGlishQuery] = useState<string | null>(null);
-  const deck = useFlashcardDeck(confirm !== null || youGlishQuery !== null);
+  const deck = useFlashcardDeck(confirm !== null || youGlishQuery !== null, initialDeck);
   const guard = useDeckExitGuard({
     unsaved: deck.batch.length > 0 && deck.saveStatus !== "saved",
     saving: deck.saving || deck.flyDirection !== null,

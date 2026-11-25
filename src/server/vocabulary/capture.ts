@@ -2,6 +2,7 @@
  * Nhóm "capture": tra cứu nhanh qua Gemini + CRUD trên vocabulary_vault.
  * Lịch ôn (SRS) nằm ở review.ts; toan tính lịch thuần ở schedule.ts.
  */
+import { cache } from "react";
 import { eq, and, desc, lte, gte } from "drizzle-orm";
 import { db } from "@/db";
 import { vocabularyVault, usageEvents } from "@/db/schema";
@@ -99,8 +100,15 @@ export async function createVocabulary(learnerId: string, input: CreateVocabular
   return toVocabularyItem(record);
 }
 
-/** Đếm số mục đến hạn ôn — dùng cho badge điều hướng, không tải cả danh sách. */
-export async function countDueVocabulary(learnerId: string): Promise<number> {
+/**
+ * Đếm số mục đến hạn ôn — dùng cho badge điều hướng, không tải cả danh sách.
+ * Bọc React `cache()` (mẫu getCurrentLearner): trong một lượt render server,
+ * layout (badge) và trang /today (fetch-today-inputs) cùng cần con số này
+ * nhưng chỉ tốn 1 truy vấn. Ngoài render (route handler) cache gọi thẳng.
+ */
+export const countDueVocabulary = cache(loadDueVocabularyCount);
+
+async function loadDueVocabularyCount(learnerId: string): Promise<number> {
   return db.$count(
     vocabularyVault,
     and(eq(vocabularyVault.learnerId, learnerId), lte(vocabularyVault.dueAt, new Date()))

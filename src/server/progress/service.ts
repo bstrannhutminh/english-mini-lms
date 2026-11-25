@@ -6,7 +6,7 @@ import {
   submissions,
   vocabularyVault,
 } from "@/db/schema";
-import { eq, and, desc, isNull } from "drizzle-orm";
+import { eq, and, desc, isNull, sql } from "drizzle-orm";
 import { summarizeSubmissionSkills } from "./skill-stats";
 import { buildRevisionComparisons, type RevisionComparisonItem } from "./revision-comparisons";
 
@@ -50,15 +50,66 @@ export interface ProgressSummary {
 export async function getProgressSummary(learnerId: string): Promise<ProgressSummary> {
   const oneWeekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
 
-  // 1. Số phiên học trong tuần & phút thực học (tính từ activeSeconds)
-  const allSessions = await db
-    .select({
-      id: learningSessions.id,
-      activeSeconds: learningSessions.activeSeconds,
-      startedAt: learningSessions.createdAt,
-    })
-    .from(learningSessions)
-    .where(eq(learningSessions.learnerId, learnerId));
+  // 4 nhóm truy vấn độc lập — chạy song song thay vì nối tiếp 4 lượt chờ DB.
+  const [allSessions, allSubmissions, errors, vocabItems] = await Promise.all([
+    // 1. Số phiên học trong tuần & phút thực học (tính từ activeSeconds)
+    db
+      .select({
+        id: learningSessions.id,
+        activeSeconds: learningSessions.activeSeconds,
+        startedAt: learningSessions.createdAt,
+      })
+      .from(learningSessions)
+      .where(eq(learningSessions.learnerId, learnerId)),
+
+    // 2. Toàn bộ submissions để thống kê kỹ năng & tách độc lập / có hỗ trợ.
+    //    body chỉ dùng cho excerpt 150 ký tự trong revision-comparisons nên
+    //    cắt ngay tại DB (left) thay vì kéo cả bài dài về rồi .slice.
+    db
+      .select({
+        id: submissions.id,
+        sessionId: submissions.sessionId,
+        revision: submissions.revision,
+        parentId: submissions.parentId,
+        body: sql<string | null>`left(${submissions.body}, 150)`.as("body"),
+        assisted: submissions.assisted,
+        submittedAt: submissions.submittedAt,
+        activityId: learningSessions.activityId,
+        activityTitle: activities.title,
+        activityMode: activities.mode,
+      })
+      .from(submissions)
+      .innerJoin(learningSessions, eq(submissions.sessionId, learningSessions.id))
+      .innerJoin(activities, eq(learningSessions.activityId, activities.id))
+      .where(
+        and(
+          eq(submissions.learnerId, learnerId),
+          isNull(submissions.deletedAt)
+        )
+      )
+      .orderBy(desc(submissions.submittedAt)),
+
+    // 3. Lỗi lặp: error_observations nhóm theo category
+    db
+      .select({
+        id: errorObservations.id,
+        category: errorObservations.category,
+        evidence: errorObservations.evidence,
+        createdAt: errorObservations.createdAt,
+      })
+      .from(errorObservations)
+      .where(eq(errorObservations.learnerId, learnerId))
+      .orderBy(desc(errorObservations.createdAt)),
+
+    // 4. Từ vựng trong Vault: tổng từ & từ đã thuộc (mastery_level >= 4)
+    db
+      .select({
+        id: vocabularyVault.id,
+        masteryLevel: vocabularyVault.masteryLevel,
+      })
+      .from(vocabularyVault)
+      .where(eq(vocabularyVault.learnerId, learnerId)),
+  ]);
 
   const sessionsThisWeek = allSessions.filter(
     (s) => s.startedAt && new Date(s.startedAt) >= oneWeekAgo
@@ -70,31 +121,6 @@ export async function getProgressSummary(learnerId: string): Promise<ProgressSum
   );
   const actualStudyMinutes = Math.round(totalActiveSeconds / 60);
 
-  // 2. Lấy toàn bộ submissions của người học để thống kê kỹ năng & tách độc lập / có hỗ trợ
-  const allSubmissions = await db
-    .select({
-      id: submissions.id,
-      sessionId: submissions.sessionId,
-      revision: submissions.revision,
-      parentId: submissions.parentId,
-      body: submissions.body,
-      assisted: submissions.assisted,
-      submittedAt: submissions.submittedAt,
-      activityId: learningSessions.activityId,
-      activityTitle: activities.title,
-      activityMode: activities.mode,
-    })
-    .from(submissions)
-    .innerJoin(learningSessions, eq(submissions.sessionId, learningSessions.id))
-    .innerJoin(activities, eq(learningSessions.activityId, activities.id))
-    .where(
-      and(
-        eq(submissions.learnerId, learnerId),
-        isNull(submissions.deletedAt)
-      )
-    )
-    .orderBy(desc(submissions.submittedAt));
-
   const totalSubmissions = allSubmissions.length;
   const hasSufficientData = totalSubmissions >= 3;
   const insufficientDataMessage = hasSufficientData
@@ -105,18 +131,6 @@ export async function getProgressSummary(learnerId: string): Promise<ProgressSum
   // không bị rơi khỏi thống kê như cast literal trước đây.
   const { skillBreakdown, independentCount, assistedCount } =
     summarizeSubmissionSkills(allSubmissions);
-
-  // 3. Lỗi lặp: error_observations nhóm theo category
-  const errors = await db
-    .select({
-      id: errorObservations.id,
-      category: errorObservations.category,
-      evidence: errorObservations.evidence,
-      createdAt: errorObservations.createdAt,
-    })
-    .from(errorObservations)
-    .where(eq(errorObservations.learnerId, learnerId))
-    .orderBy(desc(errorObservations.createdAt));
 
   const errorCategoryMap: Record<string, { count: number; samples: string[] }> = {};
   for (const err of errors) {
@@ -137,15 +151,6 @@ export async function getProgressSummary(learnerId: string): Promise<ProgressSum
       samples: data.samples,
     }))
     .sort((a, b) => b.count - a.count);
-
-  // 4. Từ vựng trong Vault: tổng từ & từ đã thuộc (mastery_level >= 4)
-  const vocabItems = await db
-    .select({
-      id: vocabularyVault.id,
-      masteryLevel: vocabularyVault.masteryLevel,
-    })
-    .from(vocabularyVault)
-    .where(eq(vocabularyVault.learnerId, learnerId));
 
   const totalVocabCount = vocabItems.length;
   const masteredVocabCount = vocabItems.filter((v) => v.masteryLevel >= 4).length;

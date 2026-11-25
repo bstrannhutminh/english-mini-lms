@@ -73,38 +73,56 @@ export async function loadListeningSessionData(
   sessionId: string,
   learnerId: string
 ): Promise<ListeningSessionData> {
-  const revealEvents = await db
-    .select({ id: sessionEvents.id })
-    .from(sessionEvents)
-    .where(
-      and(
-        eq(sessionEvents.sessionId, sessionId),
-        eq(sessionEvents.learnerId, learnerId),
-        eq(sessionEvents.kind, "reveal")
+  // 3 truy vấn độc lập (reveal events, segment+source, submission check) —
+  // chạy song song thay vì nối tiếp 3 roundtrip như trước.
+  const hasSegments = Boolean(activity.segmentIds && activity.segmentIds.length > 0);
+
+  const [revealEvents, segmentRows, submissionRows] = await Promise.all([
+    db
+      .select({ id: sessionEvents.id })
+      .from(sessionEvents)
+      .where(
+        and(
+          eq(sessionEvents.sessionId, sessionId),
+          eq(sessionEvents.learnerId, learnerId),
+          eq(sessionEvents.kind, "reveal")
+        )
+      ),
+    hasSegments
+      ? db
+          .select({
+            startSeconds: sourceSegments.startSeconds,
+            endSeconds: sourceSegments.endSeconds,
+            transcriptContent: sourceSegments.transcriptContent,
+            url: sources.url,
+          })
+          .from(sourceSegments)
+          .leftJoin(sources, eq(sourceSegments.sourceId, sources.id))
+          .where(eq(sourceSegments.id, activity.segmentIds![0]))
+          .limit(1)
+      : Promise.resolve([]),
+    db
+      .select({ id: submissions.id })
+      .from(submissions)
+      .where(
+        and(
+          eq(submissions.sessionId, sessionId),
+          eq(submissions.learnerId, learnerId),
+          isNull(submissions.deletedAt)
+        )
       )
-    );
+      .limit(1),
+  ]);
+
   const hasRevealEvent = revealEvents.length > 0;
 
   let media = listeningSourceMedia();
   let rawTranscript = "";
 
-  if (activity.segmentIds && activity.segmentIds.length > 0) {
-    const [seg] = await db
-      .select({
-        startSeconds: sourceSegments.startSeconds,
-        endSeconds: sourceSegments.endSeconds,
-        transcriptContent: sourceSegments.transcriptContent,
-        url: sources.url,
-      })
-      .from(sourceSegments)
-      .leftJoin(sources, eq(sourceSegments.sourceId, sources.id))
-      .where(eq(sourceSegments.id, activity.segmentIds[0]))
-      .limit(1);
-
-    if (seg) {
-      media = listeningSourceMedia(seg);
-      if (seg.transcriptContent) rawTranscript = seg.transcriptContent;
-    }
+  const seg = segmentRows[0];
+  if (seg) {
+    media = listeningSourceMedia(seg);
+    if (seg.transcriptContent) rawTranscript = seg.transcriptContent;
   }
 
   const transcriptSegments = parseTranscriptLines(rawTranscript);
@@ -114,21 +132,9 @@ export async function loadListeningSessionData(
   const questionsList = toClientQuestions(loadListeningQuestions(activity));
 
   // Khoá transcript: chỉ trả khi đã reveal hoặc đã có submission cho session này
-  const [existingSubmission] = await db
-    .select({ id: submissions.id })
-    .from(submissions)
-    .where(
-      and(
-        eq(submissions.sessionId, sessionId),
-        eq(submissions.learnerId, learnerId),
-        isNull(submissions.deletedAt)
-      )
-    )
-    .limit(1);
-
   const transcriptOpen = canRevealTranscript({
     hasRevealEvent,
-    hasSubmission: !!existingSubmission,
+    hasSubmission: submissionRows.length > 0,
   });
 
   return {

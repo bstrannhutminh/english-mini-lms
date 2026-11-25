@@ -49,6 +49,9 @@ export function useSessionController(plugin: ModePlugin, data: SessionData) {
     sessionId,
     getContent: () => plugin.buildDraft(stateRef.current),
     enabled: true,
+    // Nháp server đang giữ lúc mở phiên — không gõ gì thêm thì autosave
+    // không bắn POST nào (tiết kiệm request mỗi 30s khi phiên để mở lâu).
+    initialSavedContent: data.initialDraft,
   });
 
   const { isSubmitting, error: submitError, setError, submit } = useSubmit(sessionId);

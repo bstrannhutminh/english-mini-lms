@@ -2,6 +2,8 @@ import { getCurrentLearner } from "@/server/auth";
 import { redirect } from "next/navigation";
 import { RouteErrorScreen } from "@/app/_shared/route-error-screen";
 import { SettingsView } from "@/features/settings/settings-view";
+import { getSettingsOverview } from "@/server/settings/service";
+import { settingsResponseSchema, type SettingsResponse } from "@/contracts/settings";
 
 export const metadata = {
   title: "Cài đặt — English Mini LMS",
@@ -29,5 +31,16 @@ export default async function SettingsPage() {
     redirect("/login");
   }
 
-  return <SettingsView />;
+  // Render sẵn hồ sơ + bài nộp gần đây ở server (pattern /today) — HTML đầu
+  // đã có nội dung, client không fetch lại lúc mount. Lỗi → client tự fetch.
+  let initialData: SettingsResponse | null = null;
+  try {
+    initialData = settingsResponseSchema.parse(
+      JSON.parse(JSON.stringify(await getSettingsOverview(learner.id)))
+    );
+  } catch (error) {
+    console.error("SettingsPage: getSettingsOverview failed:", error);
+  }
+
+  return <SettingsView initialData={initialData} />;
 }

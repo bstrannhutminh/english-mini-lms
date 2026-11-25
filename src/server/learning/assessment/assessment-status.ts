@@ -123,3 +123,33 @@ export function assertRetryAllowed(
     throw new ValidationError(verdict.message, verdict.statusCode);
   }
 }
+
+/**
+ * Đọc trạng thái assessment cho endpoint poll nhẹ GET /assessments/[id]/status.
+ * Ownership theo learner_id trên row (admin xem được của người khác — nhất
+ * quán với retryAssessment). Đây cũng là một điểm quan sát của sweeper:
+ * poll vào assessment kẹt quá hạn sẽ vá sang failed → client thấy trạng thái
+ * terminal và refresh một lần cuối (giữ nguyên hành vi phát hiện kẹt mà
+ * trước đây nhờ router.refresh() liên tục kích hoạt).
+ */
+export async function getAssessmentStatusForLearner(
+  assessmentId: string,
+  currentLearnerId: string,
+  isAdmin = false
+): Promise<{ status: AssessmentRow["status"] }> {
+  const [found] = await db
+    .select()
+    .from(assessments)
+    .where(eq(assessments.id, assessmentId))
+    .limit(1);
+
+  if (!found) {
+    throw new ValidationError("Không tìm thấy lượt chấm bài.", 404);
+  }
+  if (!isAdmin && found.learnerId !== currentLearnerId) {
+    throw new ValidationError("Không có quyền xem lượt chấm bài này.", 403);
+  }
+
+  const assessment = await sweepStuckAssessment(found);
+  return { status: assessment.status };
+}

@@ -16,11 +16,13 @@ import { ReviewNothingDue } from "./review-nothing-due";
  * ReviewSession — ôn viết câu (micro-challenge, Gemini chấm).
  * Tải tối đa 5 từ đến hạn, nộp từng câu, hiển thị nhận xét AI rồi tổng kết.
  * Lỗi mạng/server → toast tiếng Việt (không còn alert()).
+ * `initialItems` do server render sẵn (pattern /today) → không fetch lại
+ * lúc mount; nút Thử lại vẫn fetch phía client như cũ.
  */
-export function ReviewSession() {
+export function ReviewSession({ initialItems = null }: { initialItems?: ReviewVocabItem[] | null }) {
   const toast = useToast();
-  const [items, setItems] = useState<ReviewVocabItem[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [items, setItems] = useState<ReviewVocabItem[]>(initialItems ?? []);
+  const [loading, setLoading] = useState(initialItems === null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [reloadKey, setReloadKey] = useState(0);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -31,6 +33,8 @@ export function ReviewSession() {
   const [completedList, setCompletedList] = useState<CompletedReview[]>([]);
 
   useEffect(() => {
+    // Lượt mount đã có dữ liệu server → khỏi fetch trùng (pattern shouldFetchOnMount).
+    if (reloadKey === 0 && initialItems !== null) return;
     let active = true;
     fetchReviewItems(5)
       .then((json) => {
@@ -49,7 +53,7 @@ export function ReviewSession() {
     return () => {
       active = false;
     };
-  }, [reloadKey]);
+  }, [reloadKey, initialItems]);
 
   // setState trong event handler (không phải effect body) — quy tắc react-hooks.
   const handleRetry = () => {

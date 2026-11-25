@@ -64,7 +64,7 @@ export async function getTodayRecommendation(
     completedSessions,
     inProgress,
     todaySubs,
-  } = await fetchTodayInputs(learnerId, now);
+  } = await fetchTodayInputs(learnerId);
 
   const learnerName = learner?.displayName || "Bác sĩ Minh";
   const baselineStatus = learner?.baselineStatus || "pending";

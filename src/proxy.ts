@@ -14,11 +14,14 @@ export const config = {
   matcher: [
     /*
      * Match all request paths except for the ones starting with:
+     * - api/ (API routes tự enforce auth qua withLearner/withAdmin — chạy
+     *   proxy ở đây chỉ thêm 1 auth roundtrip getUser() trùng lặp; refresh
+     *   cookie vẫn diễn ra trong route handler vì Next cho set cookie ở đó)
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
      * - public files (images, etc.)
      */
-    "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    "/((?!api/|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };

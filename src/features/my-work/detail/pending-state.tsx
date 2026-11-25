@@ -5,17 +5,20 @@ import { useAssessmentPolling } from "./use-assessment-polling";
 
 interface PendingStateProps {
   status: string; // "queued" | "processing"
+  /** ID assessment để poll endpoint nhẹ /status thay vì refresh full trang. */
+  assessmentId: string;
 }
 
 /** Những phần sẽ xuất hiện khi chấm xong — để người học biết mình đang chờ gì. */
 const UPCOMING = ["Điểm ước tính luyện tập", "Các điểm cần sửa trước", "Việc cần làm ở bản tiếp theo"];
 
 /**
- * Thẻ "đang chấm" — tự cập nhật (poll router.refresh 6s) khi assessment
+ * Thẻ "đang chấm" — tự cập nhật (poll endpoint /status 6s, refresh một lần
+ * khi xong) khi assessment
  * đang queued/processing. Hết ~5 phút mà chưa xong → báo chậm + nút làm mới tay.
  */
-export function PendingState({ status }: PendingStateProps) {
-  const { polling, timedOut, refresh } = useAssessmentPolling(status);
+export function PendingState({ status, assessmentId }: PendingStateProps) {
+  const { polling, timedOut, refresh } = useAssessmentPolling(status, assessmentId);
 
   return (
     <section aria-live="polite" className="rounded-2xl border border-teal-200 bg-surface p-5 shadow-card sm:p-6">

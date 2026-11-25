@@ -25,18 +25,26 @@ interface UseSettingsData extends SettingsData {
   removeSubmission: (id: string) => void;
 }
 
-/** Tải GET /api/v1/settings qua contract — hồ sơ + bài nộp gần đây. */
-export function useSettingsData(): UseSettingsData {
-  const [data, setData] = useState<SettingsData>({
-    profile: null,
-    submissions: [],
-  });
-  const [loading, setLoading] = useState(true);
+/**
+ * Tải GET /api/v1/settings qua contract — hồ sơ + bài nộp gần đây.
+ * `initialData` do server render sẵn (pattern /today) → lượt mount không
+ * fetch trùng; nút tải lại vẫn fetch phía client như cũ.
+ */
+export function useSettingsData(initialData: SettingsData | null = null): UseSettingsData {
+  const [data, setData] = useState<SettingsData>(
+    initialData ?? { profile: null, submissions: [] }
+  );
+  const [loading, setLoading] = useState(initialData === null);
   const [error, setError] = useState<string | null>(null);
   const [tick, setTick] = useState(0);
 
-  const [remindEnabled, setRemindEnabled] = useState(false);
-  const [remindTime, setRemindTime] = useState("20:00");
+  const [remindEnabled, setRemindEnabled] = useState(() =>
+    Boolean(initialData?.profile?.preferences?.remindEnabled)
+  );
+  const [remindTime, setRemindTime] = useState(() => {
+    const t = initialData?.profile?.preferences?.remindTime;
+    return typeof t === "string" && t ? t : "20:00";
+  });
 
   const reload = useCallback(() => {
     setLoading(true);
@@ -45,6 +53,8 @@ export function useSettingsData(): UseSettingsData {
   }, []);
 
   useEffect(() => {
+    // Mount đã có dữ liệu server → khỏi fetch trùng (pattern shouldFetchOnMount).
+    if (tick === 0 && initialData !== null) return;
     let active = true;
     apiFetch("/api/v1/settings", undefined, settingsResponseSchema)
       .then((res) => {
@@ -69,7 +79,7 @@ export function useSettingsData(): UseSettingsData {
     return () => {
       active = false;
     };
-  }, [tick]);
+  }, [tick, initialData]);
 
   const setReminders = useCallback((enabled: boolean, time: string) => {
     setRemindEnabled(enabled);
