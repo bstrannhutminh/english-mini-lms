@@ -4,7 +4,7 @@ import {
   finalVaultStates,
   type QuickReviewVocabState,
 } from "@/server/vocabulary/quick-review-plan";
-import { SPACED_INTERVALS_DAYS } from "@/server/vocabulary/schedule";
+import { SPACED_INTERVALS_DAYS } from "@/lib/vocabulary-schedule";
 
 const NOW = new Date("2026-01-10T00:00:00Z");
 

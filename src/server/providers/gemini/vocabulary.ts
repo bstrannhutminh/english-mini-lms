@@ -5,11 +5,8 @@ import {
   EvaluateVocabUsageResult,
 } from "./types";
 import { getGeminiClient } from "./client";
-import {
-  GeminiResponseError,
-  callGeminiWithRetry,
-  geminiAbortSignal,
-} from "./call-gemini";
+import { callGeminiWithRetry } from "./call-gemini";
+import { generateValidatedJson } from "./generate-validated-json";
 
 export const QUICK_CAPTURE_SYSTEM_INSTRUCTION = `Bạn là Trợ lý Từ vựng Y khoa dành cho Bác sĩ Minh (chuyên ngành Cơ xương khớp và can thiệp giảm đau dưới hướng dẫn siêu âm).
 Nhiệm vụ: Khi bác sĩ bôi đen một từ hoặc cụm từ trong tài liệu y khoa, hãy phân tích và trả về đúng định dạng JSON:
@@ -47,37 +44,21 @@ NGUỒN THAM KHẢO: "${sourceRef || "Tài liệu y khoa"}"
 Hãy phân tích và trả về đúng JSON theo yêu cầu.`;
 
   return callGeminiWithRetry(async () => {
-    const response = await ai.models.generateContent({
-      model: modelName,
-      contents: userContent,
-      config: {
-        systemInstruction: QUICK_CAPTURE_SYSTEM_INSTRUCTION,
-        responseMimeType: "application/json",
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        responseSchema: quickCaptureJsonSchema as any,
-        temperature: 0.1,
-        abortSignal: geminiAbortSignal(),
-      },
-    });
-
-    const responseText = response.text || "";
-    let parsed: unknown;
-    try {
-      parsed = JSON.parse(responseText);
-    } catch (err) {
-      throw new GeminiResponseError(`Gemini không trả về JSON hợp lệ: ${err instanceof Error ? err.message : String(err)}`);
-    }
-
-    const validated = QuickCaptureSchema.safeParse(parsed);
-    if (!validated.success) {
-      throw new GeminiResponseError(`JSON từ Gemini không đúng schema: ${validated.error.message}`);
-    }
-
-    return {
-      result: validated.data,
-      tokenInput: response.usageMetadata?.promptTokenCount || 0,
-      tokenOutput: response.usageMetadata?.candidatesTokenCount || 0,
+    const result = await generateValidatedJson({
+      ai,
       modelName,
+      contents: userContent,
+      systemInstruction: QUICK_CAPTURE_SYSTEM_INSTRUCTION,
+      responseSchema: quickCaptureJsonSchema,
+      temperature: 0.1,
+      schema: QuickCaptureSchema,
+      schemaErrorPrefix: "JSON từ Gemini không đúng schema",
+    });
+    return {
+      result: result.data,
+      tokenInput: result.tokenInput,
+      tokenOutput: result.tokenOutput,
+      modelName: result.modelName,
     };
   }, "quickCaptureVocabulary");
 }
@@ -125,37 +106,22 @@ CÂU TRẢ LỜI CỦA BÁC SĨ MINH:
 Hãy đánh giá và trả về kết quả theo đúng JSON schema.`;
 
   return callGeminiWithRetry(async () => {
-    const response = await ai.models.generateContent({
-      model: modelName,
-      contents: prompt,
-      config: {
-        systemInstruction: VOCAB_USAGE_SYSTEM_INSTRUCTION,
-        responseMimeType: "application/json",
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        responseSchema: vocabUsageJsonSchema as any,
-        temperature: 0.1,
-        abortSignal: geminiAbortSignal(),
-      },
-    });
-
-    const responseText = response.text || "";
-    let parsed: unknown;
-    try {
-      parsed = JSON.parse(responseText);
-    } catch (err) {
-      throw new GeminiResponseError(`Lỗi parse JSON từ Gemini: ${err instanceof Error ? err.message : String(err)}`);
-    }
-
-    const validated = VocabUsageEvaluationSchema.safeParse(parsed);
-    if (!validated.success) {
-      throw new GeminiResponseError(`JSON từ Gemini không đúng schema: ${validated.error.message}`);
-    }
-
-    return {
-      result: validated.data,
-      tokenInput: response.usageMetadata?.promptTokenCount || 0,
-      tokenOutput: response.usageMetadata?.candidatesTokenCount || 0,
+    const result = await generateValidatedJson({
+      ai,
       modelName,
+      contents: prompt,
+      systemInstruction: VOCAB_USAGE_SYSTEM_INSTRUCTION,
+      responseSchema: vocabUsageJsonSchema,
+      temperature: 0.1,
+      schema: VocabUsageEvaluationSchema,
+      schemaErrorPrefix: "JSON từ Gemini không đúng schema",
+      parseErrorPrefix: "Lỗi parse JSON từ Gemini",
+    });
+    return {
+      result: result.data,
+      tokenInput: result.tokenInput,
+      tokenOutput: result.tokenOutput,
+      modelName: result.modelName,
     };
   }, "evaluateVocabUsage");
 }

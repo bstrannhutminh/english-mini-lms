@@ -41,7 +41,7 @@ export async function createWizardLesson(data: WizardData, created: CreatedLesso
         segmentIds: [data.segmentId],
         questions: data.questions.map(draftToQuestion),
         topic,
-      }, created.activity);
+      }, created.activity, ["mode"]);
 
       setPhase("approve");
       await updateSource(data.sourceId, { reviewState: "approved" });

@@ -26,4 +26,13 @@ describe("creating lesson content safely", () => {
     await expect(upsert(create, vi.fn(), "src-new", {}, created)).rejects.toMatchObject({ status: 503 });
     expect(created.size).toBe(0);
   });
+  it("strips immutable keys before retry-updating content created in this attempt", async () => {
+    const create = vi.fn().mockResolvedValue({});
+    const update = vi.fn().mockResolvedValue({});
+    const created = new Set<string>();
+    const body = { sourceId: "src-1", transcriptContent: "line" };
+    await upsert(create, update, "seg-1", body, created);
+    await upsert(create, update, "seg-1", body, created, ["sourceId"]);
+    expect(update).toHaveBeenCalledWith("seg-1", { transcriptContent: "line" });
+  });
 });

@@ -1,10 +1,7 @@
 import { WritingFeedbackSchema, EvaluateWritingResult } from "./types";
 import { getGeminiClient } from "./client";
-import {
-  GeminiResponseError,
-  callGeminiWithRetry,
-  geminiAbortSignal,
-} from "./call-gemini";
+import { callGeminiWithRetry } from "./call-gemini";
+import { generateValidatedJson } from "./generate-validated-json";
 import { formatFeedbackGuideSection, formatRubricSection } from "./prompt-sections";
 
 export const geminiResponseSchema = {
@@ -109,42 +106,21 @@ export async function evaluateWriting(
   const userContent = buildWritingEvalPrompt(prompt, rubric, submissionText, options);
 
   async function callGeminiOnce() {
-    const response = await ai.models.generateContent({
-      model: modelName,
+    const result = await generateValidatedJson({
+      ai,
+      modelName,
       contents: userContent,
-      config: {
-        systemInstruction: WRITING_SYSTEM_INSTRUCTION,
-        responseMimeType: "application/json",
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        responseSchema: geminiResponseSchema as any,
-        temperature: 0.2,
-        abortSignal: geminiAbortSignal(),
-      },
+      systemInstruction: WRITING_SYSTEM_INSTRUCTION,
+      responseSchema: geminiResponseSchema,
+      temperature: 0.2,
+      schema: WritingFeedbackSchema,
     });
 
-    const responseText = response.text || "";
-    const tokenInput = response.usageMetadata?.promptTokenCount || 0;
-    const tokenOutput = response.usageMetadata?.candidatesTokenCount || 0;
-
-    let parsedJson: unknown;
-    try {
-      parsedJson = JSON.parse(responseText);
-    } catch (parseError) {
-      throw new GeminiResponseError(
-        `Gemini không trả về JSON hợp lệ: ${parseError instanceof Error ? parseError.message : String(parseError)}`
-      );
-    }
-
-    const validated = WritingFeedbackSchema.safeParse(parsedJson);
-    if (!validated.success) {
-      throw new GeminiResponseError(`JSON không đúng schema: ${validated.error.message}`);
-    }
-
     return {
-      feedback: validated.data,
-      tokenInput,
-      tokenOutput,
-      modelName,
+      feedback: result.data,
+      tokenInput: result.tokenInput,
+      tokenOutput: result.tokenOutput,
+      modelName: result.modelName,
     };
   }
 

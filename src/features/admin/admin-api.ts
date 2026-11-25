@@ -3,7 +3,6 @@
  * Mọi lỗi throw ApiClientError { code, status, fields? } — caller hiển thị
  * message + field errors bằng tiếng Việt.
  */
-import { z } from "zod";
 import { apiFetch } from "@/lib/api-client";
 import {
   adminActivityListResponseSchema,
@@ -24,6 +23,10 @@ import {
   syncDriveResultSchema,
 } from "@/contracts/admin-dashboard";
 import { createSessionResponseSchema } from "@/contracts/session";
+import {
+  feedbackReviewResponseSchema,
+  retryAssessmentResponseSchema,
+} from "@/contracts/submission";
 
 const JSON_HEADERS = { "Content-Type": "application/json" };
 
@@ -38,9 +41,6 @@ const patch = (body: unknown) => ({
   headers: JSON_HEADERS,
   body: JSON.stringify(body),
 });
-
-/** Response phụ (retry/resolve) — server trả object bất kỳ, chỉ cần res.ok. */
-const okResponseSchema = z.looseObject({});
 
 /* ── Dashboard ── */
 export const fetchAdminDashboard = () =>
@@ -100,9 +100,9 @@ export const syncDrive = (dryRun: boolean) =>
 
 /* ── Hành động ngoài /admin (giữ nguyên endpoint hiện có) ── */
 export const retryAssessment = (assessmentId: string) =>
-  apiFetch(`/api/v1/assessments/${assessmentId}/retry`, post(), okResponseSchema);
+  apiFetch(`/api/v1/assessments/${assessmentId}/retry`, post(), retryAssessmentResponseSchema);
 export const resolveFeedback = (feedbackId: string) =>
-  apiFetch(`/api/v1/feedback/${feedbackId}/resolve`, post(), okResponseSchema);
+  apiFetch(`/api/v1/feedback/${feedbackId}/resolve`, post(), feedbackReviewResponseSchema);
 export const startSession = (activityId: string, targetMinutes: 30 | 45 = 30) =>
   apiFetch(
     "/api/v1/sessions",

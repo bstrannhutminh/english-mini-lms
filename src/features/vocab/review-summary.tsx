@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { Badge, Icon } from "@/components/ui";
 import { PageContainer } from "@/components/layout";
-import type { ReviewOutcome } from "@/server/vocabulary/schedule";
+import type { ReviewOutcome } from "@/lib/vocabulary-schedule";
 
 export interface CompletedReview {
   phrase: string;

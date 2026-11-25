@@ -1,6 +1,6 @@
 import type { VocabularyItem } from "@/contracts/vocabulary";
 import { Badge, Icon } from "@/components/ui";
-import { MASTERY_SCALE } from "@/server/vocabulary/schedule";
+import { MASTERY_SCALE } from "@/lib/vocabulary-schedule";
 import { clampMastery, daysUntilDue, formatMastery, isDueNow, isMastered } from "./mastery";
 
 /** Hàng tóm tắt của thẻ từ: cụm từ, IPA, nghĩa, thanh mức nhớ và chip hạn ôn. Bấm để mở rộng. */

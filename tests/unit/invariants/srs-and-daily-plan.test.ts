@@ -10,7 +10,7 @@ import {
   formatMastery,
   nextReview,
   SPACED_INTERVALS_DAYS,
-} from "@/server/vocabulary/schedule";
+} from "@/lib/vocabulary-schedule";
 import {
   buildDailyPlan,
   type DailyPlanContext,

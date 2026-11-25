@@ -15,7 +15,7 @@ import {
   isMastered,
   nextReview,
   calculateNextReview,
-} from "@/server/vocabulary/schedule";
+} from "@/lib/vocabulary-schedule";
 
 const NOW = new Date("2026-10-19T07:00:00.000Z");
 const DAY_MS = 24 * 60 * 60 * 1000;

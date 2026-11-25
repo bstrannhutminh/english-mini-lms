@@ -5,6 +5,8 @@ import {
   createYoutubePlayer,
   extractVideoId,
   loadYoutubeIframeApi,
+  type YTPlayer,
+  type YTPlayerEvent,
 } from "./youtube-iframe";
 
 /** Điều khiển từ bên ngoài (phím tắt trên desktop). */
@@ -51,8 +53,7 @@ export function useYouTubePlayer({
   controlRef,
 }: UseYouTubePlayerArgs): YouTubePlayerState {
   const containerRef = useRef<HTMLDivElement>(null);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const playerRef = useRef<any>(null);
+  const playerRef = useRef<YTPlayer | null>(null);
   const checkTimeIntervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const [isPlaying, setIsPlaying] = useState(false);
@@ -75,7 +76,7 @@ export function useYouTubePlayer({
 
           if (curr >= endSeconds) {
             playerRef.current.pauseVideo();
-            playerRef.current.seekTo(startSeconds, true);
+            playerRef.current?.seekTo(startSeconds, true);
             setIsPlaying(false);
           }
         } catch {
@@ -109,13 +110,12 @@ export function useYouTubePlayer({
         onReady: () => {
           setIsReady(true);
           try {
-            playerRef.current.seekTo(startSeconds, true);
+            playerRef.current?.seekTo(startSeconds, true);
           } catch {
             // ignore
           }
         },
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        onStateChange: (event: any) => {
+        onStateChange: (event: YTPlayerEvent) => {
           // YT.PlayerState.PLAYING === 1
           if (event.data === 1) {
             setIsPlaying(true);
@@ -125,8 +125,7 @@ export function useYouTubePlayer({
             stopPollingTime();
           }
         },
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        onError: (event: any) => {
+        onError: (event: YTPlayerEvent) => {
           console.warn("YouTube player error:", event.data);
           // Mã lỗi 100/101/150 = không cho nhúng (not allowed to embed)
           if (event.data === 101 || event.data === 150 || event.data === 100) {
@@ -176,7 +175,7 @@ export function useYouTubePlayer({
       } else {
         const curr = playerRef.current.getCurrentTime();
         if (curr < startSeconds || curr >= endSeconds) {
-          playerRef.current.seekTo(startSeconds, true);
+          playerRef.current?.seekTo(startSeconds, true);
         }
         playerRef.current.playVideo();
       }
@@ -189,7 +188,7 @@ export function useYouTubePlayer({
   const replaySegment = () => {
     if (!playerRef.current || !isReady) return;
     try {
-      playerRef.current.seekTo(startSeconds, true);
+      playerRef.current?.seekTo(startSeconds, true);
       playerRef.current.playVideo();
     } catch {
       // ignore

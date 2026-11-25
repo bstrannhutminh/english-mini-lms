@@ -4,11 +4,8 @@ import {
   EvaluateSpeakingResult,
 } from "./types";
 import { getGeminiClient } from "./client";
-import {
-  GeminiResponseError,
-  callGeminiWithRetry,
-  geminiAbortSignal,
-} from "./call-gemini";
+import { callGeminiWithRetry } from "./call-gemini";
+import { generateValidatedJson } from "./generate-validated-json";
 import {
   SPEAKING_SYSTEM_INSTRUCTION,
   speakingJsonSchema,
@@ -41,43 +38,27 @@ export async function evaluateSpeaking(
 
     // Đường text-only: vẫn timeout + retry-on-schema như các nhánh khác.
     return callGeminiWithRetry(async () => {
-      const response = await ai.models.generateContent({
-        model: modelName,
+      const result = await generateValidatedJson({
+        ai,
+        modelName,
         contents: textPrompt,
-        config: {
-          systemInstruction: SPEAKING_SYSTEM_INSTRUCTION,
-          responseMimeType: "application/json",
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          responseSchema: speakingJsonSchema as any,
-          temperature: 0.2,
-          abortSignal: geminiAbortSignal(),
-        },
+        systemInstruction: SPEAKING_SYSTEM_INSTRUCTION,
+        responseSchema: speakingJsonSchema,
+        temperature: 0.2,
+        schema: SpeakingFeedbackSchema,
       });
 
-      const responseText = response.text || "";
-      let parsed: unknown;
-      try {
-        parsed = JSON.parse(responseText);
-      } catch (e) {
-        throw new GeminiResponseError(`Gemini không trả về JSON hợp lệ: ${e instanceof Error ? e.message : String(e)}`);
-      }
-
-      const validated = SpeakingFeedbackSchema.safeParse(parsed);
-      if (!validated.success) {
-        throw new GeminiResponseError(`JSON không đúng schema: ${validated.error.message}`);
-      }
-
       // Đảm bảo nghiêm ngặt bất biến not_assessable
-      validated.data.pronunciation = {
+      result.data.pronunciation = {
         status: "not_assessable",
         notes: "Không thể chấm phát âm do thiếu dữ liệu âm thanh thực tế.",
       };
 
       return {
-        feedback: validated.data,
-        tokenInput: response.usageMetadata?.promptTokenCount || 0,
-        tokenOutput: response.usageMetadata?.candidatesTokenCount || 0,
-        modelName,
+        feedback: result.data,
+        tokenInput: result.tokenInput,
+        tokenOutput: result.tokenOutput,
+        modelName: result.modelName,
       };
     }, "evaluateSpeaking(no-audio)");
   }
@@ -86,8 +67,9 @@ export async function evaluateSpeaking(
   const promptText = buildSpeakingAudioPrompt(prompt, context);
 
   async function callGeminiAudioOnce() {
-    const response = await ai.models.generateContent({
-      model: modelName,
+    const result = await generateValidatedJson({
+      ai,
+      modelName,
       contents: [
         {
           role: "user",
@@ -98,45 +80,28 @@ export async function evaluateSpeaking(
                 data: audioFile!.buffer.toString("base64"),
               },
             },
-            {
-              text: promptText,
-            },
+            { text: promptText },
           ],
         },
       ],
-      config: {
-        systemInstruction: SPEAKING_SYSTEM_INSTRUCTION,
-        responseMimeType: "application/json",
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        responseSchema: speakingJsonSchema as any,
-        temperature: 0.2,
-        abortSignal: geminiAbortSignal(),
-      },
+      systemInstruction: SPEAKING_SYSTEM_INSTRUCTION,
+      responseSchema: speakingJsonSchema,
+      temperature: 0.2,
+      schema: SpeakingFeedbackSchema,
+      schemaErrorPrefix: "Phản hồi Speaking không đúng schema",
+      parseErrorPrefix: "Lỗi parse JSON phản hồi từ Gemini",
     });
 
-    const responseText = response.text || "";
-    let parsed: unknown;
-    try {
-      parsed = JSON.parse(responseText);
-    } catch (e) {
-      throw new GeminiResponseError(`Lỗi parse JSON phản hồi từ Gemini: ${e instanceof Error ? e.message : String(e)}`);
-    }
-
-    const validated = SpeakingFeedbackSchema.safeParse(parsed);
-    if (!validated.success) {
-      throw new GeminiResponseError(`Phản hồi Speaking không đúng schema: ${validated.error.message}`);
-    }
-
     // Đảm bảo tối đa 3 observations
-    if (validated.data.observations.length > 3) {
-      validated.data.observations = validated.data.observations.slice(0, 3);
+    if (result.data.observations.length > 3) {
+      result.data.observations = result.data.observations.slice(0, 3);
     }
 
     return {
-      feedback: validated.data,
-      tokenInput: response.usageMetadata?.promptTokenCount || 0,
-      tokenOutput: response.usageMetadata?.candidatesTokenCount || 0,
-      modelName,
+      feedback: result.data,
+      tokenInput: result.tokenInput,
+      tokenOutput: result.tokenOutput,
+      modelName: result.modelName,
     };
   }
 

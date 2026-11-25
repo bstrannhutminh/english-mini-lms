@@ -5,17 +5,44 @@
  * player trong một div con của container. Không giữ state React.
  */
 
+export interface YTPlayer {
+  playVideo: () => void;
+  pauseVideo: () => void;
+  seekTo: (seconds: number, allowSeekAhead: boolean) => void;
+  getCurrentTime: () => number;
+  setPlaybackRate: (rate: number) => void;
+  destroy: () => void;
+}
+
+export interface YTPlayerEvent {
+  data: number;
+  target?: YTPlayer;
+}
+
+interface YTPlayerOptions {
+  videoId: string;
+  playerVars: Record<string, number>;
+  events: {
+    onReady: () => void;
+    onStateChange: (event: YTPlayerEvent) => void;
+    onError: (event: YTPlayerEvent) => void;
+  };
+}
+
+export interface YTNamespace {
+  Player: new (elementId: string, options: YTPlayerOptions) => YTPlayer;
+}
+
 declare global {
   interface Window {
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    YT: any;
+    YT?: YTNamespace;
     onYouTubeIframeAPIReady?: () => void;
   }
 }
 
 /** Trích xuất YouTube video ID từ nhiều dạng URL (share/watch/embed). */
 export function extractVideoId(url: string): string {
-  if (!url) return "uVSiFJ85EtM";
+  if (!url) return "";
   const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
   const match = url.match(regExp);
   return match && match[2].length === 11 ? match[2] : url;
@@ -41,10 +68,8 @@ interface CreatePlayerArgs {
   startSeconds: number;
   endSeconds: number;
   onReady: () => void;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  onStateChange: (event: any) => void;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  onError: (event: any) => void;
+  onStateChange: (event: YTPlayerEvent) => void;
+  onError: (event: YTPlayerEvent) => void;
 }
 
 /**
@@ -59,8 +84,7 @@ export function createYoutubePlayer({
   onReady,
   onStateChange,
   onError,
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-}: CreatePlayerArgs): any | null {
+}: CreatePlayerArgs): YTPlayer | null {
   if (!window.YT || !window.YT.Player) return null;
 
   const playerElementId = `yt-player-${Math.random().toString(36).substring(2, 9)}`;

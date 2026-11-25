@@ -9,7 +9,7 @@ import {
   clampMastery,
   formatMastery,
   isMastered,
-} from "@/server/vocabulary/schedule";
+} from "@/lib/vocabulary-schedule";
 
 export { MASTERY_MAX, clampMastery, formatMastery, isMastered };
 

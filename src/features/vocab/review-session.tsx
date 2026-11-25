@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Button, EmptyState, Icon, Skeleton, useToast } from "@/components/ui";
 import { PageContainer } from "@/components/layout";
 import type { ReviewVocabItem, SubmitReviewResponse } from "@/contracts/vocabulary";
-import type { ReviewOutcome } from "@/server/vocabulary/schedule";
+import type { ReviewOutcome } from "@/lib/vocabulary-schedule";
 import { fetchReviewItems, submitWrittenReview } from "./api";
 import { ReviewCard, type ResponseMode } from "./review-card";
 import { ReviewResultPanel } from "./review-result-panel";

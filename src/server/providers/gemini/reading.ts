@@ -1,10 +1,7 @@
 import { WritingFeedbackSchema, EvaluateWritingResult } from "./types";
 import { getGeminiClient } from "./client";
-import {
-  GeminiResponseError,
-  callGeminiWithRetry,
-  geminiAbortSignal,
-} from "./call-gemini";
+import { callGeminiWithRetry } from "./call-gemini";
+import { generateValidatedJson } from "./generate-validated-json";
 import { geminiResponseSchema } from "./writing";
 
 export const READING_SYSTEM_INSTRUCTION = `Bạn là Trợ lý Đánh giá Đọc–Dịch Y khoa dành cho Bác sĩ Minh (chuyên khoa Cơ xương khớp, can thiệp giảm đau siêu âm).
@@ -52,47 +49,27 @@ ${submission.keyTerms || "(Không có)"}
 Hãy đối chiếu bản dịch với đoạn gốc và trả về JSON nhận xét chi tiết.`;
 
   async function callGeminiOnce() {
-    const response = await ai.models.generateContent({
-      model: modelName,
+    const result = await generateValidatedJson({
+      ai,
+      modelName,
       contents: userContent,
-      config: {
-        systemInstruction: READING_SYSTEM_INSTRUCTION,
-        responseMimeType: "application/json",
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        responseSchema: geminiResponseSchema as any,
-        temperature: 0.2,
-        abortSignal: geminiAbortSignal(),
-      },
+      systemInstruction: READING_SYSTEM_INSTRUCTION,
+      responseSchema: geminiResponseSchema,
+      temperature: 0.2,
+      schema: WritingFeedbackSchema,
     });
 
-    const responseText = response.text || "";
-    const tokenInput = response.usageMetadata?.promptTokenCount || 0;
-    const tokenOutput = response.usageMetadata?.candidatesTokenCount || 0;
-
-    let parsedJson: unknown;
-    try {
-      parsedJson = JSON.parse(responseText);
-    } catch (parseError) {
-      throw new GeminiResponseError(
-        `Gemini không trả về JSON hợp lệ: ${parseError instanceof Error ? parseError.message : String(parseError)}`
-      );
-    }
-
-    const validated = WritingFeedbackSchema.safeParse(parsedJson);
-    if (!validated.success) {
-      throw new GeminiResponseError(`JSON không đúng schema: ${validated.error.message}`);
-    }
-
-    // Đảm bảo limitations có cảnh báo y khoa
-    if (!validated.data.limitations.toLowerCase().includes("khuyến nghị")) {
-      validated.data.limitations = "Nhận xét của AI chỉ đánh giá kỹ năng ngôn ngữ và mức độ trung thành với đoạn gốc; tuyệt đối không mang tính chất khuyến nghị điều trị y khoa.";
+    // Hậu kiểm bắt buộc: nhận xét reading y khoa luôn phải nói rõ đây
+    // không phải khuyến nghị điều trị, kể cả khi model quên.
+    if (!result.data.limitations.toLowerCase().includes("khuyến nghị")) {
+      result.data.limitations = "Nhận xét của AI chỉ đánh giá kỹ năng ngôn ngữ và mức độ trung thành với đoạn gốc; tuyệt đối không mang tính chất khuyến nghị điều trị y khoa.";
     }
 
     return {
-      feedback: validated.data,
-      tokenInput,
-      tokenOutput,
-      modelName,
+      feedback: result.data,
+      tokenInput: result.tokenInput,
+      tokenOutput: result.tokenOutput,
+      modelName: result.modelName,
     };
   }
 
