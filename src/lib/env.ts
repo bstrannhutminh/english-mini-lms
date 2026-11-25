@@ -28,6 +28,9 @@ const envSchema = z.object({
   GOOGLE_SERVICE_ACCOUNT_JSON: z.string().min(1).optional(),
   GOOGLE_DRIVE_FOLDER_ID: z.string().min(1).optional(),
 
+  /** Allowlist email được phép vào app (phẩy cách). Production nên set. */
+  ALLOWED_EMAILS: z.string().min(1).optional(),
+
   /** Dev-only auth bypass (never honoured outside NODE_ENV=development). */
   DEV_BYPASS_AUTH: z.enum(["true", "false"]).optional(),
 });

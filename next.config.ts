@@ -10,9 +10,13 @@ const nextConfig: NextConfig = {
             key: "X-Content-Type-Options",
             value: "nosniff",
           },
-          // X-Frame-Options bị BỎ QUA vì app nhúng YouTube IFrame Player.
-          // Nếu bật DENY/SAMEORIGIN sẽ chặn iframe YouTube trong bài nghe.
-          // Thay thế: dùng CSP frame-ancestors nếu cần sau này.
+          // X-Frame-Options DENY chống clickjacking (chặn BÊN NGOÀI nhúng app này).
+          // KHÔNG ảnh hưởng việc app nhúng YouTube/YouGlish — đó là iframe con trong
+          // trang của mình, hướng ngược lại.
+          {
+            key: "X-Frame-Options",
+            value: "DENY",
+          },
           //
           // YouGlish (src/components/youglish-widget.tsx): widget render iframe youglish.com
           // (gồm video YouTube bên trong) và nạp script từ youglish.com. Hiện app KHÔNG đặt CSP

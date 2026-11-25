@@ -15,6 +15,27 @@ export interface CurrentLearner {
 
 const DEV_USER_ID = "00000000-0000-0000-0000-000000000001";
 
+/**
+ * Allowlist email trong code (defense-in-depth ngoài toggle signup ở Supabase).
+ * ALLOWED_EMAILS: danh sách email phẩy cách, không phân biệt hoa thường.
+ * Chưa cấu hình → giữ hành vi cũ (cho phép mọi user đã auth) để tương thích ngược;
+ * production phải set biến này — xem deployment-guide.
+ */
+function allowedEmails(): string[] | null {
+  const raw = process.env.ALLOWED_EMAILS;
+  if (!raw) return null;
+  const list = raw.split(",").map((e) => e.trim().toLowerCase()).filter(Boolean);
+  return list.length ? list : null;
+}
+
+function isEmailAllowed(email: string | undefined | null): boolean {
+  const list = allowedEmails();
+  if (!list) return true;
+  if (!email) return false;
+  return list.includes(email.toLowerCase());
+}
+
+
 const LEARNER_COLUMNS = {
   id: learners.id,
   userId: learners.userId,
@@ -48,6 +69,11 @@ async function loadCurrentLearner(): Promise<CurrentLearner | null> {
   } = await supabase.auth.getUser();
 
   if (user) {
+    // Không nằm trong allowlist → coi như chưa đăng nhập (không provision, không truy cập)
+    if (!isEmailAllowed(user.email)) {
+      return null;
+    }
+
     const [existing] = await db
       .select(LEARNER_COLUMNS)
       .from(learners)
