@@ -16,7 +16,7 @@ export interface OnboardingProfileData {
   ieltsVariant?: "academic" | "general" | "none" | null;
   currentBook?: string;
   preferredStudyTime?: string;
-  targetMinutesDefault?: number;
+  targetMinutesDefault?: 30 | 45;
 }
 
 export async function getLearnerOnboardingProfile(learnerId: string) {
@@ -52,7 +52,7 @@ export async function getLearnerOnboardingProfile(learnerId: string) {
     ieltsVariant: (goals.ieltsVariant as OnboardingProfileData["ieltsVariant"]) || null,
     currentBook: (goals.currentBook as string) || "",
     preferredStudyTime: (preferences.preferredStudyTime as string) || "21:00",
-    targetMinutesDefault: (preferences.targetMinutesDefault as number) || 30,
+    targetMinutesDefault: (preferences.targetMinutesDefault === 45 ? 45 : 30) as 30 | 45,
     baselineStatus: learner.baselineStatus || "pending",
   };
 }

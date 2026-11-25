@@ -39,7 +39,7 @@ describe("Onboarding presets & first-run helpers", () => {
   });
 
   it("preserves intentionally blank preferences and chosen ratings on re-entry", () => {
-    const profile = { displayName: "Minh", priorities: [], selfAssessment: { writing: 2, reading: 4, speaking: 1, listening: 5 }, workContext: "", ieltsVariant: null, currentBook: "", preferredStudyTime: "", targetMinutesDefault: 45, baselineStatus: "completed" };
+    const profile = { displayName: "Minh", priorities: [], selfAssessment: { writing: 2, reading: 4, speaking: 1, listening: 5 }, workContext: "", ieltsVariant: null, currentBook: "", preferredStudyTime: "", targetMinutesDefault: 45 as const, baselineStatus: "completed" };
     const draft = createInitialDraft(profile);
     expect(draft.priorities).toEqual([]);
     expect(draft.selfAssessment).toEqual(profile.selfAssessment);

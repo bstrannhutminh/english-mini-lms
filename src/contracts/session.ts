@@ -3,7 +3,7 @@
  * Field names match what the learn/* views already send and read.
  */
 import { z } from "zod";
-import { uuidSchema } from "./common";
+import { apiErrorBodySchema, uuidSchema } from "./common";
 import { speakingFeedbackSchema } from "./submission";
 
 /** Locked practice block: 30 or 45 minutes. */
@@ -23,9 +23,8 @@ export const createSessionResponseSchema = z.object({
 });
 export type CreateSessionResponse = z.infer<typeof createSessionResponseSchema>;
 
-/** 409 — an in-flight session for this activity exists; client may continue it. */
-export const sessionConflictResponseSchema = z.looseObject({
-  error: z.string(),
+/** 409 — unified error envelope + sessionId của phiên đang mở để client tiếp tục. */
+export const sessionConflictResponseSchema = apiErrorBodySchema.extend({
   sessionId: uuidSchema,
 });
 export type SessionConflictResponse = z.infer<typeof sessionConflictResponseSchema>;

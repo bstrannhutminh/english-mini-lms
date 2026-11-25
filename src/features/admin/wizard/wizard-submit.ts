@@ -34,19 +34,25 @@ export function initialData(existingIds: string[]): WizardData {
 }
 
 /** Một ID đã có từ trước không được ghi đè dưới thao tác tạo mới. */
-export async function upsert(
-  createFn: (body: unknown) => Promise<unknown>,
-  updateFn: (id: string, body: unknown) => Promise<unknown>,
+export async function upsert<
+  TCreate extends { id: string },
+  TUpdate extends Record<string, unknown>,
+>(
+  createFn: (body: TCreate) => Promise<unknown>,
+  updateFn: (id: string, body: TUpdate) => Promise<unknown>,
   id: string,
-  body: Record<string, unknown>,
-  createdIds: Set<string> = new Set()
+  body: Omit<TCreate, "id"> & TUpdate,
+  createdIds: Set<string> = new Set(),
+  omitUpdateKeys: string[] = []
 ): Promise<void> {
   if (createdIds.has(id)) {
-    await updateFn(id, body);
+    const patch = { ...body } as Record<string, unknown>;
+    for (const key of omitUpdateKeys) delete patch[key];
+    await updateFn(id, patch as TUpdate);
     return;
   }
   try {
-    await createFn({ ...body, id });
+    await createFn({ ...body, id } as unknown as TCreate);
     createdIds.add(id);
   } catch (err) {
     if (err instanceof ApiClientError && err.status === 409) {

@@ -3,7 +3,7 @@
 /** Tạo/sửa segment — vị trí (trang/giây), text + transcript `start|end|text`. */
 import { useMemo, useState } from "react";
 import { Button, useToast } from "@/components/ui";
-import type { AdminSegment, AdminSource } from "@/contracts/admin-content";
+import type { AdminSegment, AdminSegmentCreate, AdminSegmentUpdate, AdminSource } from "@/contracts/admin-content";
 import type { FieldError } from "@/lib/content-constants";
 import { validateTranscript } from "@/lib/content-fields";
 import { createSegment, updateSegment } from "../admin-api";
@@ -59,7 +59,7 @@ export default function SegmentEditForm({
     setSaving(true);
     setError(null);
     setDetails([]);
-    const body: Record<string, unknown> = {
+    const body: AdminSegmentUpdate = {
       page: intOrNull(f.page),
       startSeconds: intOrNull(f.startSeconds),
       endSeconds: intOrNull(f.endSeconds),
@@ -70,7 +70,8 @@ export default function SegmentEditForm({
     };
     try {
       if (isNew) {
-        await createSegment({ ...body, id: f.id.trim(), sourceId: f.sourceId });
+        const createBody: AdminSegmentCreate = { ...body, id: f.id.trim(), sourceId: f.sourceId };
+        await createSegment(createBody);
       } else {
         await updateSegment(segment.id, body);
       }

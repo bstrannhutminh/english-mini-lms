@@ -28,7 +28,7 @@ export async function createWizardLesson(data: WizardData, created: CreatedLesso
         transcriptContent: transcript,
         verifiedTranscript: data.verifiedTranscript,
         language: "en",
-      }, created.segment);
+      }, created.segment, ["sourceId"]);
 
       setPhase("activity");
       await upsert(createActivity, updateActivity, data.activityId, {

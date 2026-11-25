@@ -187,8 +187,7 @@ export async function getSubmissionWithFeedback(submissionId: string, learnerId:
       const parent = await submissionBundle(parentSub);
       parentSubmissionData = {
         submission: parent.submission,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- JSONB: shape khác nhau theo skill (Writing/Speaking); giữ kiểu trả về như code cũ, view tự thu hẹp
-        feedback: parent.feedback as any,
+        feedback: parent.feedback,
       };
     }
   }
@@ -198,8 +197,7 @@ export async function getSubmissionWithFeedback(submissionId: string, learnerId:
     session,
     activity,
     assessment: current.assessment,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any -- JSONB: shape khác nhau theo skill; view tự thu hẹp (trước đây cũng là any)
-    feedback: current.feedback as any,
+    feedback: current.feedback,
     parent: parentSubmissionData,
     /** Bản sửa mới nhất của bài này (nếu đã có) — { id, revision }. */
     latestRevision: latestChild ?? null,

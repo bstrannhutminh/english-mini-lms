@@ -1,26 +1,32 @@
 /**
  * Admin content-management contracts — /api/v1/admin/**.
  * Admin sees the full DB rows (including questions/rubric that learner
- * endpoints must never expose). Response field names match current routes:
- * {activities}/{activity}, {sources}/{source}, {segments}/{segment}.
+ * endpoints must never expose). Request schemas are strict: route-level
+ * validation owns field type/shape; business rules stay in services.
  */
 import { z } from "zod";
 import { activityModeSchema, isoDateTimeSchema } from "./common";
 import { difficultySchema } from "./library";
 
-export const reviewStateSchema = z.enum([
-  "draft",
-  "reviewing",
-  "approved",
-  "rejected",
-  "retired",
-]);
+export const reviewStateSchema = z.enum(["draft", "reviewing", "approved", "rejected", "retired"]);
 export type ReviewState = z.infer<typeof reviewStateSchema>;
 
 export const answerRevealSchema = z.enum(["none", "after_submit", "on_request"]);
 export type AnswerReveal = z.infer<typeof answerRevealSchema>;
 
-/* ── Listening questions (admin editor) — matches src/lib/listening-questions.ts ── */
+export const activityPurposeSchema = z.enum(["baseline", "practice", "assessment"]);
+export type ActivityPurpose = z.infer<typeof activityPurposeSchema>;
+
+export const activityOutputSchema = z.enum(["text", "audio"]);
+export type ActivityOutput = z.infer<typeof activityOutputSchema>;
+
+export const sourceKindSchema = z.enum(["book", "video", "audio", "article", "self-authored"]);
+export type SourceKind = z.infer<typeof sourceKindSchema>;
+
+export const locatorTypeSchema = z.enum(["page", "seconds"]);
+export type LocatorType = z.infer<typeof locatorTypeSchema>;
+
+/* ── Câu hỏi nghe (admin editor) — khớp src/lib/listening-questions.ts ── */
 
 export const listeningQuestionOptionSchema = z.object({
   id: z.string(),
@@ -80,7 +86,6 @@ export const adminActivitySchema = z.object({
   difficulty: difficultySchema.nullable(),
   promptText: z.string().nullable(),
   feedbackGuide: z.string().nullable(),
-  // JSONB columns — admin-edited free-form payloads (rubric, segment refs, questions).
   rubricJson: z.unknown().nullable(),
   answerReveal: answerRevealSchema.nullable(),
   purpose: z.string().nullable(),
@@ -96,82 +101,97 @@ export const adminActivitySchema = z.object({
 });
 export type AdminActivity = z.infer<typeof adminActivitySchema>;
 
-/* ── Request bodies (admin CRUD) — validated fields mirror the DB columns ── */
+/* ── Request bodies ──
+ * `nullish` có chủ đích: PATCH dùng null để xoá giá trị optional; thiếu key
+ * nghĩa là không thay đổi. questionsFile/origin/id không thuộc payload sửa.
+ */
 
-export const adminActivityCreateSchema = z.object({
-  id: z.string().min(1),
-  mode: activityModeSchema,
-  title: z.string().min(1),
-  slot: z.string().optional(),
-  objective: z.string().optional(),
-  durationMinutes: z.number().int().optional(),
-  difficulty: difficultySchema.optional(),
-  promptText: z.string().optional(),
-  feedbackGuide: z.string().optional(),
-  rubricJson: z.unknown().optional(),
-  answerReveal: answerRevealSchema.optional(),
-  purpose: z.string().optional(),
+const activityEditableFields = {
+  slot: z.string().nullish(),
+  objective: z.string().nullish(),
+  durationMinutes: z.number().int().nullish(),
+  difficulty: difficultySchema.nullish(),
+  promptText: z.string().nullish(),
+  feedbackGuide: z.string().nullish(),
+  rubricJson: z.record(z.string(), z.unknown()).nullish(),
+  answerReveal: answerRevealSchema.nullish(),
+  purpose: activityPurposeSchema.nullish(),
   reviewState: reviewStateSchema.optional(),
   segmentIds: z.array(z.string()).optional(),
-  questionsFile: z.string().optional(),
   questions: z.array(listeningQuestionSchema).optional(),
-  output: z.string().optional(),
-  topic: z.string().optional(),
-});
+  output: activityOutputSchema.nullish(),
+  topic: z.string().nullish(),
+} as const;
+
+export const adminActivityCreateSchema = z
+  .object({
+    id: z.string().min(1),
+    mode: activityModeSchema,
+    title: z.string().min(1),
+    ...activityEditableFields,
+  })
+  .strict();
 export type AdminActivityCreate = z.infer<typeof adminActivityCreateSchema>;
 
-export const adminActivityUpdateSchema = adminActivityCreateSchema
-  .omit({ id: true })
-  .partial();
+export const adminActivityUpdateSchema = z.object({
+  title: z.string().min(1).optional(),
+  ...activityEditableFields,
+}).partial().strict();
 export type AdminActivityUpdate = z.infer<typeof adminActivityUpdateSchema>;
 
-export const adminSourceCreateSchema = z.object({
-  id: z.string().min(1),
-  title: z.string().min(1),
-  kind: z.string().min(1),
-  permission: z.string().optional(),
-  locatorType: z.string().optional(),
-  url: z.string().optional(),
+const sourceEditableFields = {
+  permission: z.string().nullish(),
+  locatorType: locatorTypeSchema.nullish(),
+  url: z.string().nullish(),
   reviewState: reviewStateSchema.optional(),
-  notes: z.string().optional(),
-});
-export const adminSourceUpdateSchema = adminSourceCreateSchema
-  .omit({ id: true })
-  .partial();
+  notes: z.string().nullish(),
+} as const;
 
-export const adminSegmentCreateSchema = z.object({
-  id: z.string().min(1),
-  sourceId: z.string().min(1),
-  page: z.number().int().optional(),
-  startSeconds: z.number().int().optional(),
-  endSeconds: z.number().int().optional(),
-  textContent: z.string().optional(),
-  transcriptContent: z.string().optional(),
+export const adminSourceCreateSchema = z
+  .object({
+    id: z.string().min(1),
+    title: z.string().min(1),
+    kind: sourceKindSchema,
+    ...sourceEditableFields,
+  })
+  .strict();
+export type AdminSourceCreate = z.infer<typeof adminSourceCreateSchema>;
+
+export const adminSourceUpdateSchema = z.object({
+  title: z.string().min(1).optional(),
+  kind: sourceKindSchema.optional(),
+  ...sourceEditableFields,
+}).partial().strict();
+export type AdminSourceUpdate = z.infer<typeof adminSourceUpdateSchema>;
+
+const segmentEditableFields = {
+  page: z.number().int().nullish(),
+  startSeconds: z.number().int().nullish(),
+  endSeconds: z.number().int().nullish(),
+  textContent: z.string().nullish(),
+  transcriptContent: z.string().nullish(),
   verifiedTranscript: z.boolean().optional(),
-  language: z.string().optional(),
-  checksum: z.string().optional(),
-});
-export const adminSegmentUpdateSchema = adminSegmentCreateSchema
-  .omit({ id: true })
-  .partial();
+  language: z.string().nullish(),
+  checksum: z.string().nullish(),
+} as const;
+
+export const adminSegmentCreateSchema = z
+  .object({
+    id: z.string().min(1),
+    sourceId: z.string().min(1),
+    ...segmentEditableFields,
+  })
+  .strict();
+export type AdminSegmentCreate = z.infer<typeof adminSegmentCreateSchema>;
+
+export const adminSegmentUpdateSchema = z.object(segmentEditableFields).partial().strict();
+export type AdminSegmentUpdate = z.infer<typeof adminSegmentUpdateSchema>;
 
 /* ── List/detail responses ── */
 
-export const adminActivityListResponseSchema = z.object({
-  activities: z.array(adminActivitySchema),
-});
-export const adminActivityResponseSchema = z.object({
-  activity: adminActivitySchema,
-});
-export const adminSourceListResponseSchema = z.object({
-  sources: z.array(adminSourceSchema),
-});
-export const adminSourceResponseSchema = z.object({
-  source: adminSourceSchema,
-});
-export const adminSegmentListResponseSchema = z.object({
-  segments: z.array(adminSegmentSchema),
-});
-export const adminSegmentResponseSchema = z.object({
-  segment: adminSegmentSchema,
-});
+export const adminActivityListResponseSchema = z.object({ activities: z.array(adminActivitySchema) });
+export const adminActivityResponseSchema = z.object({ activity: adminActivitySchema });
+export const adminSourceListResponseSchema = z.object({ sources: z.array(adminSourceSchema) });
+export const adminSourceResponseSchema = z.object({ source: adminSourceSchema });
+export const adminSegmentListResponseSchema = z.object({ segments: z.array(adminSegmentSchema) });
+export const adminSegmentResponseSchema = z.object({ segment: adminSegmentSchema });

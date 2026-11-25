@@ -1,6 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { saveDraftResponseSchema } from "@/contracts/session";
+import { apiFetch } from "@/lib/api-client";
 
 export interface AutosaveDraft {
   /** "HH:mm" lần lưu gần nhất, null nếu chưa lưu. */
@@ -67,16 +69,19 @@ export function useAutosaveDraft(options: {
     if (action === "empty") return false;
     if (action === "unchanged") return true;
     try {
-      const res = await fetch(`/api/v1/sessions/${sessionId}/drafts`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ content, version: draftVersion + 1 }),
-      });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const saved = await apiFetch(
+        `/api/v1/sessions/${sessionId}/drafts`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ content, version: draftVersion + 1 }),
+        },
+        saveDraftResponseSchema
+      );
       // Chụp đúng nội dung đã POST (không phải nội dung tại thời điểm response
       // về — người học có thể đang gõ dở; phần mới sẽ được tick sau lưu tiếp).
       lastSavedContentRef.current = content;
-      setDraftVersion((v) => v + 1);
+      setDraftVersion(saved.version);
       setLastSavedAt(nowStamp());
       setSaveFailed(false);
       return true;

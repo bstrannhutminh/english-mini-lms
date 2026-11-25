@@ -11,6 +11,7 @@ import type {
   AdminActivity,
   AdminSegment,
   AdminSource,
+  AdminActivityUpdate,
 } from "@/contracts/admin-content";
 import {
   ANSWER_REVEALS,
@@ -82,14 +83,14 @@ export default function ActivityEditForm({
     setSaving(true);
     setError(null);
     setDetails([]);
-    const payload: Record<string, unknown> = {
+    const payload: AdminActivityUpdate = {
       title: f.title.trim(),
       objective: orNull(f.objective),
       topic: f.topic.trim() || null,
       durationMinutes: f.durationMinutes.trim() === "" ? null : Number(f.durationMinutes),
       difficulty: f.difficulty,
-      purpose: f.purpose || null,
-      output: f.output,
+      purpose: (f.purpose || null) as AdminActivityUpdate["purpose"],
+      output: f.output as AdminActivityUpdate["output"],
       answerReveal: f.answerReveal,
       promptText: orNull(f.promptText),
       feedbackGuide: orNull(f.feedbackGuide),

@@ -3,7 +3,7 @@
 /** Tạo/sửa nguồn — nhãn Việt, "Lưu trữ" thay cho xoá. */
 import { useState } from "react";
 import { Button, useToast } from "@/components/ui";
-import type { AdminSource } from "@/contracts/admin-content";
+import type { AdminSource, AdminSourceCreate, AdminSourceUpdate } from "@/contracts/admin-content";
 import {
   LOCATOR_TYPES,
   SOURCE_KINDS,
@@ -66,19 +66,21 @@ export default function SourceEditForm({
     setSaving(true);
     setError(null);
     setDetails([]);
-    const body: Record<string, unknown> = {
+    const body = {
       title: f.title.trim(),
-      kind: f.kind,
+      kind: f.kind as AdminSourceCreate["kind"],
       permission: orNull(f.permission),
-      locatorType: f.locatorType || null,
+      locatorType: (f.locatorType || null) as AdminSourceUpdate["locatorType"],
       url: orNull(f.url),
       notes: orNull(f.notes),
     };
     try {
       if (isNew) {
-        await createSource({ ...body, id: f.id.trim() });
+        const createBody: AdminSourceCreate = { ...body, id: f.id.trim() };
+        await createSource(createBody);
       } else {
-        await updateSource(source.id, { ...body, reviewState: f.reviewState });
+        const updateBody: AdminSourceUpdate = { ...body, reviewState: f.reviewState };
+        await updateSource(source.id, updateBody);
       }
       toast.success("Đã lưu nguồn", f.id);
       onSaved();

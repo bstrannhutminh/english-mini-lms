@@ -31,6 +31,7 @@ export interface SegmentFields {
   transcriptContent: string | null;
   verifiedTranscript: boolean;
   language: string | null;
+  checksum: string | null;
 }
 
 function asInput(raw: unknown): Record<string, unknown> | null {
@@ -126,6 +127,8 @@ export function validateSegmentFields(
   if (text !== undefined) value.textContent = text;
   const lang = readText(input, "language", errors, { max: 10 });
   if (lang !== undefined) value.language = lang;
+  const checksum = readText(input, "checksum", errors, { max: 200 });
+  if (checksum !== undefined) value.checksum = checksum;
   const transcript = readText(input, "transcriptContent", errors, { max: 100000 });
   if (transcript !== undefined) {
     value.transcriptContent = transcript;

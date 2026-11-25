@@ -26,7 +26,7 @@ export const onboardingPayloadSchema = z.object({
   ieltsVariant: z.enum(["academic", "general", "none"]).nullable().optional(),
   currentBook: z.string().optional(),
   preferredStudyTime: z.string().optional(),
-  targetMinutesDefault: z.number().min(15).max(120).default(30),
+  targetMinutesDefault: z.union([z.literal(30), z.literal(45)]).default(30),
 });
 export type OnboardingPayload = z.infer<typeof onboardingPayloadSchema>;
 
@@ -44,7 +44,7 @@ export const onboardingProfileSchema = z.object({
   ieltsVariant: z.enum(["academic", "general", "none"]).nullable(),
   currentBook: z.string(),
   preferredStudyTime: z.string(),
-  targetMinutesDefault: z.number(),
+  targetMinutesDefault: z.union([z.literal(30), z.literal(45)]),
   baselineStatus: z.string(),
 });
 export type OnboardingProfile = z.infer<typeof onboardingProfileSchema>;

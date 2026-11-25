@@ -1,13 +1,11 @@
 import { NextResponse } from "next/server";
-import { z } from "zod";
+import { adminSourceCreateSchema } from "@/contracts/admin-content";
 import { parseJson, withAdmin } from "@/server/http";
 import { ContentError } from "@/server/admin/content-errors";
 import { createContentSource, listContentSources } from "@/server/admin/content-sources-service";
 import { REVIEW_STATES, isOneOf } from "@/lib/content-constants";
 
 export const dynamic = "force-dynamic";
-
-const objectBodySchema = z.looseObject({});
 
 export const GET = withAdmin(async ({ req }) => {
   const state = new URL(req.url).searchParams.get("state") ?? "all";
@@ -18,7 +16,7 @@ export const GET = withAdmin(async ({ req }) => {
 });
 
 export const POST = withAdmin(async ({ req }) => {
-  const body = await parseJson(req, objectBodySchema);
+  const body = await parseJson(req, adminSourceCreateSchema);
   const source = await createContentSource(body);
   return NextResponse.json({ source }, { status: 201 });
 });

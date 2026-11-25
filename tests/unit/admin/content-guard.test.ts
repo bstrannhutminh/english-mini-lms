@@ -77,7 +77,7 @@ describe("API quản lý nội dung — chỉ admin (withAdmin, guard nằm tron
     const json = await res.json();
     expect(json.error.code).toBe("validation_failed");
     expect(Object.keys(json.error.fields ?? {})).toEqual(
-      expect.arrayContaining(["id", "mode"])
+      expect.arrayContaining(["mode", "title"])
     );
   });
 

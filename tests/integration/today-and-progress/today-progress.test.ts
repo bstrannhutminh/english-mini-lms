@@ -223,7 +223,7 @@ describe("Step 6: Today Recommendation, Vocab Spaced Repetition, Progress & Onbo
         ieltsVariant: "academic" as const,
         currentBook: "Musculoskeletal Ultrasound Handbook",
         preferredStudyTime: "21:30",
-        targetMinutesDefault: 45,
+        targetMinutesDefault: 45 as const,
       };
 
       const saved = await saveLearnerOnboardingProfile(testLearnerId, profileToSave);
@@ -249,7 +249,7 @@ describe("Step 6: Today Recommendation, Vocab Spaced Repetition, Progress & Onbo
         ieltsVariant: null,
         currentBook: "",
         preferredStudyTime: "20:00",
-        targetMinutesDefault: 30,
+        targetMinutesDefault: 30 as const,
       };
 
       await saveLearnerOnboardingProfile(testLearnerId, profileWithoutIelts);

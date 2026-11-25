@@ -12,6 +12,12 @@ import {
   adminSourceResponseSchema,
   adminSegmentListResponseSchema,
   adminSegmentResponseSchema,
+  type AdminActivityCreate,
+  type AdminActivityUpdate,
+  type AdminSourceCreate,
+  type AdminSourceUpdate,
+  type AdminSegmentCreate,
+  type AdminSegmentUpdate,
 } from "@/contracts/admin-content";
 import {
   adminDashboardDataSchema,
@@ -47,9 +53,9 @@ export const listActivities = () =>
     GET_INIT,
     adminActivityListResponseSchema
   );
-export const createActivity = (body: unknown) =>
+export const createActivity = (body: AdminActivityCreate) =>
   apiFetch("/api/v1/admin/content/activities", post(body), adminActivityResponseSchema);
-export const updateActivity = (id: string, body: unknown) =>
+export const updateActivity = (id: string, body: AdminActivityUpdate) =>
   apiFetch(
     `/api/v1/admin/content/activities/${id}`,
     patch(body),
@@ -63,9 +69,9 @@ export const listSources = () =>
     GET_INIT,
     adminSourceListResponseSchema
   );
-export const createSource = (body: unknown) =>
+export const createSource = (body: AdminSourceCreate) =>
   apiFetch("/api/v1/admin/content/sources", post(body), adminSourceResponseSchema);
-export const updateSource = (id: string, body: unknown) =>
+export const updateSource = (id: string, body: AdminSourceUpdate) =>
   apiFetch(
     `/api/v1/admin/content/sources/${id}`,
     patch(body),
@@ -75,9 +81,9 @@ export const updateSource = (id: string, body: unknown) =>
 /* ── Segments ── */
 export const listSegments = () =>
   apiFetch("/api/v1/admin/content/segments", GET_INIT, adminSegmentListResponseSchema);
-export const createSegment = (body: unknown) =>
+export const createSegment = (body: AdminSegmentCreate) =>
   apiFetch("/api/v1/admin/content/segments", post(body), adminSegmentResponseSchema);
-export const updateSegment = (id: string, body: unknown) =>
+export const updateSegment = (id: string, body: AdminSegmentUpdate) =>
   apiFetch(
     `/api/v1/admin/content/segments/${id}`,
     patch(body),
