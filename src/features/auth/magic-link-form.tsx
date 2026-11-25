@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { mapAuthRuntimeError } from "./login-messages";
 import { Button, Icon } from "@/components/ui";
 
 interface MagicLinkFormProps {
@@ -49,7 +50,13 @@ export function MagicLinkForm({
 
       setLoading(false);
       if (otpError) {
-        onError(otpError.message);
+        // Mọi lỗi Supabase đều qua mapper — không hiển thị raw error tiếng Anh.
+        onError(
+          mapAuthRuntimeError({
+            code: otpError.code,
+            message: otpError.message,
+          }),
+        );
       } else {
         onSent();
       }

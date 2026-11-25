@@ -124,7 +124,7 @@ export function ListeningShadowing({
 
             <p
               {...capture.selectHandlers(seg.text, `${sourceRef} · câu ${seg.startSeconds}–${seg.endSeconds}s`, "video")}
-              className="mb-4 max-w-[65ch] text-base font-medium leading-relaxed text-text"
+              className="mb-4 max-w-[65ch] break-words text-base font-medium leading-relaxed text-text"
             >
               &ldquo;{seg.text}&rdquo;
             </p>
@@ -151,7 +151,7 @@ export function ListeningShadowing({
                   maxSeconds={60}
                   busy={evaluatingIndex !== null}
                   failed={failedIndex === idx}
-                  onComplete={(blob) => void handleComplete(idx, blob)}
+                  onSubmit={(blob) => void handleComplete(idx, blob)}
                 />
 
                 {isEvaluating && (

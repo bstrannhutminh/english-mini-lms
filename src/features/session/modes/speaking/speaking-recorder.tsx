@@ -83,7 +83,16 @@ export function SpeakingRecorder({
           className="mt-4 flex items-start gap-2.5 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-base text-red-800"
         >
           <Icon name="alert-triangle" className="mt-1 h-4 w-4 shrink-0" />
-          <span>{error}</span>
+          <span className="min-w-0 flex-1 break-words">{error}</span>
+          <button
+            type="button"
+            onClick={() => void recorder.start()}
+            disabled={busy}
+            className="pressable inline-flex min-h-11 shrink-0 cursor-pointer items-center gap-1.5 rounded-lg border border-red-300 bg-surface px-3 text-base font-semibold text-red-800 hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            <Icon name="refresh" className="h-4 w-4" />
+            Thử lại
+          </button>
         </div>
       )}
 

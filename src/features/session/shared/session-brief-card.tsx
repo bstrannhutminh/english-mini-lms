@@ -3,7 +3,7 @@ import { Icon } from "@/components/ui";
 
 /** Kiểu chữ đọc thoải mái cho đề bài/đoạn văn (≈65 ký tự mỗi dòng, giãn đoạn). */
 export const PROMPT_TEXT_CLASS =
-  "max-w-[65ch] text-base leading-relaxed text-text [&>p+p]:mt-3 [&>p+ul]:mt-2 [&>ul+p]:mt-3 [&_li]:leading-relaxed";
+  "max-w-[65ch] break-words text-base leading-relaxed text-text [&>p+p]:mt-3 [&>p+ul]:mt-2 [&>ul+p]:mt-3 [&_li]:leading-relaxed";
 
 /**
  * Thẻ đề bài dùng chung cho các mode (Viết/Đọc/Nói): nhãn eyebrow + thời lượng

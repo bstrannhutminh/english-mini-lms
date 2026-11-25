@@ -56,7 +56,7 @@ export function PracticeScoresCard({ scores, limitations }: PracticeScoresCardPr
                     <span className="text-lg font-semibold text-text">{formatScore(score.value)}</span>/{max}
                   </span>
                 </div>
-                <MeterBar percent={percent} className="mt-2" />
+                <MeterBar percent={percent} label={`${scoreCriterionLabel(score.dimension)}: ${formatScore(score.value)} trên ${max}`} className="mt-2" />
               </div>
               {score.note ? (
                 <p className="min-w-0 break-words text-base leading-relaxed text-text-secondary">{score.note}</p>

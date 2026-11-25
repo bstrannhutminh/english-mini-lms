@@ -9,6 +9,12 @@ export interface MeterBarProps {
   fillClass?: string;
   /** Lớp fill cho đoạn phụ, mặc định amber. */
   secondaryFillClass?: string;
+  /**
+   * Nhãn ngữ nghĩa cho trình đọc màn hình. Có label → role="meter" với
+   * aria-valuenow/min/max; bỏ trống = thanh trang trí thuần (aria-hidden)
+   * khi số liệu đã hiển thị bằng chữ ngay cạnh.
+   */
+  label?: string;
   className?: string;
 }
 
@@ -22,13 +28,25 @@ export function MeterBar({
   secondaryPercent = 0,
   fillClass = "fill-primary",
   secondaryFillClass = "fill-amber-400",
+  label,
   className,
 }: MeterBarProps) {
   const main = Math.min(100, Math.max(0, percent));
   const secondary = Math.min(100 - main, Math.max(0, secondaryPercent));
 
+  // Có nhãn → đo lường có ngữ nghĩa; không nhãn → trang trí, ẩn khỏi AT.
+  const a11yProps = label
+    ? {
+        role: "meter" as const,
+        "aria-label": label,
+        "aria-valuenow": Math.round(main),
+        "aria-valuemin": 0,
+        "aria-valuemax": 100,
+      }
+    : { "aria-hidden": true as const };
+
   return (
-    <svg aria-hidden="true" className={cn("block h-1.5 w-full overflow-hidden rounded-full", className)}>
+    <svg {...a11yProps} className={cn("block h-1.5 w-full overflow-hidden rounded-full", className)}>
       <rect width="100%" height="100%" className="fill-surface-subtle" />
       <rect width={`${main}%`} height="100%" rx="3" className={fillClass} />
       {secondary > 0 ? (

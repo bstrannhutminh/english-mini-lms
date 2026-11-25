@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { PasswordInput } from "./password-input";
+import { mapAuthRuntimeError } from "./login-messages";
 import { Button } from "@/components/ui";
 
 interface PasswordLoginFormProps {
@@ -44,17 +45,13 @@ export function PasswordLoginForm({
       });
 
       if (signInError) {
-        if (
-          signInError.message.toLowerCase().includes("invalid login credentials")
-        ) {
-          onError("Email hoặc mật khẩu không chính xác. Vui lòng kiểm tra lại.");
-        } else if (
-          signInError.message.toLowerCase().includes("email not confirmed")
-        ) {
-          onError("Tài khoản chưa được kích hoạt xác nhận email.");
-        } else {
-          onError(signInError.message);
-        }
+        // Mọi lỗi Supabase đều qua mapper — không hiển thị raw error tiếng Anh.
+        onError(
+          mapAuthRuntimeError({
+            code: signInError.code,
+            message: signInError.message,
+          }),
+        );
         setLoading(false);
         return;
       }

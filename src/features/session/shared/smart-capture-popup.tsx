@@ -74,8 +74,8 @@ export function SmartCapturePopup({
 
   return (
     <Modal open={Boolean(position)} onClose={isSaving ? undefined : onClose} title="Lưu cụm từ" size="sm">
-      <p className="mb-2 text-lg font-semibold text-text">{selectedText}</p>
-      <blockquote className="mb-3 border-l-2 border-border px-3 text-base leading-relaxed text-text-secondary">{surroundingSentence || selectedText}</blockquote>
+      <p className="mb-2 break-words text-lg font-semibold text-text">{selectedText}</p>
+      <blockquote className="mb-3 break-words border-l-2 border-border px-3 text-base leading-relaxed text-text-secondary">{surroundingSentence || selectedText}</blockquote>
       <p className="mb-4 break-words text-base text-text-secondary">Nguồn: {sourceRef || "Chưa được ghi nhận"}</p>
       {loading ? (
         <div role="status" className="flex items-center gap-3 py-5 text-base text-text-secondary"><Spinner size="sm" label="Đang tra cứu" />Đang tra nghĩa trong ngữ cảnh…</div>

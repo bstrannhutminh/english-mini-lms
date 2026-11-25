@@ -1,5 +1,5 @@
 import type { VocabularyItem } from "@/contracts/vocabulary";
-import { Button, Icon } from "@/components/ui";
+import { AutoResizeTextarea, Button, Icon } from "@/components/ui";
 import { YouGlishButton } from "./youglish-button";
 
 /** Phần mở rộng của thẻ từ: câu gốc + nguồn, nghe YouGlish, "Câu của tôi" và đánh dấu đã thuộc. */
@@ -29,8 +29,8 @@ export function VocabItemEditor({ item, attemptText, saving, saved, toggling, ma
       <div className="space-y-2 border-t border-border pt-4">
         <label htmlFor={`attempt-${item.id}`} className="eyebrow block">Câu của tôi</label>
         <p className="text-base leading-relaxed text-text-secondary">Dùng cụm từ này trong một câu về công việc hoặc giao tiếp của bạn.</p>
-        <textarea id={`attempt-${item.id}`} value={attemptText} disabled={saving}
-          onChange={(event) => onTextChange(event.target.value)} rows={2}
+        <AutoResizeTextarea id={`attempt-${item.id}`} value={attemptText} disabled={saving}
+          onChange={(event) => onTextChange(event.target.value)} rows={2} maxHeight={240}
           placeholder="Viết câu tiếng Anh của bạn…" className="field-control w-full leading-relaxed" />
       </div>
       <div className="flex flex-wrap items-center gap-3">

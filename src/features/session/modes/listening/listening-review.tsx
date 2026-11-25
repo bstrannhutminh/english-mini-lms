@@ -63,7 +63,7 @@ export function ListeningReview({
               </span>
               <div className="min-w-0">
                 <p className="eyebrow">Câu {idx + 1}</p>
-                <h3 className="text-base font-semibold leading-relaxed text-text">{q.prompt}</h3>
+                <h3 className="break-words text-base font-semibold leading-relaxed text-text">{q.prompt}</h3>
               </div>
             </div>
 
@@ -85,7 +85,7 @@ export function ListeningReview({
             </dl>
 
             {/* Giải thích & nút nghe lại mốc giây gây nhầm */}
-            <div className="mt-3 rounded-xl bg-surface-muted p-4 text-base leading-relaxed text-text-secondary">
+            <div className="mt-3 break-words rounded-xl bg-surface-muted p-4 text-base leading-relaxed text-text-secondary">
               <p className="eyebrow mb-1">Phân tích &amp; đoạn gây nhầm</p>
               <p className="text-text">{q.explanation}</p>
               <button

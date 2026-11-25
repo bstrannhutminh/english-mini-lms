@@ -1,6 +1,14 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  isIosUserAgent,
+  recorderErrorMessage,
+} from "./recorder-error-message";
+import {
+  isInAppUserAgent,
+  pickRecorderMimeType,
+} from "./recorder-support";
 
 export interface Recorder {
   isRecording: boolean;
@@ -18,17 +26,6 @@ export interface Recorder {
   clear: () => void;
 }
 
-function pickMimeType(): string {
-  if (MediaRecorder.isTypeSupported("audio/webm;codecs=opus")) {
-    return "audio/webm;codecs=opus";
-  }
-  if (MediaRecorder.isTypeSupported("audio/mp4")) return "audio/mp4"; // iOS Safari
-  if (MediaRecorder.isTypeSupported("audio/ogg;codecs=opus")) {
-    return "audio/ogg;codecs=opus";
-  }
-  return "audio/webm";
-}
-
 /**
  * Ghi âm bài nói bằng MediaRecorder (tối đa `maxSeconds`, mặc định 5 phút).
  * Hook headless (không kèm giao diện) — speaking/listening-shadowing dùng.
@@ -41,8 +38,7 @@ export function useRecorder(maxSeconds = 300): Recorder {
   const [error, setError] = useState<string | null>(null);
   const [isInAppBrowser] = useState(() => {
     if (typeof window === "undefined") return false;
-    const ua = navigator.userAgent || "";
-    return /Zalo/i.test(ua) || /FBAV|FBAN|Line/i.test(ua);
+    return isInAppUserAgent(navigator.userAgent || "");
   });
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
@@ -100,7 +96,7 @@ export function useRecorder(maxSeconds = 300): Recorder {
       });
       streamRef.current = stream;
 
-      const mimeType = pickMimeType();
+      const mimeType = pickRecorderMimeType();
       const mediaRecorder = new MediaRecorder(stream, { mimeType });
       mediaRecorderRef.current = mediaRecorder;
 
@@ -143,11 +139,13 @@ export function useRecorder(maxSeconds = 300): Recorder {
       stopTracks();
       mediaRecorderRef.current = null;
       console.error("Lỗi khi mở micro:", err);
-      setError(
-        err instanceof Error
-          ? err.message
-          : "Không thể truy cập micro. Hãy cấp quyền trong cài đặt trình duyệt.",
+      // Luôn map sang tiếng Việt theo nền tảng (iOS khác desktop) — không
+      // hiển thị raw error trình duyệt. iOS chỉ cần khi có lỗi nên đo tại đây.
+      const isIos = isIosUserAgent(
+        navigator.userAgent || "",
+        navigator.maxTouchPoints ?? 0,
       );
+      setError(recorderErrorMessage(err, isIos));
     }
   }, [maxSeconds, stop, stopTracks]);
 

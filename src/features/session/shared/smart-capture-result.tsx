@@ -27,7 +27,7 @@ export function SmartCaptureResult({
     <div>
       {/* Cụm từ & Phiên âm */}
       <div className="mb-2">
-        <div className="text-base font-bold text-slate-900">{data.phrase}</div>
+        <div className="break-words text-base font-bold text-slate-900">{data.phrase}</div>
         {data.ipa && (
           <div className="font-mono text-base text-primary-dark">
             /{data.ipa.replace(/^\/|\/$/g, "")}/
@@ -40,7 +40,7 @@ export function SmartCaptureResult({
         <div className="mb-0.5 text-base font-semibold text-slate-600">
           Nghĩa trong ngữ cảnh:
         </div>
-        <div className="text-base font-medium text-slate-800">
+        <div className="break-words text-base font-medium text-slate-800">
           {data.context_meaning}
         </div>
       </div>

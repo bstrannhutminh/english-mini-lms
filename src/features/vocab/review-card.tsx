@@ -1,8 +1,9 @@
 "use client";
 
 import type { ReviewVocabItem } from "@/contracts/vocabulary";
-import { Spinner } from "@/components/ui";
+import { AutoResizeTextarea, Spinner } from "@/components/ui";
 import { formatMastery } from "./mastery";
+import { useKeyboardInset } from "./use-keyboard-inset";
 
 export type ResponseMode = "text" | "voice";
 
@@ -21,6 +22,12 @@ const MODES: ReadonlyArray<{ value: ResponseMode; label: string }> = [
   { value: "voice", label: "Đọc chính tả" },
 ];
 
+/** Bàn phím ảo chiếm tối thiểu ~100px đáy mới coi là đang mở. */
+const KEYBOARD_OPEN_PX = 100;
+
+const submitButtonClass =
+  "pressable flex min-h-13 w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-base font-semibold text-white shadow-card hover:bg-primary-dark disabled:cursor-not-allowed disabled:bg-surface-subtle disabled:text-text-muted disabled:shadow-none";
+
 /** Thẻ thử thách micro-challenge: prompt + toggle Gõ chữ/Giọng nói + nộp. */
 export function ReviewCard({
   item,
@@ -31,6 +38,20 @@ export function ReviewCard({
   onTextChange,
   onSubmit,
 }: ReviewCardProps) {
+  // Bàn phím ảo mở (mobile) → nút nộp inline bị che → hiện bản sticky ngay
+  // trên bàn phím (pattern visualViewport giống action bar của khung phiên học).
+  const keyboardInset = useKeyboardInset();
+  const keyboardOpen = keyboardInset > KEYBOARD_OPEN_PX;
+
+  const submitContent = submitting ? (
+    <>
+      <Spinner size="sm" label="Đang chấm" /> Gemini đang nhận xét cách dùng
+      từ...
+    </>
+  ) : (
+    <>Gửi câu trả lời để chấm</>
+  );
+
   return (
     <div className="space-y-5 rounded-2xl border border-border bg-surface p-5 shadow-card sm:p-8">
       <div className="space-y-1.5 border-b border-border pb-4">
@@ -59,7 +80,7 @@ export function ReviewCard({
       {item.originalSentence && (
         <div className="rounded-xl bg-surface-muted p-4 text-base leading-relaxed">
           <span className="eyebrow mb-1 block">Câu gốc đã lưu</span>
-          <p className="text-text">
+          <p className="break-words text-text">
             &quot;{item.originalSentence}&quot;
           </p>
         </div>
@@ -70,7 +91,7 @@ export function ReviewCard({
         <div className="font-semibold text-primary-dark">
           Yêu cầu thử thách:
         </div>
-        <p className="leading-relaxed">
+        <p className="break-words leading-relaxed">
           Dùng cụm từ <strong className="underline decoration-primary/50 underline-offset-4">{item.phrase}</strong> trong
           1 câu tiếng Anh về bối cảnh công việc thực tế (khám bệnh, trao đổi ca
           bệnh, hoặc hội nghị chuyên môn).
@@ -101,7 +122,7 @@ export function ReviewCard({
           </div>
         </div>
 
-        <textarea
+        <AutoResizeTextarea
           id={`review-response-${item.id}`}
           aria-label="Câu trả lời của bạn"
           disabled={submitting}
@@ -109,7 +130,8 @@ export function ReviewCard({
           onChange={(e) => onTextChange(e.target.value)}
           placeholder={`Ví dụ: The patient presented with ${item.phrase} following acute trauma...`}
           rows={3}
-          className="field-control min-h-32 resize-y font-sans"
+          maxHeight={320}
+          className="field-control min-h-32 font-sans"
         />
 
         {responseMode === "voice" && (
@@ -123,19 +145,26 @@ export function ReviewCard({
         <button
           onClick={onSubmit}
           disabled={submitting || !userText.trim()}
-          className="pressable flex min-h-13 w-full cursor-pointer items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-base font-semibold text-white shadow-card hover:bg-primary-dark disabled:cursor-not-allowed disabled:bg-surface-subtle disabled:text-text-muted disabled:shadow-none"
+          className={submitButtonClass}
         >
-          {submitting ? (
-            <>
-              <Spinner size="sm" label="Đang chấm" /> Gemini đang nhận xét
-              cách dùng từ...
-            </>
-          ) : (
-            <>
-              Gửi câu trả lời để chấm
-            </>
-          )}
+          {submitContent}
         </button>
+
+        {/* CTA sticky trên bàn phím ảo — chỉ hiện khi bàn phím mở che nút inline */}
+        {keyboardOpen && (
+          <div
+            style={{ bottom: keyboardInset }}
+            className="fixed inset-x-0 z-20 border-t border-border/80 bg-surface/95 px-4 pb-2 pt-2 shadow-[0_-10px_24px_-18px_rgb(23_44_43/0.35)] backdrop-blur"
+          >
+            <button
+              onClick={onSubmit}
+              disabled={submitting || !userText.trim()}
+              className={submitButtonClass}
+            >
+              {submitContent}
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -13,6 +13,7 @@ import {
   ConfirmDialog,
   EmptyState,
   Icon,
+  AutoResizeTextarea,
   MeterBar,
   Modal,
   ProgressRing,
@@ -194,11 +195,28 @@ export function UiPreviewClient() {
           />
         </Section>
 
+        <Section title="AutoResizeTextarea — tự cao theo nội dung">
+          <div className="max-w-md">
+            <AutoResizeTextarea
+              aria-label="Demo textarea tự co giãn"
+              placeholder="Gõ nhiều dòng — khung tự cao, không cần kéo góc..."
+              rows={3}
+              maxHeight={200}
+              className="field-control font-sans"
+            />
+            <p className="mt-1 text-xs text-text-muted">maxHeight=200px, min-height theo class</p>
+          </div>
+        </Section>
+
         <Section title="MeterBar — thanh đo điểm/tỉ lệ">
           <div className="max-w-sm space-y-4">
             <div>
               <MeterBar percent={70} />
               <p className="mt-1 text-xs text-text-muted">Đơn đoạn 70%</p>
+            </div>
+            <div>
+              <MeterBar percent={70} label="Demo meter có nhãn: 70 trên 100" />
+              <p className="mt-1 text-xs text-text-muted">Có label → role=&quot;meter&quot; + aria-valuenow</p>
             </div>
             <div>
               <MeterBar percent={55} secondaryPercent={25} />

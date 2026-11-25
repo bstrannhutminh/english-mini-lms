@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useState } from "react";
 import { Button, Icon } from "@/components/ui";
 import { useRecorder } from "../../hooks/use-recorder";
 
@@ -12,30 +12,47 @@ function formatTime(secs: number): string {
 }
 
 /**
- * Khung ghi âm shadowing gọn (dùng useRecorder headless + Tailwind,
- * không dùng inline style). Dừng ghi → onComplete(blob)
- * để panel upload + chấm phát âm.
+ * Khung ghi âm shadowing gọn (dùng useRecorder headless + Tailwind).
+ * Luồng 2 bước rõ ràng: Dừng ghi → NGHE LẠI → learner tự chọn
+ * "Gửi chấm" (upload + chấm phát âm) hoặc "Ghi lại" — không tự gửi.
+ * Shadowing chỉ mở sau khi đã nộp bài nghe nên không có áp lực hết giờ;
+ * bản ghi chạm trần `maxSeconds` vẫn nằm yên ở bước nghe lại.
  */
 export function ShadowingRecorder({
   maxSeconds = 60,
   busy,
   failed = false,
-  onComplete,
+  onSubmit,
 }: {
   maxSeconds?: number;
-  /** Đang upload/chấm — khoá nút ghi lại. */
+  /** Đang upload/chấm — khoá mọi nút hành động. */
   busy: boolean;
+  /** Lần gửi trước thất bại — cho phép bấm Gửi chấm lại với cùng bản ghi. */
   failed?: boolean;
-  onComplete: (blob: Blob) => void;
+  onSubmit: (blob: Blob) => void;
 }) {
   const recorder = useRecorder(maxSeconds);
+  // Bản ghi đã bấm gửi gần nhất — chống gửi trùng cùng một take sau khi chấm xong
+  // (state vì tham gia trực tiếp vào quyết định render nút Gửi chấm).
+  const [lastSentBlob, setLastSentBlob] = useState<Blob | null>(null);
 
-  // Có blob mới → bàn giao cho luồng chấm (mỗi blob chỉ bắn 1 lần).
-  const blob = recorder.blob;
-  useEffect(() => {
-    if (blob) onComplete(blob);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [blob]);
+  const takeReady = Boolean(recorder.blob) && !recorder.isRecording;
+  // Chưa gửi take này, hoặc gửi nhưng thất bại → được bấm Gửi chấm (lại).
+  const canSend =
+    takeReady &&
+    !busy &&
+    (recorder.blob !== lastSentBlob || failed);
+
+  function handleSend() {
+    if (!recorder.blob || !canSend) return;
+    setLastSentBlob(recorder.blob);
+    onSubmit(recorder.blob);
+  }
+
+  function handleRetake() {
+    setLastSentBlob(null);
+    recorder.clear();
+  }
 
   return (
     <div>
@@ -51,11 +68,20 @@ export function ShadowingRecorder({
         </div>
       )}
 
-      {/* Lỗi quyền micro */}
+      {/* Lỗi quyền micro + nút thử lại ngay trong khung cảnh báo */}
       {recorder.error && (
         <div role="alert" className="mb-3 flex items-start gap-2.5 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-base text-red-800">
           <Icon name="alert-triangle" className="mt-1 h-4 w-4 shrink-0" />
-          <span>{recorder.error}</span>
+          <span className="min-w-0 flex-1 break-words">{recorder.error}</span>
+          <button
+            type="button"
+            onClick={() => void recorder.start()}
+            disabled={busy}
+            className="pressable inline-flex min-h-11 shrink-0 cursor-pointer items-center gap-1.5 rounded-lg border border-red-300 bg-surface px-3 text-base font-semibold text-red-800 hover:bg-red-100 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            <Icon name="refresh" className="h-4 w-4" />
+            Thử lại
+          </button>
         </div>
       )}
 
@@ -81,13 +107,15 @@ export function ShadowingRecorder({
         <p className="mt-1 text-base text-text-secondary">
           {recorder.isRecording
             ? "Đang thu âm giọng nói của bạn... Nhấn Dừng khi hoàn thành."
-            : recorder.blob
-              ? "Đã ghi âm xong — nghe lại hoặc thu lại."
+            : takeReady
+              ? canSend
+                ? "Đã ghi xong — hãy nghe lại, rồi chọn Gửi chấm hoặc Ghi lại."
+                : "Đã gửi chấm — xem nhận xét bên dưới, hoặc Ghi lại để luyện tiếp."
               : "Sẵn sàng thu âm. Hãy đảm bảo ở nơi yên tĩnh."}
         </p>
       </div>
 
-      {/* Nghe lại trước khi gửi chấm */}
+      {/* Nghe lại trước khi quyết định gửi chấm */}
       {recorder.audioUrl && !recorder.isRecording && (
         <audio
           controls
@@ -109,13 +137,25 @@ export function ShadowingRecorder({
             Dừng ghi âm ({formatTime(recorder.durationSeconds)})
           </Button>
         )}
-        {recorder.blob && !recorder.isRecording && (
-          <Button variant="outline" disabled={busy} onClick={recorder.clear}>
-            <Icon name="trash" className="h-4 w-4" />
-            Thu lại từ đầu
-          </Button>
+        {takeReady && (
+          <>
+            <Button
+              variant="outline"
+              className="flex-1"
+              disabled={busy}
+              onClick={handleRetake}
+            >
+              <Icon name="mic" className="h-4 w-4" />
+              Ghi lại
+            </Button>
+            {canSend && (
+              <Button className="flex-1" disabled={busy} onClick={handleSend}>
+                <Icon name="send" className="h-4 w-4" />
+                {failed ? "Gửi chấm lại" : "Gửi chấm"}
+              </Button>
+            )}
+          </>
         )}
-        {recorder.blob && failed && !recorder.isRecording && <Button disabled={busy} onClick={() => { if (recorder.blob) onComplete(recorder.blob); }}>Thử chấm bản ghi lại</Button>}
       </div>
     </div>
   );

@@ -1,6 +1,6 @@
 "use client";
 
-import { MarkdownText } from "@/components/ui";
+import { AutoResizeTextarea, MarkdownText } from "@/components/ui";
 import { cn } from "@/lib/utils";
 import type { ModePanelProps } from "../types";
 import { usePluginState } from "../types";
@@ -107,14 +107,14 @@ export function WritingPanel(props: ModePanelProps) {
       )}
       {countNote && <p className="mt-2 text-sm text-text-secondary">{countNote}</p>}
 
-      <textarea
+      <AutoResizeTextarea
         id="essay-editor"
         value={state.text}
         onChange={(e) => setText(e.target.value)}
         disabled={busy}
         placeholder="Viết bài của bạn tại đây bằng tiếng Anh..."
         rows={12}
-        className="mt-3 box-border min-h-[45dvh] w-full resize-y rounded-xl border border-border-strong bg-surface p-4 text-base leading-7 text-text outline-none transition placeholder:text-text-muted focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:opacity-60 lg:min-h-[max(24rem,calc(100dvh-27rem))]"
+        className="mt-3 box-border min-h-[45dvh] w-full rounded-xl border border-border-strong bg-surface p-4 text-base leading-7 text-text outline-none transition placeholder:text-text-muted focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:opacity-60 lg:min-h-[max(24rem,calc(100dvh-27rem))]"
       />
       <p className="mt-2 text-sm leading-5 text-text-muted">
         {data.parentId

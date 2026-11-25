@@ -1,6 +1,6 @@
 "use client";
 
-import { Badge, EmptyState, Icon } from "@/components/ui";
+import { AutoResizeTextarea, Badge, EmptyState, Icon } from "@/components/ui";
 import { cn } from "@/lib/utils";
 import type { ModePanelProps } from "../types";
 import { usePluginState } from "../types";
@@ -11,7 +11,7 @@ import { ReadingParentReference } from "./parent-reference";
 import type { ReadingModeState } from "./state";
 
 const textareaClass =
-  "box-border w-full resize-y rounded-xl border border-border-strong bg-surface p-4 text-base leading-relaxed text-text outline-none transition placeholder:text-text-muted focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:opacity-60";
+  "box-border w-full rounded-xl border border-border-strong bg-surface p-4 text-base leading-relaxed text-text outline-none transition placeholder:text-text-muted focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:opacity-60";
 const stepClass = "mt-5 border-t border-border pt-5";
 
 function StepNumber({ num, done }: { num: number; done: boolean }) {
@@ -104,13 +104,14 @@ export function ReadingPanel(props: ModePanelProps) {
           <StepNumber num={1} done={state.mainIdea.trim().length > 0} />
           <span>Ý chính của đoạn (Main Idea)</span>
         </label>
-        <textarea
+        <AutoResizeTextarea
           id="main-idea-input"
           value={state.mainIdea}
           onChange={(e) => set({ mainIdea: e.target.value })}
           disabled={busy}
           placeholder="Tóm tắt ý chính trong 1–2 câu bằng tiếng Việt hoặc tiếng Anh..."
           rows={3}
+          maxHeight={280}
           className={textareaClass}
         />
       </div>
@@ -134,7 +135,7 @@ export function ReadingPanel(props: ModePanelProps) {
             </span>
           </span>
         </div>
-        <textarea
+        <AutoResizeTextarea
           id="translation-input"
           value={state.translation}
           onChange={(e) => set({ translation: e.target.value })}
@@ -154,7 +155,7 @@ export function ReadingPanel(props: ModePanelProps) {
           <StepNumber num={3} done={state.keyTerms.trim().length > 0} />
           <span>Ba thuật ngữ tự giải thích (Key Terms)</span>
         </label>
-        <textarea
+        <AutoResizeTextarea
           id="key-terms-input"
           value={state.keyTerms}
           onChange={(e) => set({ keyTerms: e.target.value })}
@@ -163,6 +164,7 @@ export function ReadingPanel(props: ModePanelProps) {
             "Ví dụ:\n1. suprascapular nerve block: Phong bế thần kinh trên vai...\n2. fascial compartment: Khoang cân mạc..."
           }
           rows={4}
+          maxHeight={360}
           className={textareaClass}
         />
       </div>

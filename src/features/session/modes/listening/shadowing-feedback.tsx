@@ -3,7 +3,7 @@ import type { SpeakingFeedback } from "@/contracts/submission";
 /** Audio-based feedback must keep its transcript uncertainty and assessment limits. */
 export function ShadowingFeedback({ result }: { result: SpeakingFeedback }) {
   return (
-    <div className="mt-4 rounded-xl border border-teal-200 bg-primary-soft p-4 text-base leading-relaxed text-text">
+    <div className="mt-4 break-words rounded-xl border border-teal-200 bg-primary-soft p-4 text-base leading-relaxed text-text">
       <h3 className="mb-1 font-semibold text-primary-dark">Nhận xét bản ghi âm</h3>
       <p>{result.pronunciation?.status === "not_assessable" ? "Chưa đánh giá được phát âm. " : ""}{result.pronunciation?.notes}</p>
       {result.transcript && <p className="mt-2">AI nghe được: <em>&ldquo;{result.transcript}&rdquo;</em>{typeof result.transcript_confidence === "number" ? ` (Độ tin cậy: ${Math.round(result.transcript_confidence * 100)}%)` : ""}</p>}

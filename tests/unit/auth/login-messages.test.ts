@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   isMagicLinkError,
   loginErrorMessage,
+  mapAuthRuntimeError,
 } from "@/features/auth/login-messages";
 
 describe("loginErrorMessage", () => {
@@ -53,5 +54,49 @@ describe("isMagicLinkError", () => {
   it("lỗi khác → false (không hiện gợi ý trình duyệt)", () => {
     expect(isMagicLinkError({ error: "access_denied" })).toBe(false);
     expect(isMagicLinkError({})).toBe(false);
+  });
+});
+
+describe("mapAuthRuntimeError", () => {
+  it("invalid_credentials (code) → sai email/mật khẩu", () => {
+    expect(mapAuthRuntimeError({ code: "invalid_credentials" })).toContain(
+      "không chính xác"
+    );
+  });
+
+  it("message 'Invalid login credentials' (bản cũ không có code) vẫn map đúng", () => {
+    expect(
+      mapAuthRuntimeError({ message: "Invalid login credentials" })
+    ).toContain("không chính xác");
+  });
+
+  it("email_not_confirmed → hướng dẫn xác nhận email", () => {
+    expect(mapAuthRuntimeError({ code: "email_not_confirmed" })).toContain(
+      "xác nhận email"
+    );
+  });
+
+  it("rate limit → đợi vài phút", () => {
+    expect(
+      mapAuthRuntimeError({ code: "over_request_rate_limit" })
+    ).toContain("quá nhiều lần");
+    expect(
+      mapAuthRuntimeError({ message: "email rate limit exceeded" })
+    ).toContain("quá nhiều lần");
+  });
+
+  it("lỗi mạng → gợi ý kiểm tra kết nối", () => {
+    expect(mapAuthRuntimeError({ message: "Failed to fetch" })).toContain(
+      "kết nối mạng"
+    );
+  });
+
+  it("lỗi lạ → thông báo chung tiếng Việt, KHÔNG lộ message tiếng Anh", () => {
+    const msg = mapAuthRuntimeError({
+      code: "unexpected_failure",
+      message: "something weird happened in the auth layer",
+    });
+    expect(msg).toBe("Đăng nhập không thành công. Vui lòng thử lại sau ít phút.");
+    expect(msg).not.toContain("weird");
   });
 });

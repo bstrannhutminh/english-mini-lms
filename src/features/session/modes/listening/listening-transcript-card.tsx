@@ -94,7 +94,7 @@ export function ListeningTranscriptCard({
                     <Icon name="play" className="h-3 w-3" />
                     {seg.startSeconds}s
                   </button>
-                  <span className="min-w-0 pt-2">{seg.text}</span>
+                  <span className="min-w-0 break-words pt-2">{seg.text}</span>
                 </div>
               ))}
             </div>

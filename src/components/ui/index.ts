@@ -2,6 +2,7 @@
  * Bộ primitive UI dùng chung — import gọn: `import { Button, Card } from "@/components/ui"`.
  * Kiểm tra tay mọi primitive/state tại /ui-preview (chỉ môi trường dev).
  */
+export { AutoResizeTextarea, type AutoResizeTextareaProps } from "./autoresize-textarea";
 export { Badge, type BadgeProps, type BadgeTone } from "./badge";
 export { Button, type ButtonProps, type ButtonSize, type ButtonVariant } from "./button";
 export { Card, CardHeader, type CardHeaderProps, type CardProps } from "./card";

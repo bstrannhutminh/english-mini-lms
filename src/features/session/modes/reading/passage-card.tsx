@@ -74,7 +74,7 @@ export function PassageCard({
       {/* Nội dung đoạn văn — render Markdown sạch & gắn capture handlers */}
       <div
         {...capture.selectHandlers(segment.textContent ?? "", sourceRef, "book")}
-        className={cn("max-w-[65ch] px-5 py-5 text-text sm:px-6 sm:py-6 [&>p+p]:mt-4", activeScale.cls)}
+        className={cn("max-w-[65ch] break-words px-5 py-5 text-text sm:px-6 sm:py-6 [&>p+p]:mt-4", activeScale.cls)}
       >
         <MarkdownText text={segment.textContent ?? ""} />
       </div>

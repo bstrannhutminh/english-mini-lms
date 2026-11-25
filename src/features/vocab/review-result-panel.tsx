@@ -54,7 +54,7 @@ export function ReviewResultPanel({
 
         <div className="space-y-1 border-t border-black/10 pt-3">
           <span className="block text-base font-semibold">Nhận xét của AI:</span>
-          <p className="text-base leading-relaxed">{evaluation.aiAssessment}</p>
+          <p className="break-words text-base leading-relaxed">{evaluation.aiAssessment}</p>
         </div>
 
         {evaluation.feedbackNotes && (
@@ -62,7 +62,7 @@ export function ReviewResultPanel({
             <span className="mb-0.5 block font-semibold text-text-secondary">
               Phân tích collocation:
             </span>
-            <p className="leading-relaxed text-text">{evaluation.feedbackNotes}</p>
+            <p className="break-words leading-relaxed text-text">{evaluation.feedbackNotes}</p>
           </div>
         )}
 
@@ -71,7 +71,7 @@ export function ReviewResultPanel({
             <span className="mb-0.5 block font-semibold text-text-secondary">
               Gợi ý diễn đạt tự nhiên hơn:
             </span>
-            <p className="leading-relaxed text-text">
+            <p className="break-words leading-relaxed text-text">
               &quot;{evaluation.exampleCorrection}&quot;
             </p>
           </div>

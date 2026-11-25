@@ -69,3 +69,54 @@ export function isMagicLinkError(input: LoginErrorInput): boolean {
     "otp_expired",
   ].includes(code);
 }
+
+/**
+ * Map lỗi runtime của Supabase Auth (signInWithPassword/signInWithOtp) sang
+ * tiếng Việt thân thiện — learner không bao giờ thấy thông báo tiếng Anh
+ * kỹ thuật. Nhận cả `code` (AuthError hiện đại) lẫn `message` (bản cũ).
+ */
+export function mapAuthRuntimeError(input: {
+  code?: string | null;
+  message?: string | null;
+}): string {
+  const code = (input.code ?? "").trim();
+  const message = (input.message ?? "").toLowerCase();
+
+  if (
+    code === "invalid_credentials" ||
+    message.includes("invalid login credentials")
+  ) {
+    return "Email hoặc mật khẩu không chính xác. Vui lòng kiểm tra lại.";
+  }
+  if (code === "email_not_confirmed" || message.includes("email not confirmed")) {
+    return "Tài khoản chưa xác nhận email. Hãy mở hộp thư và bấm liên kết xác nhận đã gửi trước đó.";
+  }
+  if (
+    code === "over_request_rate_limit" ||
+    code === "over_email_send_rate_limit" ||
+    message.includes("rate limit") ||
+    message.includes("too many requests")
+  ) {
+    return "Bạn đã thử quá nhiều lần trong thời gian ngắn. Đợi vài phút rồi thử lại.";
+  }
+  if (code === "otp_expired" || message.includes("otp expired")) {
+    return "Liên kết đăng nhập đã hết hạn. Hãy gửi lại liên kết mới và mở ngay.";
+  }
+  if (code === "otp_disabled") {
+    return "Đăng nhập bằng liên kết email đang bị tắt. Hãy dùng mật khẩu.";
+  }
+  if (
+    code === "user_not_found" ||
+    message.includes("user not found")
+  ) {
+    return "Không tìm thấy tài khoản với email này. Hãy kiểm tra lại chính tả email.";
+  }
+  if (
+    message.includes("failed to fetch") ||
+    message.includes("network") ||
+    message.includes("fetch error")
+  ) {
+    return "Lỗi kết nối mạng. Hãy kiểm tra Wi-Fi/3G rồi thử lại.";
+  }
+  return "Đăng nhập không thành công. Vui lòng thử lại sau ít phút.";
+}
