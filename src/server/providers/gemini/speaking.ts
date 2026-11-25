@@ -9,91 +9,35 @@ import {
   callGeminiWithRetry,
   geminiAbortSignal,
 } from "./call-gemini";
+import {
+  SPEAKING_SYSTEM_INSTRUCTION,
+  speakingJsonSchema,
+  buildSpeakingAudioPrompt,
+  buildSpeakingTextOnlyPrompt,
+  type SpeakingEvalContext,
+} from "./speaking-prompt";
 
-export const SPEAKING_SYSTEM_INSTRUCTION = `Bạn là Giảng viên Cố vấn Speaking tiếng Anh Y khoa & Giao tiếp Hội nghị dành cho Bác sĩ Minh (chuyên ngành Cơ xương khớp và can thiệp giảm đau siêu âm).
-Nhiệm vụ: Đánh giá bài nói (Speaking / Shadowing) từ âm thanh trực tiếp của bác sĩ.
-
-QUY TẮC BẮT BUỘC:
-1. Bóc băng chính xác từng từ mà người nói đã phát âm thành văn bản tiếng Anh vào trường "transcript".
-2. Tối đa 3 observations ưu tiên (observations.length <= 3): tập trung vào từ vựng chuyên ngành, cấu trúc diễn đạt, hoặc lỗi phát âm/ngắt nghỉ quan trọng nhất. Mỗi observation phải có category (pronunciation, grammar, vocabulary, fluency, tone, structure).
-3. Đánh giá phát âm (pronunciation):
-   - Nếu có âm thanh: status là "assessed", nhận xét cụ thể về trọng âm từ (word stress), ngữ điệu (intonation), hoặc các phụ âm cuối (ending sounds).
-   - TUYỆT ĐỐI: Nếu không có file âm thanh thật (hoặc đầu vào chỉ là văn bản), trường pronunciation.status BẮT BUỘC phải là "not_assessable" và notes nêu rõ: "Không thể chấm phát âm do thiếu dữ liệu âm thanh thực tế."
-4. Trường retry_prompt: Đưa ra 1 thử thách nói lại ngắn gọn, trọng tâm vào điểm cần cải thiện nhất.
-5. Scores: Chỉ mang kind "practice_estimate" cho các tiêu chí như fluency, pronunciation, vocabulary. Tuyệt đối không sinh "official IELTS band".
-6. Limitations: Ghi rõ nhận xét chỉ phục vụ mục đích rèn luyện phản xạ ngôn ngữ.
-7. Trả về đúng định dạng JSON tuân thủ schema.`;
-
-export const speakingJsonSchema = {
-  type: "object",
-  properties: {
-    transcript: { type: "string" },
-    transcript_confidence: { type: "number" },
-    observations: {
-      type: "array",
-      items: {
-        type: "object",
-        properties: {
-          category: {
-            type: "string",
-            description: "Phân loại lỗi: pronunciation | grammar | vocabulary | fluency | tone | structure",
-          },
-          location: { type: "string" },
-          original: { type: "string" },
-          issue: { type: "string" },
-          suggestion: { type: "string" },
-          example: { type: "string" },
-          retry_prompt: { type: "string" },
-        },
-        required: ["location", "original", "issue", "suggestion", "example", "retry_prompt"],
-      },
-      maxItems: 3,
-    },
-    pronunciation: {
-      type: "object",
-      properties: {
-        status: { type: "string", enum: ["assessed", "not_assessable"] },
-        notes: { type: "string" },
-      },
-      required: ["status", "notes"],
-    },
-    retry_prompt: { type: "string" },
-    strengths: { type: "array", items: { type: "string" } },
-    next_action: { type: "string" },
-    limitations: { type: "string" },
-    scores: {
-      type: "array",
-      items: {
-        type: "object",
-        properties: {
-          kind: { type: "string", enum: ["practice_estimate"] },
-          dimension: { type: "string" },
-          value: { type: "number" },
-          note: { type: "string" },
-        },
-        required: ["kind", "dimension", "value"],
-      },
-    },
-  },
-  required: ["transcript", "observations", "pronunciation", "retry_prompt", "limitations"],
+// Re-export: prompt builders + schema dùng chung cho test và caller —
+// implement nằm trong speaking-prompt.ts (tách để giữ file ≤200 dòng).
+export {
+  SPEAKING_SYSTEM_INSTRUCTION,
+  speakingJsonSchema,
+  buildSpeakingAudioPrompt,
+  buildSpeakingTextOnlyPrompt,
+  type SpeakingEvalContext,
 };
 
 export async function evaluateSpeaking(
   audioFile: EvaluateSpeakingAudio | null,
   prompt: string,
-  verifiedTranscript?: string,
+  context: SpeakingEvalContext = {},
   modelName = "gemini-2.5-flash"
 ): Promise<EvaluateSpeakingResult> {
   const ai = getGeminiClient();
 
   // BẤT BIẾN SỐ 3: Nếu không có file audio (hoặc rỗng), TUYỆT ĐỐI không chấm phát âm từ transcript
   if (!audioFile || !audioFile.buffer || audioFile.buffer.length === 0) {
-    const textPrompt = `ĐỀ BÀI HOẶC NGỮ CẢNH:
-${prompt}
-
-${verifiedTranscript ? `BẢN TRANSCRIPT MẪU ĐƯỢC DUYỆT:\n${verifiedTranscript}\n` : ""}
-LƯU Ý: Người dùng nộp bài dạng văn bản, KHÔNG CÓ FILE ÂM THANH THỰC TẾ.
-Bắt buộc đặt pronunciation.status = "not_assessable".`;
+    const textPrompt = buildSpeakingTextOnlyPrompt(prompt, context);
 
     // Đường text-only: vẫn timeout + retry-on-schema như các nhánh khác.
     return callGeminiWithRetry(async () => {
@@ -139,11 +83,7 @@ Bắt buộc đặt pronunciation.status = "not_assessable".`;
   }
 
   // Trường hợp CÓ FILE AUDIO THỰC TẾ: Gửi trực tiếp audio buffer qua multimodal inlineData
-  const promptText = `ĐỀ BÀI NÓI / BỐI CẢNH HỘI NGHỊ:
-${prompt}
-
-${verifiedTranscript ? `TRANSCRIPT CHUẨN CẦN NHẠI GIỌNG (SHADOWING):\n${verifiedTranscript}\n` : ""}
-Hãy lắng nghe trực tiếp tệp âm thanh đính kèm, bóc băng chính xác vào transcript, đánh giá phát âm (pronunciation), nhận xét tối đa 3 điểm ưu tiên và trả về JSON theo schema.`;
+  const promptText = buildSpeakingAudioPrompt(prompt, context);
 
   async function callGeminiAudioOnce() {
     const response = await ai.models.generateContent({

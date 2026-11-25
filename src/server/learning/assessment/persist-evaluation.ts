@@ -43,10 +43,27 @@ export async function persistEvaluationResult(
     replaceErrorObservations = false,
   } = args;
 
-  // pronunciation (speaking) snapshot cùng rubric tại thời điểm chấm
+  // pronunciation (speaking) snapshot cùng rubric tại thời điểm chấm.
+  // transcript do AI bóc băng (speaking) cũng lưu vào payload jsonb này —
+  // trước đây bị bỏ mất nên trang feedback hiển thị nhầm ghi chú learner.
+  // Shape khớp rubricSnapshotPayloadSchema trong contracts/submission.ts.
+  //
+  // CHỈ lưu transcript khi pronunciation assessed (có audio thật): nhánh
+  // text-only transcript chỉ là bản sao bài learner tự gõ — không thêm thông
+  // tin mà còn tái tạo lỗi hiển thị nhầm "AI nghe được".
+  const hasRealAudioTranscript =
+    outcome.feedback.pronunciation?.status === "assessed" &&
+    Boolean(outcome.feedback.transcript);
   const rubricSnapshot = {
     pronunciation: outcome.feedback.pronunciation || null,
     rubric: (rubricJson ?? null) as Record<string, unknown> | null,
+    ...(hasRealAudioTranscript
+      ? { transcript: outcome.feedback.transcript }
+      : {}),
+    ...(hasRealAudioTranscript &&
+    typeof outcome.feedback.transcript_confidence === "number"
+      ? { transcript_confidence: outcome.feedback.transcript_confidence }
+      : {}),
   };
 
   const [feedback] = await db

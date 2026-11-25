@@ -7,7 +7,7 @@ import {
   sourceSegments,
   sources,
 } from "@/db/schema";
-import { loadListeningQuestions } from "../listening-questions";
+import { loadListeningQuestions, toClientQuestions } from "../listening-questions";
 import { listeningSourceMedia } from "./listening-source-media";
 
 export interface TranscriptSegment {
@@ -109,16 +109,9 @@ export async function loadListeningSessionData(
 
   const transcriptSegments = parseTranscriptLines(rawTranscript);
 
-  const questionsList = loadListeningQuestions(activity).map((q) => ({
-    id: q.id as string,
-    prompt: q.prompt as string,
-    options: Array.isArray(q.options)
-      ? (q.options as Array<{ id: string; text: string }>).map((opt) => ({
-          id: opt.id,
-          text: opt.text,
-        }))
-      : [],
-  }));
+  // toClientQuestions là một nguồn chuẩn duy nhất: trần correct_option_id,
+  // explanation, timestamp_reference khỏi payload gửi client trước khi nộp.
+  const questionsList = toClientQuestions(loadListeningQuestions(activity));
 
   // Khoá transcript: chỉ trả khi đã reveal hoặc đã có submission cho session này
   const [existingSubmission] = await db

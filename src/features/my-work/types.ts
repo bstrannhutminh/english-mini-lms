@@ -22,6 +22,10 @@ export interface MyWorkFeedback {
   limitations: string;
   scores: PracticeScore[];
   pronunciation?: PronunciationResult | null;
+  /** Transcript do AI tự bóc băng từ audio (speaking) — feedback cũ chưa
+   * persist nên null; KHÔNG phải ghi chú/bản gõ tay của learner. */
+  transcript?: string | null;
+  transcriptConfidence?: number | null;
 }
 
 /** Bài nộp (của getSubmissionWithFeedback — có signed audioUrl tạm). */

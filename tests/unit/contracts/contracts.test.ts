@@ -6,6 +6,7 @@ import {
   practiceScoreSchema,
   feedbackObservationSchema,
   speakingFeedbackSchema,
+  rubricSnapshotPayloadSchema,
   createSessionRequestSchema,
   uploadMediaResponseSchema,
   quickCaptureRequestSchema,
@@ -109,6 +110,32 @@ describe("feedback invariant shapes", () => {
       scores: [],
     });
     expect(parsed.pronunciation.status).toBe("not_assessable");
+  });
+
+  it("rubricSnapshotPayload: backward-compatible — feedback cũ không transcript vẫn parse", () => {
+    // Snapshot kiểu cũ (chỉ pronunciation + rubric)
+    const legacy = rubricSnapshotPayloadSchema.parse({
+      pronunciation: { status: "assessed", notes: "Tốt" },
+      rubric: { id: "r1" },
+    });
+    expect(legacy.transcript).toBeUndefined();
+
+    // Snapshot kiểu mới có transcript AI
+    const withTranscript = rubricSnapshotPayloadSchema.parse({
+      pronunciation: { status: "assessed", notes: "Tốt" },
+      rubric: null,
+      transcript: "AI heard this",
+      transcript_confidence: 0.87,
+    });
+    expect(withTranscript.transcript).toBe("AI heard this");
+    expect(withTranscript.transcript_confidence).toBe(0.87);
+
+    // Object rỗng (payload hỏng/thiếu hẳn) vẫn parse được — mọi field optional
+    expect(rubricSnapshotPayloadSchema.safeParse({}).success).toBe(true);
+    // confidence ngoài [0,1] bị loại
+    expect(
+      rubricSnapshotPayloadSchema.safeParse({ transcript_confidence: 1.5 }).success
+    ).toBe(false);
   });
 });
 

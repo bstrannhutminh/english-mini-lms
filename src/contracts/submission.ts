@@ -61,6 +61,22 @@ export const speakingFeedbackSchema = writingFeedbackSchema.extend({
 export type SpeakingFeedback = z.infer<typeof speakingFeedbackSchema>;
 
 /**
+ * Payload jsonb của feedback_versions.rubric_snapshot. Ngoài rubric +
+ * pronunciation như trước, từ Batch B còn lưu transcript do AI bóc băng
+ * khi chấm speaking — trước đây transcript bị bỏ mất nên trang feedback
+ * phải hiển thị nhầm ghi chú của learner. Mọi field đều optional để
+ * backward-compatible với feedback cũ (chưa có transcript).
+ */
+export const rubricSnapshotPayloadSchema = z.object({
+  pronunciation: pronunciationResultSchema.nullish(),
+  rubric: z.unknown().nullish(),
+  /** Transcript do AI tự bóc băng từ audio — KHÔNG phải ghi chú learner. */
+  transcript: z.string().optional(),
+  transcript_confidence: z.number().min(0).max(1).optional(),
+});
+export type RubricSnapshotPayload = z.infer<typeof rubricSnapshotPayloadSchema>;
+
+/**
  * feedback_versions row as serialized by NextResponse.json — camelCase
  * drizzle columns (nextAction, modelRef, ...). This is the `feedback` value
  * inside createSubmission / retryAssessment responses.

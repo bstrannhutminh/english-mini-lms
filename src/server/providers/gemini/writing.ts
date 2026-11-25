@@ -5,6 +5,7 @@ import {
   callGeminiWithRetry,
   geminiAbortSignal,
 } from "./call-gemini";
+import { formatFeedbackGuideSection, formatRubricSection } from "./prompt-sections";
 
 export const geminiResponseSchema = {
   type: "object",
@@ -69,24 +70,43 @@ QUY TẮC BẮT BUỘC:
 5. Trường limitations luôn phải ghi rõ điểm số và góp ý chỉ mang tính tham khảo nội bộ phục vụ rèn luyện, không thay thế giám khảo chính thức.
 6. Trả về đúng định dạng JSON được yêu cầu.`;
 
+export interface WritingEvalOptions {
+  /** feedback_guide do tác giả nội dung khai báo trong manifest — trước đây
+   * không bao giờ vào prompt dù content đã viết sẵn cho mọi bài. */
+  feedbackGuide?: string | null;
+}
+
+/**
+ * Prompt chấm writing — hàm thuần để unit-test wiring rubric/feedback_guide.
+ * Rubric chỉ in khi có (trước đây in cả chữ "null" vào prompt khi thiếu);
+ * feedback_guide là section riêng, ưu tiên áp dụng khi chấm.
+ */
+export function buildWritingEvalPrompt(
+  prompt: string,
+  rubric: unknown,
+  submissionText: string,
+  options: WritingEvalOptions = {}
+): string {
+  const sections = [
+    `ĐỀ BÀI:\n${prompt}`,
+    formatRubricSection(rubric),
+    formatFeedbackGuideSection(options.feedbackGuide),
+    `BÀI VIẾT CỦA BÁC SĨ MINH:\n${submissionText}`,
+    "Hãy đánh giá bài viết và trả về kết quả JSON theo đúng schema quy định.",
+  ];
+  return sections.filter(Boolean).join("\n\n");
+}
+
 export async function evaluateWriting(
   prompt: string,
   rubric: unknown,
   submissionText: string,
+  options: WritingEvalOptions = {},
   modelName = "gemini-2.5-flash"
 ): Promise<EvaluateWritingResult> {
   const ai = getGeminiClient();
 
-  const userContent = `ĐỀ BÀI:
-${prompt}
-
-TIÊU CHÍ ĐÁNH GIÁ (RUBRIC):
-${JSON.stringify(rubric, null, 2)}
-
-BÀI VIẾT CỦA BÁC SĨ MINH:
-${submissionText}
-
-Hãy đánh giá bài viết và trả về kết quả JSON theo đúng schema quy định.`;
+  const userContent = buildWritingEvalPrompt(prompt, rubric, submissionText, options);
 
   async function callGeminiOnce() {
     const response = await ai.models.generateContent({

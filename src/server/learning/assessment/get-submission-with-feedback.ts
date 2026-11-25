@@ -15,6 +15,7 @@ import {
   mediaObjects,
 } from "@/db/schema";
 import type { WritingFeedback } from "@/server/providers/gemini";
+import { rubricSnapshotPayloadSchema } from "@/contracts/submission";
 import { getMediaSignedUrl } from "@/server/media/service";
 import { sweepStuckAssessment } from "./assessment-status";
 
@@ -25,8 +26,9 @@ type SubmissionRow = typeof submissions.$inferSelect;
 
 /**
  * Shape feedback đọc từ feedback_versions (JSONB). Pronunciation (speaking)
- * nằm trong rubricSnapshot; transcript không được persist — trường hợp cũ
- * giữ nguyên. Views thu hẹp kiểu theo mode của riêng chúng.
+ * nằm trong rubricSnapshot; transcript AI bóc băng (speaking) cũng nằm trong
+ * payload đó kể từ Batch B — feedback cũ không có → null. Views thu hẹp kiểu
+ * theo mode của riêng chúng.
  */
 export interface SerializedFeedback extends WritingFeedback {
   id: string;
@@ -35,6 +37,9 @@ export interface SerializedFeedback extends WritingFeedback {
     status: "assessed" | "not_assessable";
     notes: string;
   } | null;
+  /** Transcript do AI tự bóc băng từ audio — KHÔNG phải ghi chú learner. */
+  transcript: string | null;
+  transcriptConfidence: number | null;
 }
 
 async function signedAudioUrl(mediaId: string | null): Promise<string | null> {
@@ -75,9 +80,10 @@ async function latestFeedback(assessment: AssessmentRow | null): Promise<Seriali
 
   if (!fb) return null;
 
-  const rubricSnap = fb.rubricSnapshot as {
-    pronunciation?: SerializedFeedback["pronunciation"];
-  } | null;
+  // Parse snapshot qua contract zod — feedback cũ (thiếu transcript) vẫn
+  // hợp lệ vì mọi field optional; payload hỏng hoàn toàn → coi như trống.
+  const parsedSnap = rubricSnapshotPayloadSchema.safeParse(fb.rubricSnapshot ?? {});
+  const snap = parsedSnap.success ? parsedSnap.data : {};
   return {
     id: fb.id,
     reviewState: fb.reviewState,
@@ -86,7 +92,9 @@ async function latestFeedback(assessment: AssessmentRow | null): Promise<Seriali
     next_action: fb.nextAction || "",
     limitations: fb.limitations || "",
     scores: (fb.scores as WritingFeedback["scores"]) || [],
-    pronunciation: rubricSnap?.pronunciation ?? null,
+    pronunciation: snap.pronunciation ?? null,
+    transcript: snap.transcript ?? null,
+    transcriptConfidence: snap.transcript_confidence ?? null,
   };
 }
 

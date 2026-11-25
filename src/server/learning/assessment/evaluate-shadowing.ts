@@ -43,12 +43,13 @@ export async function evaluateShadowingAttempt(
   // Tải audio buffer từ Supabase Storage — mimeType lấy từ bản ghi (mp4/webm…)
   const audioBuffer = await downloadMediaBuffer(media.storageKey);
 
-  // Chấm speaking cho câu shadowing bám theo verified_transcript của chính câu đó
+  // Chấm speaking cho câu shadowing bám theo transcript GỐC của chính câu đó
+  // (referenceTranscript — đúng nghĩa văn bản mẫu do content cung cấp).
   const prompt = `Đây là bài luyện Shadowing câu tiếng Anh: "${input.sentence}". Hãy so sánh phát âm và độ chính xác của người học so với câu mẫu này.`;
   const evalResult = await evaluateSpeaking(
     { buffer: audioBuffer, mimeType: media.mimeType },
     prompt,
-    input.sentence
+    { referenceTranscript: input.sentence }
   );
 
   // usage_events — cùng chuẩn với các lượt chấm khác (invariant: token theo dõi được)

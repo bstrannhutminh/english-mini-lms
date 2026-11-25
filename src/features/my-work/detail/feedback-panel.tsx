@@ -54,6 +54,34 @@ export function FeedbackPanel({ feedback, sourceRef, flaggedIndexes, onFlagged, 
         </section>
       ) : null}
 
+      {/* Transcript do AI tự bóc băng từ bản ghi — phân biệt rõ với ghi chú
+         /bản gõ tay của learner (khối "Bài đã nộp" bên dưới). */}
+      {feedback.transcript ? (
+        <section
+          aria-labelledby="ai-transcript-title"
+          className="rounded-2xl border border-border bg-surface p-5 sm:p-6"
+        >
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h2 id="ai-transcript-title" className="flex items-center gap-2 text-lg font-semibold text-text">
+              <Icon name="file-text" className="h-5 w-5 text-skill-speaking" />
+              Transcript AI nghe được
+            </h2>
+            {typeof feedback.transcriptConfidence === "number" ? (
+              <Badge tone="neutral">
+                Độ tin cậy ~{Math.round(feedback.transcriptConfidence * 100)}%
+              </Badge>
+            ) : null}
+          </div>
+          <p className="mt-1.5 text-sm leading-5 text-text-muted">
+            AI tự bóc băng từ bản ghi âm — có thể nhận diện sai thuật ngữ chuyên
+            ngành; đây không phải ghi chú của bạn.
+          </p>
+          <p className="mt-3 whitespace-pre-wrap break-words text-base leading-relaxed text-text">
+            {feedback.transcript}
+          </p>
+        </section>
+      ) : null}
+
       <PracticeScoresCard scores={feedback.scores} limitations={feedback.limitations} />
 
       <PriorityObservations

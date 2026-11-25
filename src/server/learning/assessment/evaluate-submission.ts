@@ -54,6 +54,7 @@ export type EvalActivity = Pick<
   | "id"
   | "mode"
   | "promptText"
+  | "feedbackGuide"
   | "rubricJson"
   | "segmentIds"
   | "questions"
@@ -113,6 +114,20 @@ async function loadFirstSegmentText(activity: EvalActivity): Promise<string> {
   return seg?.textContent || "";
 }
 
+/**
+ * Transcript GỐC của segment đầu tiên — tham chiếu chấm shadowing/speaking
+ * có bài mẫu. Khác hẳn transcript do AI bóc băng và ghi chú của learner.
+ */
+async function loadFirstSegmentTranscript(activity: EvalActivity): Promise<string> {
+  if (!activity.segmentIds || activity.segmentIds.length === 0) return "";
+  const [seg] = await db
+    .select({ transcriptContent: sourceSegments.transcriptContent })
+    .from(sourceSegments)
+    .where(eq(sourceSegments.id, activity.segmentIds[0]))
+    .limit(1);
+  return seg?.transcriptContent || "";
+}
+
 /** Buffer + mimeType THẬT của media — không hardcode (iPhone gửi audio/mp4). */
 async function loadSubmissionAudio(
   mediaId: string | null
@@ -139,12 +154,20 @@ export async function evaluateSubmission(
   const skill = modeSkill(activity.mode);
 
   if (skill === "speaking") {
-    const audio = await loadSubmissionAudio(submission.mediaId);
-    return evaluateSpeaking(
-      audio,
-      activity.promptText || "",
-      submission.confirmedTranscript || submission.body || undefined
-    );
+    const [audio, referenceTranscript] = await Promise.all([
+      loadSubmissionAudio(submission.mediaId),
+      loadFirstSegmentTranscript(activity),
+    ]);
+    return evaluateSpeaking(audio, activity.promptText || "", {
+      // Transcript gốc của bài học (nếu activity có segment — shadowing).
+      // Văn bản của learner (confirmedTranscript/body) là GHI CHÚ do họ tự
+      // gõ: đưa vào learnerText, tuyệt đối không dán nhãn transcript chuẩn
+      // (lỗi cũ khiến AI đối chiếu phát âm với chính ghi chú của learner).
+      referenceTranscript: referenceTranscript || undefined,
+      learnerText: submission.confirmedTranscript || submission.body || undefined,
+      feedbackGuide: activity.feedbackGuide,
+      rubric: activity.rubricJson,
+    });
   }
 
   if (skill === "reading") {
@@ -162,6 +185,7 @@ export async function evaluateSubmission(
   return evaluateWriting(
     activity.promptText || "",
     activity.rubricJson,
-    submission.body || ""
+    submission.body || "",
+    { feedbackGuide: activity.feedbackGuide }
   );
 }

@@ -18,8 +18,8 @@ export async function getLearnerPracticeContext(
 ): Promise<PracticeContext> {
   const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
 
-  // 4 truy vấn độc lập chạy song song (DB ở xa: mỗi lượt chờ ~100ms nếu nối tiếp).
-  const [[latestDraft], recentSubmissions, weeklySubmissions, [learner]] = await Promise.all([
+  // 5 truy vấn độc lập chạy song song (DB ở xa: mỗi lượt chờ ~100ms nếu nối tiếp).
+  const [[latestDraft], recentSubmissions, weeklySubmissions, [learner], completedRows] = await Promise.all([
     // Quy tắc (a): nháp dở chưa nộp
     db
       .select({
@@ -69,6 +69,18 @@ export async function getLearnerPracticeContext(
       ),
     db.select({ goals: learners.goals }).from(learners)
       .where(eq(learners.id, learnerId)).limit(1),
+    // Xoay vòng inventory: activity nào đã có ≥1 phiên completed thì picker
+    // ưu tiên bài khác trước, hết bài mới mới lặp lại (distinct phía app —
+    // một learner chỉ có vài chục phiên nên chi phí lọc không đáng kể).
+    db
+      .select({ activityId: learningSessions.activityId })
+      .from(learningSessions)
+      .where(
+        and(
+          eq(learningSessions.learnerId, learnerId),
+          eq(learningSessions.status, "completed")
+        )
+      ),
   ]);
 
   const parentIds = new Set(
@@ -112,6 +124,9 @@ export async function getLearnerPracticeContext(
         : null,
     skillCounts,
     leastPracticedMode: hasProfile ? selectLearningFocus(skillCounts, profile) : sortedSkills[0][0],
+    completedActivityIds: Array.from(
+      new Set(completedRows.map((r) => r.activityId))
+    ),
     learningProfile: hasProfile ? profile : undefined,
   };
 }

@@ -38,6 +38,11 @@ export interface PracticeContext {
   skillCounts: Record<string, number>;
   /** Kỹ năng ít luyện nhất trong 7 ngày qua */
   leastPracticedMode: string;
+  /**
+   * Id các activity learner đã có ít nhất 1 phiên completed — picker ưu tiên
+   * bài CHƯA nằm trong danh sách này để xoay vòng hết inventory trước khi lặp.
+   */
+  completedActivityIds: string[];
   learningProfile?: LearningFocusProfile;
 }
 
@@ -62,9 +67,30 @@ export function normalizeSkillMode(mode: string | null | undefined): string | nu
   return null;
 }
 
+/** Thứ tự chuẩn của inventory: theo slot rồi id — khớp ORDER BY của /library. */
+function compareCandidates(a: CandidateActivity, b: CandidateActivity): number {
+  const slotCmp = (a.slot ?? "").localeCompare(b.slot ?? "");
+  return slotCmp !== 0 ? slotCmp : a.id.localeCompare(b.id);
+}
+
+/**
+ * Phần tử đầu của `pool`, nhưng bỏ qua các bài learner đã hoàn thành khi còn
+ * bài chưa làm — inventory xoay vòng hết mới lặp lại bài cũ. Pool rỗng → undefined.
+ */
+function firstPreferringFresh(
+  pool: CandidateActivity[],
+  completed: ReadonlySet<string>
+): CandidateActivity | undefined {
+  if (pool.length === 0) return undefined;
+  return pool.find((a) => !completed.has(a.id)) ?? pool[0];
+}
+
 /**
  * Chọn 1 bài từ `candidates` theo luật rule-based (hàm thuần, không đụng DB):
  * (a) nháp dở → (a) viết lại Bản 2 → (c)(d) kỹ năng ít luyện nhất.
+ * Trong nhóm bài cùng kỹ năng: ưu tiên bài chưa có phiên completed nào
+ * (xoay vòng hết inventory mới lặp), thứ tự deterministic theo (slot, id) —
+ * không phụ thuộc thứ tự truy vấn của caller.
  * Chỉ chọn trong `candidates`; danh sách rỗng → null.
  */
 export function pickRecommendedActivity(
@@ -113,14 +139,24 @@ export function pickRecommendedActivity(
 
   if (candidates.length === 0) return null;
 
-  // Ưu tiên bài thuộc kỹ năng ít luyện nhất (hỗ trợ cả ielts-*)
-  const matchingSkillActs = candidates.filter(
+  const completed = new Set(ctx.completedActivityIds);
+  const sorted = [...candidates].sort(compareCandidates);
+
+  // Ưu tiên bài thuộc kỹ năng ít luyện nhất (hỗ trợ cả ielts-*), xoay vòng
+  // inventory: bài chưa hoàn thành đi trước, hết bài mới thì lặp lại từ đầu.
+  const matchingSkillActs = sorted.filter(
     (a) => normalizeSkillMode(a.mode) === leastPracticedMode
   );
+  const speakingActs = sorted.filter(
+    (a) => normalizeSkillMode(a.mode) === "speaking"
+  );
   const chosenAct =
-    matchingSkillActs.length > 0
-      ? matchingSkillActs[0]
-      : candidates.find((a) => normalizeSkillMode(a.mode) === "speaking") || candidates[0];
+    firstPreferringFresh(matchingSkillActs, completed) ??
+    firstPreferringFresh(speakingActs, completed) ??
+    firstPreferringFresh(sorted, completed);
+
+  // candidates non-empty + fallback chuỗi trên luôn có phần tử — guard cho type.
+  if (!chosenAct) return null;
 
   const chosenNorm = normalizeSkillMode(chosenAct.mode) || chosenAct.mode;
   let reasonText: string;

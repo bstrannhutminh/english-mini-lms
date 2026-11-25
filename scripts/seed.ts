@@ -9,6 +9,7 @@ import { drizzle } from "drizzle-orm/postgres-js";
 import { sql } from "drizzle-orm";
 import * as schema from "../src/db/schema";
 import { parseAndValidateManifest } from "../src/server/seed/manifest-parser";
+import { staggeredDueAt, seedVocabStaggerKey } from "./vocab-stagger.mjs";
 
 async function main() {
   console.log("🌱 Bắt đầu nạp dữ liệu từ content/english-lab/manifest.yaml...\n");
@@ -372,6 +373,14 @@ async function main() {
 
           if (!exists && !queued.has(item.phrase)) {
             queued.add(item.phrase);
+            // Từ mới (mastery 0): rải due_at deterministic trong 1–10 ngày
+            // thay vì đến hạn cùng một ngày — ~1.100 từ IELTS dồn một mốc
+            // từng làm warm-up flashcard quá tải. Từ đã có mastery (>0)
+            // giữ mốc ngay lập tức như hành vi cũ.
+            const dueAt =
+              item.masteryLevel === 0
+                ? staggeredDueAt(seedVocabStaggerKey(learner.id, item.phrase), new Date())
+                : new Date();
             toInsert.push({
               learnerId: learner.id,
               phrase: item.phrase,
@@ -383,7 +392,7 @@ async function main() {
               myAttempt: item.myAttempt,
               imageUrl,
               masteryLevel: item.masteryLevel,
-              dueAt: new Date(),
+              dueAt,
             });
           } else if (exists && imageUrl && exists.imageUrl !== imageUrl) {
             // Backfill ảnh cho từ đã seed từ trước (chạy seed lại sau khi

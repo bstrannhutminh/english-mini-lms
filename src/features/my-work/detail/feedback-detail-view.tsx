@@ -112,7 +112,11 @@ export function FeedbackDetailView({ submission, activity, assessment, feedback,
           <Icon name="chevron-down" className="h-5 w-5 shrink-0 text-text-muted transition-transform group-open:rotate-180" />
         </summary>
         <div className="border-t border-border px-5 py-5 sm:px-6">
-          <SubmissionPanel submission={submission} activityMode={activity.mode} />
+          <SubmissionPanel
+            submission={submission}
+            activityMode={activity.mode}
+            aiTranscript={feedback?.transcript ?? null}
+          />
         </div>
       </details>
 

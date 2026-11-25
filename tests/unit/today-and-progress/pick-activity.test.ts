@@ -19,6 +19,7 @@ function ctx(overrides: Partial<PracticeContext> = {}): PracticeContext {
     unrevisedSubmission: null,
     skillCounts: { writing: 3, reading: 2, speaking: 1, listening: 0 },
     leastPracticedMode: "listening",
+    completedActivityIds: [],
     ...overrides,
   };
 }
@@ -127,5 +128,72 @@ describe("pickRecommendedActivity (shared by /today and /library)", () => {
         selfAssessment: { writing: 3, reading: 4, speaking: 3, listening: 3 } },
     }), 30);
     expect(rec?.id).toBe("S1");
+  });
+
+  describe("xoay vòng inventory theo completedActivityIds", () => {
+    const listeningActs: CandidateActivity[] = [
+      { id: "L1", slot: "L1", title: "Nghe 1", mode: "listening", objective: null, durationMinutes: 15 },
+      { id: "L2", slot: "L2", title: "Nghe 2", mode: "listening", objective: null, durationMinutes: 15 },
+      { id: "L3", slot: "L3", title: "Nghe 3", mode: "listening", objective: null, durationMinutes: 15 },
+      { id: "W1", slot: "W1", title: "Viết 1", mode: "writing", objective: null, durationMinutes: 15 },
+    ];
+
+    it("bỏ qua bài đã completed, chọn bài chưa làm kế tiếp cùng kỹ năng", () => {
+      const rec = pickRecommendedActivity(
+        listeningActs,
+        ctx({ leastPracticedMode: "listening", completedActivityIds: ["L1"] }),
+        30
+      );
+      expect(rec?.id).toBe("L2");
+    });
+
+    it("xoay hết inventory: khi chỉ còn 1 bài chưa làm thì chọn bài đó", () => {
+      const rec = pickRecommendedActivity(
+        listeningActs,
+        ctx({ leastPracticedMode: "listening", completedActivityIds: ["L1", "L2"] }),
+        30
+      );
+      expect(rec?.id).toBe("L3");
+    });
+
+    it("tất cả bài cùng kỹ năng đều completed → vòng mới bắt đầu lại từ bài đầu", () => {
+      const rec = pickRecommendedActivity(
+        listeningActs,
+        ctx({ leastPracticedMode: "listening", completedActivityIds: ["L1", "L2", "L3"] }),
+        30
+      );
+      expect(rec?.id).toBe("L1");
+    });
+
+    it("deterministic: thứ tự mảng đầu vào không ảnh hưởng kết quả", () => {
+      const reversed = [...listeningActs].reverse();
+      const base = ctx({ leastPracticedMode: "listening", completedActivityIds: ["L1"] });
+      expect(pickRecommendedActivity(listeningActs, base, 30)?.id).toBe("L2");
+      expect(pickRecommendedActivity(reversed, base, 30)?.id).toBe("L2");
+    });
+
+    it("completed của kỹ năng khác không ảnh hưởng lựa chọn", () => {
+      const rec = pickRecommendedActivity(
+        listeningActs,
+        ctx({ leastPracticedMode: "listening", completedActivityIds: ["W1"] }),
+        30
+      );
+      expect(rec?.id).toBe("L1");
+    });
+
+    it("fallback chain cũng ưu tiên bài chưa làm", () => {
+      // Không có bài listening nào → fallback speaking; S1 đã completed → chọn S2.
+      const fallbackActs: CandidateActivity[] = [
+        { id: "S1", slot: "S1", title: "Nói 1", mode: "speaking", objective: null, durationMinutes: 15 },
+        { id: "S2", slot: "S2", title: "Nói 2", mode: "speaking", objective: null, durationMinutes: 15 },
+        { id: "W1", slot: "W1", title: "Viết 1", mode: "writing", objective: null, durationMinutes: 15 },
+      ];
+      const rec = pickRecommendedActivity(
+        fallbackActs,
+        ctx({ leastPracticedMode: "listening", completedActivityIds: ["S1"] }),
+        30
+      );
+      expect(rec?.id).toBe("S2");
+    });
   });
 });

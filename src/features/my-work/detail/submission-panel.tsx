@@ -12,22 +12,38 @@ import { modeSkill } from "@/lib/modes";
 interface SubmissionPanelProps {
   submission: SubmissionDetail;
   activityMode: string;
+  /** Transcript do AI bóc băng (từ feedback) — làm điểm khởi đầu khi learner
+   * bấm "Chỉnh sửa / Xác nhận", thay vì bắt đầu từ ghi chú trống/ngắn. */
+  aiTranscript?: string | null;
 }
 
 /**
- * Nội dung bài đã nộp: trình phát audio (signed URL) + văn bản/transcript.
- * Bài nói (audio) có thể "Chỉnh sửa / Xác nhận" transcript — PATCH chỉ gửi
- * confirmed_transcript (append-only: body bài nộp không bao giờ đổi).
+ * Nội dung bài đã nộp: trình phát audio (signed URL) + văn bản do LEARNER
+ * viết (ghi chú/bản gõ tay — KHÔNG phải transcript AI; transcript AI hiển thị
+ * riêng trong khối góp ý). Bài nói (audio) có thể "Chỉnh sửa / Xác nhận"
+ * transcript — PATCH chỉ gửi confirmed_transcript (append-only: body bài nộp
+ * không bao giờ đổi).
  */
-export function SubmissionPanel({ submission, activityMode }: SubmissionPanelProps) {
+export function SubmissionPanel({ submission, activityMode, aiTranscript }: SubmissionPanelProps) {
   const router = useRouter();
   const toast = useToast();
   const isAudio = submission.modality === "audio" || modeSkill(activityMode) === "speaking";
 
-  const initialText = submission.confirmedTranscript || submission.body || "";
-  const [draft, setDraft] = useState(initialText);
+  // Hiển thị: văn bản của learner (confirmed transcript nếu đã xác nhận,
+  // không thì ghi chú/bản gõ tay lúc nộp). Chỉnh sửa: ưu tiên confirmed →
+  // transcript AI (để sửa lỗi nhận diện) → body.
+  const displayText = submission.confirmedTranscript || submission.body || "";
+  const editStartText =
+    submission.confirmedTranscript || aiTranscript || submission.body || "";
+  const [draft, setDraft] = useState(displayText);
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
+
+  const sectionLabel = !isAudio
+    ? "Nội dung bài nộp"
+    : submission.confirmedTranscript
+      ? "Transcript bạn đã xác nhận"
+      : "Ghi chú / bản gõ tay của bạn";
 
   async function handleSaveTranscript() {
     if (saving) return;
@@ -68,9 +84,7 @@ export function SubmissionPanel({ submission, activityMode }: SubmissionPanelPro
       ) : null}
 
       <section>
-        <p className="eyebrow mb-2">
-          {isAudio ? "Transcript bài nói" : "Nội dung bài nộp"}
-        </p>
+        <p className="eyebrow mb-2">{sectionLabel}</p>
 
         {isAudio && editing ? (
           <div>
@@ -87,7 +101,7 @@ export function SubmissionPanel({ submission, activityMode }: SubmissionPanelPro
                 variant="outline"
                 size="sm"
                 onClick={() => {
-                  setDraft(initialText);
+                  setDraft(displayText);
                   setEditing(false);
                 }}
                 disabled={saving}
@@ -102,18 +116,30 @@ export function SubmissionPanel({ submission, activityMode }: SubmissionPanelPro
         ) : (
           <div>
             <div className="max-w-prose whitespace-pre-wrap text-base leading-relaxed text-text">
-              <StructuredBody body={draft || submission.body} />
+              {displayText ? (
+                <StructuredBody body={displayText} />
+              ) : (
+                <p className="text-text-muted">
+                  {isAudio
+                    ? "Bài này nộp bằng ghi âm, không kèm ghi chú văn bản."
+                    : "Bài nộp không có nội dung văn bản."}
+                </p>
+              )}
             </div>
             {isAudio ? (
               <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-xl bg-surface-muted px-4 py-3">
                 <span className="min-w-0 flex-1 basis-56 text-base leading-relaxed text-text-secondary">
-                  Bác sĩ có thể chỉnh sửa các thuật ngữ chuyên ngành AI nhận diện
-                  chưa chuẩn.
+                  {aiTranscript && !submission.confirmedTranscript
+                    ? "Bấm chỉnh sửa để bắt đầu từ transcript AI nghe được và sửa các thuật ngữ chuyên ngành AI nhận diện chưa chuẩn."
+                    : "Bác sĩ có thể chỉnh sửa các thuật ngữ chuyên ngành AI nhận diện chưa chuẩn."}
                 </span>
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => setEditing(true)}
+                  onClick={() => {
+                    setDraft(editStartText);
+                    setEditing(true);
+                  }}
                 >
                   <Icon name="pen" className="h-3.5 w-3.5" />
                   Chỉnh sửa / Xác nhận
