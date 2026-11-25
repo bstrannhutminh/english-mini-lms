@@ -3,7 +3,7 @@
  * Bảo vệ: chỉ phiên đã hoàn thành mới được đánh dấu "đã học" (không suy diễn).
  */
 import { describe, expect, it } from "vitest";
-import { buildWeekActivity } from "@/server/today/streak";
+import { buildWeekActivity, computeWeekMinutes } from "@/server/today/streak";
 import { buildTodayGreeting } from "@/features/today/today-greeting";
 import { todayRecommendationSchema } from "@/contracts/today";
 
@@ -30,6 +30,41 @@ describe("buildWeekActivity", () => {
   it("bỏ qua phiên cũ hơn 7 ngày", () => {
     const week = buildWeekActivity([new Date("2026-11-01T05:00:00Z")], NOW);
     expect(week.some((d) => d.studied)).toBe(false);
+  });
+});
+
+describe("computeWeekMinutes", () => {
+  it("cộng phút các phiên trong band 7 ngày lịch VN", () => {
+    // 14/11 18:30 UTC = 15/11 01:30 giờ VN → ngày đầu band (15–21/11).
+    const minutes = computeWeekMinutes(
+      [
+        { updatedAt: new Date("2026-11-14T18:30:00Z"), activeSeconds: 600 },
+        { updatedAt: NOW, activeSeconds: 300 },
+      ],
+      NOW
+    );
+    expect(minutes).toBe(15);
+  });
+
+  it("loại phiên thuộc ngày lịch thứ 8 dù còn trong 168h trượt", () => {
+    // 14/11 16:00 UTC = 14/11 23:00 giờ VN: cách NOW 165h (<168h, code cũ
+    // tính nhầm) nhưng thuộc ngày 14/11 — ngoài band 15–21/11.
+    const minutes = computeWeekMinutes(
+      [{ updatedAt: new Date("2026-11-14T16:00:00Z"), activeSeconds: 900 }],
+      NOW
+    );
+    expect(minutes).toBe(0);
+  });
+
+  it("bỏ qua activeSeconds null và làm tròn phút", () => {
+    const minutes = computeWeekMinutes(
+      [
+        { updatedAt: NOW, activeSeconds: null },
+        { updatedAt: NOW, activeSeconds: 89 },
+      ],
+      NOW
+    );
+    expect(minutes).toBe(1);
   });
 });
 

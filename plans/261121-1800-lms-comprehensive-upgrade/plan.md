@@ -67,7 +67,7 @@ Phạm vi: diff so với `refs/leader/baseline-261121` của `src/server`, `src/
 - Invariant giữ nguyên: bản sửa vẫn là submission mới có `parent_id`; `assisted` chỉ đọc từ server; góp ý hiện đủ 6 trường + `limitations`; điểm chỉ `practice_estimate` thang 0–10; `data-tour` không đổi; contract chỉ thêm trường tuỳ chọn.
 - Thanh gợi ý chuyển sang slot: cả 3 plugin có `Hint` (Viết, Đọc, Nói) đều render qua `SessionColumns` nên nút gợi ý không mất.
 - ~~**Chờ quyết định:**~~ **Đã quyết 24/11/2026 — giữ chữ phụ 13–14px.** Luật trong `.agents/rules/english-mini-lms.md` đã sửa: chữ nội dung/tương tác vẫn ≥ 16px; caption/meta/ghi chú trạng thái/eyebrow được 13–14px. (`text-sm` 92 chỗ, `text-xs` 19 chỗ, `eyebrow` 13px giữ nguyên.)
-- Nhỏ, chưa sửa: `weekMinutes` tính theo 168 giờ trượt trong khi dải 7 ngày tính theo ngày lịch giờ VN; `src/server/today/service.ts` 236 dòng (>200); JSDoc của `getLearnerVocabulary` bị tách khỏi hàm do chèn `countDueVocabulary` vào giữa.
+- ~~Nhỏ, chưa sửa~~ **Đã xử lý 25/11:** `weekMinutes` giờ dùng `computeWeekMinutes` theo band 7 ngày lịch VN (khớp `buildWeekActivity`, có unit test ca biên); `service.ts` tách fetch → `fetch-today-inputs.ts` (service còn 144 dòng); JSDoc `getLearnerVocabulary` đã gắn lại.
 
 ## Preview kiểm chứng
 

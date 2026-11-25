@@ -49,6 +49,36 @@ export function computeStreakDays(
   return streak;
 }
 
+/** Phiên tối thiểu cần để cộng phút tuần. */
+export interface WeekSessionSlice {
+  updatedAt: Date;
+  activeSeconds: number | null;
+}
+
+/**
+ * computeWeekMinutes — tổng phút học chủ động trong dải 7 ngày lịch VN
+ * kết thúc ở hôm nay — cùng band với buildWeekActivity (không phải 168h
+ * trượt, để khớp con số với nhịp tuần hiển thị). Hàm thuần.
+ */
+export function computeWeekMinutes(
+  sessions: WeekSessionSlice[],
+  now = new Date(),
+  timeZone = "Asia/Ho_Chi_Minh"
+): number {
+  const dayFormatter = new Intl.DateTimeFormat("en-CA", {
+    timeZone, year: "numeric", month: "2-digit", day: "2-digit",
+  });
+  const bandDays = new Set(
+    Array.from({ length: 7 }, (_, i) =>
+      dayFormatter.format(new Date(now.getTime() - (6 - i) * 24 * 60 * 60 * 1000))
+    )
+  );
+  const totalSeconds = sessions
+    .filter((s) => bandDays.has(dayFormatter.format(s.updatedAt)))
+    .reduce((total, s) => total + (s.activeSeconds ?? 0), 0);
+  return Math.round(totalSeconds / 60);
+}
+
 /** Một ngày trong dải "7 ngày gần nhất" ở màn Hôm nay. */
 export interface WeekDayActivity {
   /** YYYY-MM-DD theo giờ VN. */

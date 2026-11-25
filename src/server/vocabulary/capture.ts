@@ -99,12 +99,6 @@ export async function createVocabulary(learnerId: string, input: CreateVocabular
   return toVocabularyItem(record);
 }
 
-/**
- * Lấy danh sách từ vựng của học viên với bộ lọc.
- * "due" = due_at <= now (mọi mastery — trùng định nghĩa badge trên layout).
- * "mastered" = mastery_level >= MASTERY_MAX (4).
- * Trả về contract VocabularyItem (Date → ISO string).
- */
 /** Đếm số mục đến hạn ôn — dùng cho badge điều hướng, không tải cả danh sách. */
 export async function countDueVocabulary(learnerId: string): Promise<number> {
   return db.$count(
@@ -113,6 +107,12 @@ export async function countDueVocabulary(learnerId: string): Promise<number> {
   );
 }
 
+/**
+ * Lấy danh sách từ vựng của học viên với bộ lọc.
+ * "due" = due_at <= now (mọi mastery — trùng định nghĩa badge trên layout).
+ * "mastered" = mastery_level >= MASTERY_MAX (4).
+ * Trả về contract VocabularyItem (Date → ISO string).
+ */
 export async function getLearnerVocabulary(
   learnerId: string,
   filter?: "all" | "due" | "mastered"
