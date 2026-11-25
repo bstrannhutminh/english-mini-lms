@@ -46,10 +46,13 @@ export function useRecorder(maxSeconds = 300): Recorder {
   });
 
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const startTimeRef = useRef(0);
   const audioUrlRef = useRef<string | null>(null);
+  /** true khi stop do clear/unmount — không được tạo blob hay setState muộn. */
+  const discardRecordingRef = useRef(false);
 
   const stopTimer = useCallback(() => {
     if (timerRef.current) {
@@ -58,16 +61,28 @@ export function useRecorder(maxSeconds = 300): Recorder {
     }
   }, []);
 
+  const stopTracks = useCallback(() => {
+    streamRef.current?.getTracks().forEach((track) => track.stop());
+    streamRef.current = null;
+  }, []);
+
   const stop = useCallback(() => {
     stopTimer();
     const rec = mediaRecorderRef.current;
-    if (rec && rec.state !== "inactive") rec.stop();
+    if (rec && rec.state !== "inactive") {
+      rec.stop();
+    } else {
+      // Recorder đã inactive/nhưng stream còn treo (lỗi khởi tạo, race unmount).
+      stopTracks();
+    }
     setIsRecording(false);
-  }, [stopTimer]);
+  }, [stopTimer, stopTracks]);
 
   const start = useCallback(async () => {
+    if (mediaRecorderRef.current?.state === "recording") return;
     setError(null);
     audioChunksRef.current = [];
+    discardRecordingRef.current = false;
 
     try {
       if (!navigator.mediaDevices?.getUserMedia) {
@@ -83,6 +98,7 @@ export function useRecorder(maxSeconds = 300): Recorder {
           autoGainControl: true,
         },
       });
+      streamRef.current = stream;
 
       const mimeType = pickMimeType();
       const mediaRecorder = new MediaRecorder(stream, { mimeType });
@@ -95,6 +111,15 @@ export function useRecorder(maxSeconds = 300): Recorder {
       };
 
       mediaRecorder.onstop = () => {
+        stopTracks();
+        mediaRecorderRef.current = null;
+
+        if (discardRecordingRef.current) {
+          discardRecordingRef.current = false;
+          audioChunksRef.current = [];
+          return;
+        }
+
         const audioBlob = new Blob(audioChunksRef.current, { type: mimeType });
         const url = URL.createObjectURL(audioBlob);
         if (audioUrlRef.current) URL.revokeObjectURL(audioUrlRef.current);
@@ -102,7 +127,6 @@ export function useRecorder(maxSeconds = 300): Recorder {
         setBlob(audioBlob);
         setAudioUrl(url);
         setDurationSeconds(Math.round((Date.now() - startTimeRef.current) / 1000));
-        stream.getTracks().forEach((track) => track.stop());
       };
 
       mediaRecorder.start(250);
@@ -116,6 +140,8 @@ export function useRecorder(maxSeconds = 300): Recorder {
         if (elapsed >= maxSeconds) stop();
       }, 500);
     } catch (err) {
+      stopTracks();
+      mediaRecorderRef.current = null;
       console.error("Lỗi khi mở micro:", err);
       setError(
         err instanceof Error
@@ -123,10 +149,14 @@ export function useRecorder(maxSeconds = 300): Recorder {
           : "Không thể truy cập micro. Hãy cấp quyền trong cài đặt trình duyệt.",
       );
     }
-  }, [maxSeconds, stop]);
+  }, [maxSeconds, stop, stopTracks]);
 
   const clear = useCallback(() => {
-    stopTimer();
+    // Nếu đang thu mà learner chọn "Thu lại", bản ghi hiện tại bị bỏ hoàn toàn.
+    if (mediaRecorderRef.current?.state === "recording") {
+      discardRecordingRef.current = true;
+    }
+    stop();
     if (audioUrlRef.current) {
       URL.revokeObjectURL(audioUrlRef.current);
       audioUrlRef.current = null;
@@ -135,15 +165,26 @@ export function useRecorder(maxSeconds = 300): Recorder {
     setAudioUrl(null);
     setDurationSeconds(0);
     setIsRecording(false);
-  }, [stopTimer]);
+  }, [stop]);
 
-  // Cleanup khi unmount
+  // Cleanup khi unmount: dừng MediaRecorder + tắt track micro ngay cả khi
+  // learner thoát giữa chừng qua timeout/save-exit/submit/điều hướng nội bộ.
   useEffect(() => {
     return () => {
+      discardRecordingRef.current = true;
       stopTimer();
-      if (audioUrlRef.current) URL.revokeObjectURL(audioUrlRef.current);
+      const rec = mediaRecorderRef.current;
+      if (rec && rec.state !== "inactive") {
+        rec.stop();
+      } else {
+        stopTracks();
+      }
+      if (audioUrlRef.current) {
+        URL.revokeObjectURL(audioUrlRef.current);
+        audioUrlRef.current = null;
+      }
     };
-  }, [stopTimer]);
+  }, [stopTimer, stopTracks]);
 
   return {
     isRecording,

@@ -4,6 +4,7 @@ import type { ModePlugin, SessionData, SubmissionResult } from "../modes/types";
 import { useSessionTimer } from "../hooks/use-session-timer";
 import { useAutosaveDraft } from "../hooks/use-autosave-draft";
 import { useSessionEvents } from "../hooks/use-session-events";
+import { useSessionEventLifecycle } from "../hooks/use-session-event-lifecycle";
 import { useSubmit } from "../hooks/use-submit";
 import { useSmartCapture } from "../hooks/use-smart-capture";
 import { useOnlineStatus } from "../hooks/use-online-status";
@@ -34,7 +35,14 @@ export function useSessionController(plugin: ModePlugin, data: SessionData) {
 
   const onExpire = useCallback(() => setShowWrapUp(true), []);
   const timer = useSessionTimer(data.targetMinutes, onExpire, sessionId);
-  const { postEvent } = useSessionEvents(sessionId);
+  const sessionEvents = useSessionEvents(sessionId);
+  const { postEvent } = sessionEvents;
+  const {
+    toggleTimer: handleToggleTimer,
+    markFinished: markSessionFinished,
+    pauseForExit: pauseSessionForExit,
+    notifyTimerExtended,
+  } = useSessionEventLifecycle(timer, sessionEvents);
   const isOnline = useOnlineStatus();
 
   const autosave = useAutosaveDraft({
@@ -62,6 +70,8 @@ export function useSessionController(plugin: ModePlugin, data: SessionData) {
     );
     setShowWrapUp(false);
     if (result) {
+      // finish là fire-and-forget; server cũng ghi finish backup khi nhận submission.
+      markSessionFinished();
       timer.stop();
       if (plugin.staysAfterSubmit) {
         setSubmissionResult(result);
@@ -69,7 +79,7 @@ export function useSessionController(plugin: ModePlugin, data: SessionData) {
         router.push(`/my-work/${result.submissionId}`);
       }
     }
-  }, [plugin, state, submit, timer, data.parentId, router, setError, hintLoading]);
+  }, [plugin, state, submit, timer, data.parentId, router, setError, hintLoading, markSessionFinished]);
 
   const handleSaveDraft = useCallback(() => {
     void autosave.saveNow();
@@ -85,18 +95,19 @@ export function useSessionController(plugin: ModePlugin, data: SessionData) {
         setShowWrapUp(false);
         return;
       }
-      timer.pause();
+      pauseSessionForExit();
       setConfirmExitOpen(false);
       router.push("/today");
     } finally {
       setExiting(false);
     }
-  }, [autosave, plugin, router, setError, timer]);
+  }, [autosave, plugin, router, setError, pauseSessionForExit]);
 
   const handleExtendTimer = useCallback(() => {
     timer.extend(300);
+    notifyTimerExtended();
     setShowWrapUp(false);
-  }, [timer]);
+  }, [timer, notifyTimerExtended]);
 
   const handleRequestHint = useCallback(async () => {
     if (hintShown || hintLoading) return;
@@ -166,6 +177,7 @@ export function useSessionController(plugin: ModePlugin, data: SessionData) {
     handleSaveDraft,
     handleSaveAndExit,
     handleExtendTimer,
+    handleToggleTimer,
     handleRequestHint,
     showCaptureSavedToast,
     onRequestExit,

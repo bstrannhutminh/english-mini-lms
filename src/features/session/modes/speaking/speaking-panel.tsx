@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { MarkdownText } from "@/components/ui";
 import type { ModePanelProps } from "../types";
 import { usePluginState } from "../types";
@@ -10,6 +10,8 @@ import { PROMPT_TEXT_CLASS, SessionBriefCard } from "../../shared/session-brief-
 import { apiFetch, ApiClientError } from "@/lib/api-client";
 import { uploadMediaResponseSchema } from "@/contracts/media";
 import { SpeakingRecorder } from "./speaking-recorder";
+import { SpeakingNotesCard } from "./speaking-notes-card";
+import { useRestoredSpeakingAudio } from "./use-restored-speaking-audio";
 import { SpeakingParentReference } from "./parent-reference";
 import type { SpeakingModeState } from "./state";
 
@@ -27,11 +29,23 @@ export function SpeakingPanel(props: ModePanelProps) {
   const recorder = useRecorder(300);
 
   const uploadSeqRef = useRef(0);
+  // mediaId có trong draft lúc mount — khác với mediaId của take mới upload sau đó.
+  const [restoredMediaId] = useState(state.mediaId);
+  const {
+    audioUrl: restoredAudioUrl,
+    error: restoreError,
+    clear: clearRestoredAudio,
+  } = useRestoredSpeakingAudio(restoredMediaId);
 
   const uploadAudio = useCallback(
     async (blob: Blob, durationSecs: number) => {
       const seq = ++uploadSeqRef.current;
-      setState((prev) => ({ ...prev, mediaStatus: "uploading", mediaError: null }));
+      setState((prev) => ({
+        ...prev,
+        mediaStatus: "uploading",
+        mediaError: null,
+        durationSeconds: Math.max(0, Math.round(durationSecs)),
+      }));
       try {
         const fileExt = blob.type.includes("mp4") ? "mp4" : "webm";
         const file = new File(
@@ -93,6 +107,7 @@ export function SpeakingPanel(props: ModePanelProps) {
   const handleClearTake = useCallback(() => {
     uploadSeqRef.current += 1;
     recorder.clear();
+    clearRestoredAudio();
     setState((prev) => ({
       ...prev,
       mediaStatus: "idle",
@@ -100,7 +115,7 @@ export function SpeakingPanel(props: ModePanelProps) {
       mediaError: null,
       durationSeconds: 0,
     }));
-  }, [recorder, setState]);
+  }, [recorder, clearRestoredAudio, setState]);
 
   const promptText = activity.promptText || activity.title;
   const sourceRef = `Bài nói: ${activity.slot || activity.id}`;
@@ -131,6 +146,10 @@ export function SpeakingPanel(props: ModePanelProps) {
     />
   ) : undefined;
 
+  const isRestoredTake = Boolean(
+    !recorder.blob && restoredMediaId && state.mediaId === restoredMediaId
+  );
+
   const right = (
     <>
       <SpeakingRecorder
@@ -140,32 +159,18 @@ export function SpeakingPanel(props: ModePanelProps) {
         mediaError={state.mediaError}
         onRetryUpload={handleRetryUpload}
         onClearTake={handleClearTake}
+        restoredAudioUrl={isRestoredTake ? restoredAudioUrl : null}
+        restoredDurationSeconds={isRestoredTake ? state.durationSeconds : 0}
+        restoreError={isRestoredTake ? restoreError : null}
+        hasRestoredTake={isRestoredTake}
       />
 
-      <section className="mt-4 rounded-2xl border border-border bg-surface p-4 shadow-card sm:p-6 lg:mt-5">
-        <p className="eyebrow">Tuỳ chọn</p>
-        <label htmlFor="speaking-notes" className="text-lg font-semibold text-text">
-          Ghi chú dàn ý nói
-        </label>
-        <textarea
-          id="speaking-notes"
-          value={state.notes}
-          onChange={(e) =>
-            setState((prev) => ({ ...prev, notes: e.target.value }))
-          }
-          disabled={busy}
-          placeholder="Ghi nhanh vài từ khoá dự kiến nói..."
-          rows={3}
-          className="mt-3 box-border w-full resize-y rounded-xl border border-border-strong bg-surface p-4 text-base leading-relaxed text-text outline-none transition placeholder:text-text-muted focus:border-primary focus:ring-2 focus:ring-primary/20 disabled:opacity-60"
-        />
-        {!recorder.blob && !recorder.isRecording && (
-          <p className="mt-2 text-sm leading-5 text-text-muted">
-            Khi không tiện ghi âm, bạn vẫn có thể nộp nội dung gõ tay — AI sẽ
-            góp ý từ vựng & cấu trúc và ghi nhận phát âm là &ldquo;chưa đánh giá
-            được&rdquo;.
-          </p>
-        )}
-      </section>
+      <SpeakingNotesCard
+        value={state.notes}
+        disabled={busy}
+        showTextOnlyHint={!recorder.blob && !recorder.isRecording && !isRestoredTake}
+        onChange={(notes) => setState((prev) => ({ ...prev, notes }))}
+      />
     </>
   );
 

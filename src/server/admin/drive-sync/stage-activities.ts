@@ -1,115 +1,22 @@
 /**
  * Phase 1 staging — approved activities. Each activity may reference
- * prompt_file / rubric_file / questions_file (listening only); all are
- * downloaded and validated BEFORE any DB write (Phase 2 never half-writes).
+ * prompt_file / rubric_file / questions_file (listening + ielts-listening);
+ * all are downloaded and validated BEFORE any DB write.
  *
  * Dependency rule: an activity referencing a segment that failed to load or
  * is conflict-blocked is skipped with an explanatory error.
  */
 import yaml from "yaml";
 import { activities } from "../../../db/schema";
-import { validateListeningQuestions } from "../../../lib/listening-questions";
-import { DriveNetworkOrQuotaError } from "../../providers/google-drive";
+import { modeSkill } from "../../../lib/modes";
 import type { ManifestActivity } from "../../seed/manifest-parser";
 import type { DriveFileReader } from "./drive-files";
+import { readActivityFile, stageQuestions } from "./stage-activity-files";
 import type { StagingOutcome, SyncError } from "./types";
 
 export type StagedActivity = typeof activities.$inferInsert & {
   questions?: unknown;
 };
-
-function fatal(err: unknown, id: string, file: string): SyncError | null {
-  return err instanceof DriveNetworkOrQuotaError
-    ? {
-        id,
-        file,
-        message: `Lỗi mạng hoặc hạn ngạch Drive: ${err.message}. Đã ngừng đồng bộ để tránh ghi nửa chừng.`,
-      }
-    : null;
-}
-
-type FileRead =
-  | { ok: true; content: string }
-  | { ok: false; fatal?: SyncError };
-
-/** Đọc file Drive; `ok=false` (không fatal) = activity bỏ qua, `fatal` = dừng sync. */
-async function readActivityFile(
-  readFile: DriveFileReader,
-  actId: string,
-  path: string,
-  missingMessage: string,
-  loadErrorLabel: string,
-  errors: SyncError[]
-): Promise<FileRead> {
-  try {
-    const content = await readFile(path);
-    if (content === null) {
-      errors.push({ id: actId, file: path, message: missingMessage });
-      return { ok: false };
-    }
-    return { ok: true, content };
-  } catch (err) {
-    const fatalError = fatal(err, actId, path);
-    if (fatalError) return { ok: false, fatal: fatalError };
-    errors.push({
-      id: actId,
-      file: path,
-      message: `${loadErrorLabel} ${path}: ${err instanceof Error ? err.message : String(err)}`,
-    });
-    return { ok: false };
-  }
-}
-
-/** questions_file của bài nghe: bắt buộc + phải đúng schema màn nghe đọc. */
-async function stageQuestions(
-  act: ManifestActivity,
-  readFile: DriveFileReader,
-  errors: SyncError[]
-): Promise<{ value: unknown; fatal?: SyncError } | null> {
-  if (act.mode !== "listening") return { value: null };
-  if (!act.questions_file) {
-    errors.push({
-      id: act.id,
-      message: `Activity nghe "${act.id}" bắt buộc phải khai báo questions_file trong manifest.`,
-    });
-    return null;
-  }
-
-  const r = await readActivityFile(
-    readFile,
-    act.id,
-    act.questions_file,
-    `Activity "${act.id}" thiếu file câu hỏi nghe: ${act.questions_file}`,
-    "Lỗi tải/parse",
-    errors
-  );
-  if (!r.ok) {
-    if (r.fatal) return { value: null, fatal: r.fatal };
-    return null;
-  }
-
-  try {
-    const parsed = yaml.parse(r.content);
-    const rawList = Array.isArray(parsed) ? parsed : parsed?.questions;
-    const val = validateListeningQuestions(rawList);
-    if (!val.ok) {
-      errors.push({
-        id: act.id,
-        file: act.questions_file,
-        message: `File câu hỏi nghe "${act.questions_file}" không hợp lệ: ${val.errors.join("; ")}`,
-      });
-      return null;
-    }
-    return { value: val.value };
-  } catch (err) {
-    errors.push({
-      id: act.id,
-      file: act.questions_file,
-      message: `Lỗi tải/parse ${act.questions_file}: ${err instanceof Error ? err.message : String(err)}`,
-    });
-    return null;
-  }
-}
 
 export async function stageApprovedActivities(
   approvedActivities: ManifestActivity[],
@@ -185,10 +92,10 @@ export async function stageApprovedActivities(
       }
     }
 
-    // Tải questions_file (chỉ bài nghe)
+    // Tải questions_file (mọi activity có skill listening, gồm ielts-listening)
     const q = await stageQuestions(act, readFile, errors);
     if (q?.fatal) return { staged, errors, fatalError: q.fatal };
-    if (act.mode === "listening" && q === null) continue;
+    if (modeSkill(act.mode) === "listening" && q === null) continue;
     const questionsJson = q?.value ?? null;
 
     staged.push({

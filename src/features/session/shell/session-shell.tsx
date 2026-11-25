@@ -59,6 +59,7 @@ export function SessionShell({
     handleSaveDraft,
     handleSaveAndExit,
     handleExtendTimer,
+    handleToggleTimer,
     handleRequestHint,
     showCaptureSavedToast,
     onRequestExit,
@@ -131,7 +132,7 @@ export function SessionShell({
         timerActive={timer.isActive}
         isLowTime={timer.secondsRemaining < 300}
         elapsedRatio={elapsedRatio}
-        onToggleTimer={timer.toggle}
+        onToggleTimer={handleToggleTimer}
         onRequestExit={onRequestExit}
         saveStatus={{
           lastSavedAt: autosave.lastSavedAt,

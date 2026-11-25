@@ -27,14 +27,59 @@ export interface SpeakingModeState {
   showParentRef: boolean;
 }
 
+export interface SpeakingDraftPayload {
+  notes: string;
+  mediaId: string | null;
+  durationSeconds: number;
+}
+
+const SPEAKING_DRAFT_KIND = "speaking-draft-v1";
+
+/** Parse draft backward-compatible: bản cũ là plain text notes, bản mới là JSON có marker. */
+export function parseSpeakingDraft(raw: string | null | undefined): SpeakingDraftPayload {
+  const empty: SpeakingDraftPayload = { notes: "", mediaId: null, durationSeconds: 0 };
+  if (!raw) return empty;
+  try {
+    const parsed: unknown = JSON.parse(raw);
+    if (parsed && typeof parsed === "object") {
+      const p = parsed as Record<string, unknown>;
+      if (p.kind === SPEAKING_DRAFT_KIND) {
+        return {
+          notes: typeof p.notes === "string" ? p.notes : "",
+          mediaId: typeof p.mediaId === "string" ? p.mediaId : null,
+          durationSeconds:
+            typeof p.durationSeconds === "number" && Number.isFinite(p.durationSeconds)
+              ? Math.max(0, Math.round(p.durationSeconds))
+              : 0,
+        };
+      }
+    }
+  } catch {
+    // Plain text draft cũ — rơi xuống nhánh backward-compatible bên dưới.
+  }
+  return { ...empty, notes: raw };
+}
+
+/** JSON-in-string vì drafts.content là text column (giống pattern reading mode). */
+export function serializeSpeakingDraft(payload: SpeakingDraftPayload): string {
+  return JSON.stringify({
+    kind: SPEAKING_DRAFT_KIND,
+    notes: payload.notes,
+    mediaId: payload.mediaId,
+    durationSeconds: Math.max(0, Math.round(payload.durationSeconds)),
+  });
+}
+
 export function initialSpeakingState(data: SessionData): SpeakingModeState {
+  const draft = data.initialDraft ? parseSpeakingDraft(data.initialDraft) : null;
+  const mediaId = draft?.mediaId ?? null;
   return {
-    // Ưu tiên nháp; khi sửa lại → nạp sẵn ghi chú (body) của bản cha
-    notes: data.initialDraft || data.parentData?.submission.body || "",
-    mediaId: null,
-    mediaStatus: "idle",
+    // Ưu tiên nháp; khi sửa lại và chưa có nháp → nạp sẵn ghi chú của bản cha.
+    notes: draft?.notes ?? data.parentData?.submission.body ?? "",
+    mediaId,
+    mediaStatus: mediaId ? "ready" : "idle",
     mediaError: null,
-    durationSeconds: 0,
+    durationSeconds: draft?.durationSeconds ?? 0,
     isRecording: false,
     showParentRef: Boolean(data.parentData),
   };
@@ -94,7 +139,16 @@ export function buildSpeakingSubmission(state: SpeakingModeState): SubmissionInp
   return input;
 }
 
-/** Draft = ghi chú (audio không lưu nháp được); rỗng → autosave bỏ qua. */
+/**
+ * Draft gồm cả mediaId của audio đã upload. Blob thật không thể tái tạo sau
+ * reload, nhưng media trên server là nguồn bền; panel sẽ xin signed-url để
+ * nghe lại/xoá/ghi đè. Hoàn toàn rỗng → trả "" để autosave bỏ qua.
+ */
 export function buildSpeakingDraft(state: SpeakingModeState): string {
-  return state.notes;
+  if (!state.notes.trim() && !state.mediaId) return "";
+  return serializeSpeakingDraft({
+    notes: state.notes,
+    mediaId: state.mediaStatus === "ready" ? state.mediaId : null,
+    durationSeconds: state.durationSeconds,
+  });
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 import { apiFetch, ApiClientError } from "@/lib/api-client";
 import { createSubmissionResponseSchema } from "@/contracts/submission";
 import type { SubmissionInput, SubmissionResult } from "../modes/types";
@@ -21,12 +21,16 @@ export interface SubmitHook {
 export function useSubmit(sessionId: string): SubmitHook {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  // Ref chặn double-click trong cùng tick trước khi React kịp flush state.
+  const inFlightRef = useRef(false);
 
   const submit = useCallback(
     async (
       input: SubmissionInput,
       parentId?: string,
     ): Promise<SubmissionResult | null> => {
+      if (inFlightRef.current) return null;
+      inFlightRef.current = true;
       try {
         setIsSubmitting(true);
         setError(null);
@@ -52,6 +56,7 @@ export function useSubmit(sessionId: string): SubmitHook {
         );
         return null;
       } finally {
+        inFlightRef.current = false;
         setIsSubmitting(false);
       }
     },

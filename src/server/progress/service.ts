@@ -7,6 +7,10 @@ import {
   vocabularyVault,
 } from "@/db/schema";
 import { eq, and, desc, isNull } from "drizzle-orm";
+import { summarizeSubmissionSkills } from "./skill-stats";
+import { buildRevisionComparisons, type RevisionComparisonItem } from "./revision-comparisons";
+
+export type { RevisionComparisonItem } from "./revision-comparisons";
 
 export interface SkillCount {
   skill: "writing" | "reading" | "speaking" | "listening";
@@ -26,19 +30,7 @@ export interface RecurringErrorCategory {
  * Dates are ISO-8601 strings — identical over the API and across the
  * server→client boundary (avoids Date-vs-string drift).
  */
-export interface RevisionComparisonItem {
-  activityId: string;
-  activityTitle: string;
-  mode: string;
-  originalSubmissionId: string;
-  revisedSubmissionId: string;
-  originalDate: string;
-  revisedDate: string;
-  originalAssisted: boolean;
-  revisedAssisted: boolean;
-  originalExcerpt: string;
-  revisedExcerpt: string;
-}
+// Wire shape RevisionComparisonItem lives in revision-comparisons.ts and is re-exported above.
 
 export interface ProgressSummary {
   sessionsThisWeek: number;
@@ -109,42 +101,10 @@ export async function getProgressSummary(learnerId: string): Promise<ProgressSum
     ? undefined
     : "Chưa đủ bằng chứng để phân tích xu hướng học tập (cần tối thiểu 3 bài nộp).";
 
-  // Thống kê theo kỹ năng và tách độc lập / có hỗ trợ
-  const skillMap: Record<
-    "writing" | "reading" | "speaking" | "listening",
-    { total: number; independent: number; assisted: number }
-  > = {
-    writing: { total: 0, independent: 0, assisted: 0 },
-    reading: { total: 0, independent: 0, assisted: 0 },
-    speaking: { total: 0, independent: 0, assisted: 0 },
-    listening: { total: 0, independent: 0, assisted: 0 },
-  };
-
-  let independentCount = 0;
-  let assistedCount = 0;
-
-  for (const sub of allSubmissions) {
-    const mode = sub.activityMode as "writing" | "reading" | "speaking" | "listening";
-    if (skillMap[mode]) {
-      skillMap[mode].total += 1;
-      if (sub.assisted) {
-        skillMap[mode].assisted += 1;
-        assistedCount += 1;
-      } else {
-        skillMap[mode].independent += 1;
-        independentCount += 1;
-      }
-    }
-  }
-
-  const skillBreakdown: SkillCount[] = (
-    ["writing", "reading", "speaking", "listening"] as const
-  ).map((skill) => ({
-    skill,
-    total: skillMap[skill].total,
-    independent: skillMap[skill].independent,
-    assisted: skillMap[skill].assisted,
-  }));
+  // modeSkill() là nguồn duy nhất: ielts-writing/reading/speaking/listening
+  // không bị rơi khỏi thống kê như cast literal trước đây.
+  const { skillBreakdown, independentCount, assistedCount } =
+    summarizeSubmissionSkills(allSubmissions);
 
   // 3. Lỗi lặp: error_observations nhóm theo category
   const errors = await db
@@ -191,39 +151,7 @@ export async function getProgressSummary(learnerId: string): Promise<ProgressSum
   const masteredVocabCount = vocabItems.filter((v) => v.masteryLevel >= 4).length;
 
   // 5. Danh sách bài có bản sửa để so sánh (revision >= 2 hoặc parentId != null)
-  const revisions = allSubmissions.filter(
-    (s) => s.parentId !== null || s.revision > 1
-  );
-
-  const revisionComparisons: RevisionComparisonItem[] = [];
-  for (const rev of revisions) {
-    // Tìm bài gốc tương ứng
-    const original = allSubmissions.find(
-      (s) => s.id === rev.parentId || (s.activityId === rev.activityId && s.revision === 1)
-    );
-
-    if (original && original.id !== rev.id) {
-      // Tránh trùng lặp nếu có nhiều bản sửa
-      const alreadyAdded = revisionComparisons.some(
-        (rc) => rc.revisedSubmissionId === rev.id
-      );
-      if (!alreadyAdded) {
-        revisionComparisons.push({
-          activityId: rev.activityId,
-          activityTitle: rev.activityTitle,
-          mode: rev.activityMode,
-          originalSubmissionId: original.id,
-          revisedSubmissionId: rev.id,
-          originalDate: original.submittedAt.toISOString(),
-          revisedDate: rev.submittedAt.toISOString(),
-          originalAssisted: original.assisted,
-          revisedAssisted: rev.assisted,
-          originalExcerpt: (original.body || "").slice(0, 150),
-          revisedExcerpt: (rev.body || "").slice(0, 150),
-        });
-      }
-    }
-  }
+  const revisionComparisons = buildRevisionComparisons(allSubmissions);
 
   return {
     sessionsThisWeek,

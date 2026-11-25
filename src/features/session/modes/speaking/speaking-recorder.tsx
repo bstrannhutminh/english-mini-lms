@@ -27,6 +27,10 @@ export function SpeakingRecorder({
   mediaError,
   onRetryUpload,
   onClearTake,
+  restoredAudioUrl = null,
+  restoredDurationSeconds = 0,
+  restoreError = null,
+  hasRestoredTake = false,
   maxSeconds = 300,
 }: {
   recorder: Recorder;
@@ -35,13 +39,20 @@ export function SpeakingRecorder({
   mediaError: string | null;
   onRetryUpload: () => void;
   onClearTake: () => void;
+  restoredAudioUrl?: string | null;
+  restoredDurationSeconds?: number;
+  restoreError?: string | null;
+  hasRestoredTake?: boolean;
   maxSeconds?: number;
 }) {
   const { isRecording, blob, audioUrl, durationSeconds, error, isInAppBrowser } =
     recorder;
 
-  const currentStage = isRecording ? 2 : blob ? 3 : 1;
-  const done = Boolean(blob) && !isRecording;
+  const hasTake = Boolean(blob) || hasRestoredTake;
+  const playbackUrl = audioUrl || restoredAudioUrl;
+  const displayDuration = blob || isRecording ? durationSeconds : restoredDurationSeconds;
+  const currentStage = isRecording ? 2 : hasTake ? 3 : 1;
+  const done = hasTake && !isRecording;
 
   return (
     <section className="rounded-2xl border border-border bg-surface p-4 shadow-card sm:p-6">
@@ -90,12 +101,12 @@ export function SpeakingRecorder({
               isRecording ? "text-red-700" : "text-text"
             )}
           >
-            {formatTime(durationSeconds)}
+            {formatTime(displayDuration)}
           </span>
           <span className="text-sm tabular-nums text-text-muted">/ {formatTime(maxSeconds)}</span>
         </p>
 
-        {!isRecording && !blob && (
+        {!isRecording && !hasTake && (
           <button
             type="button"
             onClick={() => void recorder.start()}
@@ -134,20 +145,26 @@ export function SpeakingRecorder({
         <p className="mt-3 max-w-sm text-base leading-relaxed text-text-secondary">
           {isRecording
             ? "Đang thu âm giọng nói của bạn… Nhấn Dừng khi nói xong."
-            : blob
+            : hasTake
               ? "Đã thu xong. Hãy nghe lại trước khi bấm Nộp bài."
               : "Chọn nơi yên tĩnh và bấm Bắt đầu ghi âm khi sẵn sàng."}
         </p>
       </div>
 
-      {audioUrl && !isRecording && (
+      {playbackUrl && !isRecording && (
         <div className="mt-4">
           <p className="mb-2 flex items-center gap-2 text-base font-semibold text-text">
             <Icon name="volume" className="h-4 w-4 text-primary" />
             <span>Nghe lại bản ghi trước khi nộp</span>
           </p>
-          <audio controls src={audioUrl} className="h-11 w-full" />
+          <audio controls src={playbackUrl} className="h-11 w-full" />
         </div>
+      )}
+
+      {restoreError && !playbackUrl && (
+        <p role="alert" className="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+          {restoreError}
+        </p>
       )}
 
       {done && (

@@ -84,8 +84,8 @@ describe("Step 5: Speaking (S1) & Listening/Shadowing (L1) Tests", () => {
     ).rejects.toThrow(/vượt quá giới hạn cho phép/);
   });
 
-  // TEST 3: Speaking submission without media -> throws 422
-  it("Requirement C.2: submitting speaking activity without media_id must throw 422 ValidationError", async () => {
+  // TEST 3: Speaking text-only là hợp lệ; pronunciation sẽ not_assessable ở provider.
+  it("Requirement C.2: submitting speaking activity without media_id succeeds as text-only", async () => {
     // Ensure S1 exists and approved
     const [s1] = await db
       .select({ id: activities.id })
@@ -100,22 +100,25 @@ describe("Step 5: Speaking (S1) & Listening/Shadowing (L1) Tests", () => {
     const session = await createSession(testLearnerId, "S1", 30);
     speakingSessionId = session.id;
 
-    // Nộp không có mediaId
-    await expect(
-      createSubmissionAndAssess(speakingSessionId, testLearnerId, "Sample transcript text without audio", undefined, undefined)
-    ).rejects.toThrowError(ValidationError);
+    const result = await createSubmissionAndAssess(
+      speakingSessionId,
+      testLearnerId,
+      "Sample transcript text without audio",
+      undefined,
+      undefined
+    );
 
-    try {
-      await createSubmissionAndAssess(speakingSessionId, testLearnerId, "text", undefined, undefined);
-    } catch (err) {
-      expect(err).toBeInstanceOf(ValidationError);
-      expect((err as ValidationError).statusCode).toBe(422);
-      expect((err as ValidationError).message).toContain("Nộp bài Speaking bắt buộc phải có tệp âm thanh");
-    }
+    expect(result.submission).toBeDefined();
+    expect(result.submission.mediaId).toBeNull();
+    expect(result.submission.modality).toBe("text");
+    expect(result.assessment).toBeDefined();
   });
 
   // TEST 4: Speaking submission with media_id that is NOT ready -> throws 422
   it("Requirement A.2: submitting speaking activity with media_id not 'ready' must throw 422", async () => {
+    // Dùng phiên mới vì test text-only phía trên đã hoàn thành speakingSessionId.
+    const pendingSession = await createSession(testLearnerId, "S1", 30);
+
     // Tạo media_object trạng thái pending
     const [pendingMedia] = await db
       .insert(mediaObjects)
@@ -130,7 +133,7 @@ describe("Step 5: Speaking (S1) & Listening/Shadowing (L1) Tests", () => {
 
     await expect(
       createSubmissionAndAssess(
-        speakingSessionId,
+        pendingSession.id,
         testLearnerId,
         "Sample transcript",
         undefined,

@@ -13,6 +13,8 @@ export interface SessionTimer {
   /** Mở một khoảng học thêm mới sau khi hết giờ. */
   extend: (seconds: number) => void;
   stop: () => void;
+  /** Đọc trạng thái paused tức thời từ clock ref — tránh stale state khi double-click. */
+  peekPaused: () => boolean;
 }
 
 /** Deadline giữ thời gian chính xác khi trình duyệt trì hoãn tick hoặc chạy lại effect. */
@@ -85,5 +87,6 @@ export function useSessionTimer(
       setActive(false);
       if (sessionId) clearPersistedTimer(sessionId);
     },
+    peekPaused: () => clock.current.paused,
   };
 }

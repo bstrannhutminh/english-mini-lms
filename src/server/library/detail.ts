@@ -48,7 +48,7 @@ export async function getActivityDetail(
   let sourceContext: ActivityDetail["sourceContext"] = null;
 
   // Nếu là bài reading và có segment_ids, nạp thông tin nguồn sách/trang
-  if (act.mode === "reading" && act.segmentIds && act.segmentIds.length > 0) {
+  if (modeSkill(act.mode) === "reading" && act.segmentIds && act.segmentIds.length > 0) {
     const firstSegmentId = act.segmentIds[0];
     const segmentResult = await db
       .select({

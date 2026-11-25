@@ -125,8 +125,42 @@ describe("buildSpeakingSubmission", () => {
   });
 });
 
-describe("buildSpeakingDraft", () => {
-  it("returns notes as draft content", () => {
-    expect(buildSpeakingDraft(makeState({ notes: "note" }))).toBe("note");
+describe("speaking draft persistence", () => {
+  it("serializes notes-only draft as JSON but remains backward-compatible when restored", () => {
+    const raw = buildSpeakingDraft(makeState({ notes: "note" }));
+    expect(raw).not.toBe("note");
+    const restored = initialSpeakingState(makeData({ initialDraft: raw }));
+    expect(restored).toMatchObject({ notes: "note", mediaId: null, mediaStatus: "idle" });
+  });
+
+  it("persists uploaded mediaId + duration and restores them as ready take", () => {
+    const raw = buildSpeakingDraft(
+      makeState({
+        notes: "dàn ý",
+        mediaId: "media-1",
+        mediaStatus: "ready",
+        durationSeconds: 87,
+      }),
+    );
+    const restored = initialSpeakingState(makeData({ initialDraft: raw }));
+    expect(restored).toMatchObject({
+      notes: "dàn ý",
+      mediaId: "media-1",
+      mediaStatus: "ready",
+      durationSeconds: 87,
+    });
+  });
+
+  it("does not persist mediaId while upload is not ready", () => {
+    const raw = buildSpeakingDraft(
+      makeState({ notes: "x", mediaId: "uploading-id", mediaStatus: "uploading" }),
+    );
+    const restored = initialSpeakingState(makeData({ initialDraft: raw }));
+    expect(restored.mediaId).toBeNull();
+    expect(restored.mediaStatus).toBe("idle");
+  });
+
+  it("returns empty string when neither notes nor uploaded audio exists", () => {
+    expect(buildSpeakingDraft(makeState())).toBe("");
   });
 });

@@ -12,6 +12,14 @@ export interface SessionEvents {
     kind: SessionEventKind,
     payload?: Record<string, unknown>,
   ) => Promise<boolean>;
+  /**
+   * Ghi event khi sắp rời trang bằng sendBeacon/fetch keepalive.
+   * Không đọc response nên chỉ dùng cho pause/fire-and-forget.
+   */
+  postEventReliable: (
+    kind: SessionEventKind,
+    payload?: Record<string, unknown>,
+  ) => void;
   posting: boolean;
 }
 
@@ -46,5 +54,38 @@ export function useSessionEvents(sessionId: string): SessionEvents {
     [sessionId],
   );
 
-  return { postEvent, posting };
+  // Dùng cho các nhánh sắp rời trang: ưu tiên sendBeacon, fallback fetch
+  // keepalive. Lỗi chỉ log, tuyệt đối không làm sập luồng nộp/thoát.
+  const postEventReliable = useCallback(
+    (kind: SessionEventKind, payload?: Record<string, unknown>) => {
+      try {
+        const body = createSessionEventRequestSchema.parse({ kind, payload });
+        const raw = JSON.stringify(body);
+        const url = `/api/v1/sessions/${sessionId}/events`;
+
+        if (typeof navigator !== "undefined" && navigator.sendBeacon) {
+          const sent = navigator.sendBeacon(
+            url,
+            new Blob([raw], { type: "application/json" })
+          );
+          if (sent) return;
+        }
+
+        void fetch(url, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "same-origin",
+          body: raw,
+          keepalive: true,
+        }).catch((err) => {
+          console.error(`Lỗi khi ghi sự kiện "${kind}" lúc rời trang:`, err);
+        });
+      } catch (err) {
+        console.error(`Payload sự kiện "${kind}" không hợp lệ:`, err);
+      }
+    },
+    [sessionId]
+  );
+
+  return { postEvent, postEventReliable, posting };
 }
